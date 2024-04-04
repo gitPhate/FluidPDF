@@ -7,6 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\CSharp9Support\IsExternalInit.cs" Link="Support\CSharp9\IsExternalInit.cs" />
+    <Compile Include="..\..\CSharp9Support\NullableExtensions.cs" Link="Support\CSharp9\NullableExtensions.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="KTemplating.Core" Version="2.6.2-beta01" />
     <PackageReference Include="Kyklos.Kernel.Serialization.Json" Version="2.5.1-beta01" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" />
@@ -14,6 +19,10 @@
     <PackageReference Include="PuppeteerSharp" Version="16.0.0" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
     <PackageReference Include="System.Text.Encodings.Web" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Support\CSharp9\" />
   </ItemGroup>
 
 </Project>
