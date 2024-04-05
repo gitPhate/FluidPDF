@@ -1,7 +1,5 @@
-﻿using Kyklos.Kernel.Core.Support;
-using PdfSharp.Pdf;
+﻿using PdfSharp.Pdf;
 using PdfSharp.Pdf.IO;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -12,9 +10,8 @@ namespace FluidPDF.Core.PDFSharp
         private static PdfDocument RegeneratePDFImpl(PdfDocument inputDocument)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            IEnumerable<PdfPage> inputPages = inputDocument.Pages;
             PdfDocument outputDocument = new();
-            foreach (PdfPage page in inputPages)
+            foreach (PdfPage page in inputDocument.Pages)
             {
                 outputDocument.AddPage(page);
             }
@@ -23,17 +20,16 @@ namespace FluidPDF.Core.PDFSharp
 
         public static void RegeneratePDF(Stream pdfStream, Stream outputDocumentStream)
         {
-            PdfDocument inputDocument = PdfReader.Open(pdfStream, PdfDocumentOpenMode.Import);
-            PdfDocument outputDocument = RegeneratePDFImpl(inputDocument);
+            using PdfDocument inputDocument = PdfReader.Open(pdfStream, PdfDocumentOpenMode.Import);
+            using PdfDocument outputDocument = RegeneratePDFImpl(inputDocument);
             outputDocument.Save(outputDocumentStream);
         }
 
         public static byte[] RegeneratePDF(Stream pdfStream)
         {
-            using Stream outputDocumentStream = new MemoryStream();
+            using MemoryStream outputDocumentStream = new();
             RegeneratePDF(pdfStream, outputDocumentStream);
-            return outputDocumentStream.ToByteArray();
+            return outputDocumentStream.ToArray();
         }
-
     }
 }
