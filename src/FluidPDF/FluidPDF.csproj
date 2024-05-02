@@ -4,6 +4,10 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>9.0</LangVersion>
     <Nullable>enable</Nullable>
+    <AssemblyVersion>1.0.1.0</AssemblyVersion>
+    <FileVersion>1.0.1</FileVersion>
+    <Version>1.0.1</Version>
+    <Description>PDF reports generation library with HTML templates and Liquid markup language</Description>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,5 +28,4 @@
   <ItemGroup>
     <Folder Include="Support\CSharp9\" />
   </ItemGroup>
-
 </Project>
