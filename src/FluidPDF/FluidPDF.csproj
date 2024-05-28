@@ -17,10 +17,10 @@
 
   <ItemGroup>
     <PackageReference Include="KTemplating.Core" Version="2.6.2-beta01" />
-    <PackageReference Include="Kyklos.Kernel.Serialization.Json" Version="2.5.1-beta01" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" />
-    <PackageReference Include="PDFsharpNetStandard2" Version="1.51.4845" />
-    <PackageReference Include="PuppeteerSharp" Version="16.0.0" />
+    <PackageReference Include="PDFsharp" Version="6.1.0" />
+    <PackageReference Include="PuppeteerSharp" Version="18.0.0" />
+    <PackageReference Include="Sisifo.Json" Version="1.0.3" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
     <PackageReference Include="System.Text.Encodings.Web" Version="8.0.0" />
   </ItemGroup>

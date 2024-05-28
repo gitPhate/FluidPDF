@@ -1,4 +1,4 @@
-﻿using Kyklos.Kernel.Serialization.Json;
+﻿using Sisifo.Json;
 
 namespace FluidPDF.Core.Builder
 {
@@ -7,7 +7,7 @@ namespace FluidPDF.Core.Builder
         public static IFluidPDFBuilder NewWithModel<T>(T model) => new FluidPDFInternalBuilder<T>(model);
         public static IFluidPDFBuilder NewWithJsonModel(object model)
         {
-            string jsonModel = model.FormatAsJSon();
+            string jsonModel = model.ToJson();
             return NewWithModel(jsonModel);
         }
     }
