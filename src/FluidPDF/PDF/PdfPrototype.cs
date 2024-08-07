@@ -1,4 +1,4 @@
-﻿using FluidPDF.Core.PDFSharp;
+﻿using Sisifo.PDF;
 using Kyklos.Kernel.Core.Asserts;
 using PuppeteerSharp;
 using System.IO;
@@ -29,7 +29,7 @@ namespace FluidPDF.Core.PDF
             }
 
             using Stream stream = await Page.PdfStreamAsync(PdfOptions).ConfigureAwait(false);
-            return PDFSharpUtils.RegeneratePDF(stream);
+            return PDFRegenHelper.RegeneratePDF(stream);
         }
 
         public async Task<Stream> ToStreamAsync()
@@ -40,7 +40,7 @@ namespace FluidPDF.Core.PDF
                 return stream;
             }
             Stream outputStream = new MemoryStream();
-            PDFSharpUtils.RegeneratePDF(stream, outputStream);
+            PDFRegenHelper.RegeneratePDF(stream, outputStream);
             stream.Position = 0;
             return outputStream;
         }
@@ -53,7 +53,7 @@ namespace FluidPDF.Core.PDF
             }
             using FileStream outputStream = File.Open(filePath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Write);
             using Stream stream = await Page.PdfStreamAsync(PdfOptions).ConfigureAwait(false);
-            PDFSharpUtils.RegeneratePDF(stream, outputStream);
+            PDFRegenHelper.RegeneratePDF(stream, outputStream);
         }
 
         public void Dispose() => DisposeAsync().GetAwaiter().GetResult();
