@@ -41,6 +41,7 @@ namespace FluidPDF.Core.PDF
             }
             Stream outputStream = new MemoryStream();
             PDFSharpUtils.RegeneratePDF(stream, outputStream);
+            stream.Position = 0;
             return outputStream;
         }
 
