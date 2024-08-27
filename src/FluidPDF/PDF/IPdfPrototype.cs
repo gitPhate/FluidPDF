@@ -7,7 +7,7 @@ namespace FluidPDF.PDF
     public interface IPdfPrototype : IDisposable, IAsyncDisposable
     {
         Task<byte[]> ToByteArrayAsync();
-        Task<Stream> ToStreamAsync();
+        Task ToStreamAsync(Stream outputStream);
         Task ToFileAsync(string filePath);
     }
 }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FluidPDF.PDF
 {
-    internal class PdfPrototype : IPdfPrototype
+    internal sealed class PdfPrototype : IPdfPrototype
     {
         internal IBrowser Browser { get; }
         internal IPage Page { get; }
@@ -43,10 +43,6 @@ namespace FluidPDF.PDF
             {
                 await stream.CopyToAsync(outputStream).ConfigureAwait(false);
             }
-            Stream outputStream = new MemoryStream();
-            PDFRegenHelper.RegeneratePDF(stream, outputStream);
-            stream.Position = 0;
-            return outputStream;
         }
 
         public async Task ToFileAsync(string filePath)
@@ -62,8 +58,16 @@ namespace FluidPDF.PDF
 
         public void Dispose()
         {
-            Page.Dispose();
-            Browser.Dispose();
+            if (!Page.IsClosed)
+            {
+                Page.CloseAsync().GetAwaiter().GetResult();
+            }
+
+            if (!Browser.IsClosed)
+            {
+                Browser.CloseAsync().GetAwaiter().GetResult();
+            }
+
             Page.Dispose();
             Browser.Dispose();
         }
