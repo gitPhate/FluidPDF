@@ -1,7 +1,7 @@
-﻿using FluidPDF.Core.PDF;
+﻿using FluidPDF.PDF;
 using System.Threading.Tasks;
 
-namespace FluidPDF.Core.Builder
+namespace FluidPDF.Builder
 {
     public interface IFluidPDFBuilder
     {

@@ -1,8 +1,8 @@
-﻿using FluidPDF.Core.Exceptions;
-using FluidPDF.Core.KTemplating;
-using FluidPDF.Core.PDF;
-using FluidPDF.Core.PuppeteerSharp;
-using FluidPDF.Core.Support.IO;
+﻿using FluidPDF.Exceptions;
+using FluidPDF.KTemplating;
+using FluidPDF.PDF;
+using FluidPDF.PuppeteerSharp;
+using FluidPDF.Support.IO;
 using Kyklos.Kernel.Core.Asserts;
 using Kyklos.Kernel.Core.Strings;
 using PuppeteerSharp.Media;
@@ -11,7 +11,7 @@ using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace FluidPDF.Core.Builder
+namespace FluidPDF.Builder
 {
     internal class FluidPDFInternalBuilder<T> : IFluidPDFBuilder
     {

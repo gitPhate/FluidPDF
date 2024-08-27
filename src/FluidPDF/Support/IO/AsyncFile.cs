@@ -3,7 +3,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FluidPDF.Core.Support.IO
+namespace FluidPDF.Support.IO
 {
     internal static class AsyncFile
     {

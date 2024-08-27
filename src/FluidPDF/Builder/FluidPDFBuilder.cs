@@ -1,6 +1,6 @@
 ﻿using Sisifo.Json;
 
-namespace FluidPDF.Core.Builder
+namespace FluidPDF.Builder
 {
     public class FluidPDFBuilder
     {

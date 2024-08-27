@@ -1,5 +1,5 @@
-﻿using FluidPDF.Core.KTemplating;
-using FluidPDF.Core.PuppeteerSharp;
+﻿using FluidPDF.KTemplating;
+using FluidPDF.PuppeteerSharp;
 using KTemplating.Core.Support;
 using Kyklos.Kernel.Core.Asserts;
 using Newtonsoft.Json.Linq;
@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
 
-namespace FluidPDF.Core.PDF
+namespace FluidPDF.PDF
 {
     internal class PdfPrototypeFactory
     {

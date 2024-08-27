@@ -7,7 +7,7 @@ using System.Data;
 using System.Globalization;
 using System.Threading.Tasks;
 
-namespace FluidPDF.Core.KTemplating
+namespace FluidPDF.KTemplating
 {
     internal class KTemplateHelperWrapperOptions
     {

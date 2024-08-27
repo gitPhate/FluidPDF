@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace FluidPDF.Core.Exceptions
+namespace FluidPDF.Exceptions
 {
     public class FluidPDFBuilderConfigException : Exception
     {

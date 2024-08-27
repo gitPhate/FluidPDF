@@ -1,10 +1,10 @@
-﻿using Sisifo.PDF;
-using Kyklos.Kernel.Core.Asserts;
+﻿using Kyklos.Kernel.Core.Asserts;
 using PuppeteerSharp;
+using Sisifo.PDF;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace FluidPDF.Core.PDF
+namespace FluidPDF.PDF
 {
     internal class PdfPrototype : IPdfPrototype
     {
@@ -56,14 +56,20 @@ namespace FluidPDF.Core.PDF
             PDFRegenHelper.RegeneratePDF(stream, outputStream);
         }
 
-        public void Dispose() => DisposeAsync().GetAwaiter().GetResult();
+        public void Dispose()
+        {
+            Page.Dispose();
+            Browser.Dispose();
+            Page.Dispose();
+            Browser.Dispose();
+        }
 
         public async ValueTask DisposeAsync()
         {
             await Page.CloseAsync().ConfigureAwait(false);
             await Browser.CloseAsync().ConfigureAwait(false);
-            Page.Dispose();
-            Browser.Dispose();
+            await Page.DisposeAsync().ConfigureAwait(false);
+            await Browser.DisposeAsync().ConfigureAwait(false);
         }
     }
 }
