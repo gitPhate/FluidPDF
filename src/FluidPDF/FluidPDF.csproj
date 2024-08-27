@@ -19,10 +19,8 @@
     <PackageReference Include="KTemplating.Core" Version="2.6.2-beta12" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" />
     <PackageReference Include="PuppeteerSharp" Version="19.0.1" />
-    <PackageReference Include="Sisifo.Json" Version="1.0.5" />
+    <PackageReference Include="Sisifo.Json" Version="1.0.6" />
     <PackageReference Include="Sisifo.PDF" Version="1.1.0" />
-    <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
-    <PackageReference Include="System.Text.Encodings.Web" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>
