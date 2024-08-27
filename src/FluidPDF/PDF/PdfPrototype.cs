@@ -32,12 +32,16 @@ namespace FluidPDF.PDF
             return PDFRegenHelper.RegeneratePDF(stream);
         }
 
-        public async Task<Stream> ToStreamAsync()
+        public async Task ToStreamAsync(Stream outputStream)
         {
             using Stream stream = await Page.PdfStreamAsync(PdfOptions).ConfigureAwait(false);
-            if (!ToBeCompressed)
+            if (ToBeCompressed)
             {
-                return stream;
+                PDFRegenHelper.RegeneratePDF(stream, outputStream);
+            }
+            else
+            {
+                await stream.CopyToAsync(outputStream).ConfigureAwait(false);
             }
             Stream outputStream = new MemoryStream();
             PDFRegenHelper.RegeneratePDF(stream, outputStream);
