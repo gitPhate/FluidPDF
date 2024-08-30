@@ -50,7 +50,6 @@ namespace FluidPDF.Prototype
             model switch
             {
                 DataRow => FluidHelper.RenderTemplateWithDataRowAsync(template, (model as DataRow)!, cultureInfo: cultureInfo, encodeHtml: true),
-                DataTable => FluidHelper.RenderTemplateWithDataTableAsync(template, (model as DataTable)!, cultureInfo: cultureInfo, encodeHtml: true),
                 Dictionary<string, object> => FluidHelper.RenderTemplateWithDictionaryAsync(template, (model as Dictionary<string, object>)!, cultureInfo: cultureInfo, encodeHtml: true),
                 string => FluidHelper.RenderTemplateWithJsonStringAsync(template, (model as string)!, cultureInfo: cultureInfo, encodeHtml: true),
                 FluidModel[] => FluidHelper.RenderTemplateWithMultipleModelsAsync(template, model as FluidModel[] ?? [], cultureInfo: cultureInfo, encodeHtml: true),

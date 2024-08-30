@@ -15,16 +15,6 @@ namespace FluidPDF.Fluid
 
         private static readonly FluidParser _parser = new();
 
-        internal static ValueTask<string> RenderTemplateWithDataTableAsync(string templateContent, DataTable dataTable, string modelName = _modelName, CultureInfo? cultureInfo = null, TimeZoneInfo? timeZone = null, bool encodeHtml = false) =>
-            RenderTemplateAsync
-            (
-                [FluidModel.FromDataTable(modelName, dataTable)],
-                templateContent,
-                encodeHtml,
-                cultureInfo,
-                timeZone
-            );
-
         internal static ValueTask<string> RenderTemplateWithDataRowAsync(string templateContent, DataRow dataRow, string modelName = _modelName, CultureInfo? cultureInfo = null, TimeZoneInfo? timeZone = null, bool encodeHtml = false) =>
             RenderTemplateAsync
             (
@@ -100,7 +90,7 @@ namespace FluidPDF.Fluid
 
         private static TemplateContext NewTemplateContext(FluidModel[] models, CultureInfo? cultureInfo = null, TimeZoneInfo? timeZone = null)
         {
-            TemplateContext context = new()
+            TemplateContext context = new(FluidTemplateOptions.Instance)
             {
                 CultureInfo = cultureInfo ?? CultureInfo.InvariantCulture
             };

@@ -8,8 +8,7 @@ namespace FluidPDF.Fluid
 {
     public enum FluidModelType
     {
-        DataTable = 0,
-        DataRow,
+        DataRow = 0,
         Dictionary,
         JsonString,
         Object,
@@ -21,7 +20,6 @@ namespace FluidPDF.Fluid
         public string Name { get; }
         public FluidModelType Type { get; }
 
-        public DataTable? DataTable { get; }
         public DataRow? DataRow { get; }
         public Dictionary<string, object>? Dictionary { get; }
         public string? JsonString { get; }
@@ -31,7 +29,6 @@ namespace FluidPDF.Fluid
         public object? Value =>
             Type switch
             {
-                FluidModelType.DataTable => DataTable,
                 FluidModelType.DataRow => DataRow,
                 FluidModelType.Dictionary => Dictionary,
                 FluidModelType.JsonString => JsonNode.Parse(JsonString!),
@@ -54,7 +51,6 @@ namespace FluidPDF.Fluid
         {
             Name = modelName;
             Type = kModelType;
-            DataTable = dataTable;
             DataRow = dataRow;
             Dictionary = dictionary;
             JsonString = jsonString;
@@ -62,7 +58,6 @@ namespace FluidPDF.Fluid
             PlainValue = plainValue;
         }
 
-        public bool IsDataTable => IsFluidModelType(FluidModelType.DataTable);
         public bool IsDataRowe => IsFluidModelType(FluidModelType.DataRow);
         public bool IsDictionary => IsFluidModelType(FluidModelType.Dictionary);
         public bool IsJsonString => IsFluidModelType(FluidModelType.JsonString);
@@ -70,13 +65,6 @@ namespace FluidPDF.Fluid
         public bool IsObject => IsFluidModelType(FluidModelType.Object);
 
         private bool IsFluidModelType(FluidModelType value) => Type == value;
-
-        public static FluidModel FromDataTable(string modelName, DataTable dataTable) =>
-            new(
-                modelName: modelName,
-                kModelType: FluidModelType.DataTable,
-                dataTable: dataTable.GetNonNullOrThrow(nameof(dataTable))
-            );
 
         public static FluidModel FromDataRow(string modelName, DataRow dataRow) =>
             new(

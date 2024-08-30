@@ -36,9 +36,6 @@ namespace FluidPDF.Fluid
                     }
                 );
 
-            templateOptions.MemberAccessStrategy.Register<DataTable>();
-
-
             templateOptions.MemberAccessStrategy.Register<JsonNode, object>((src, name) => src[name]!);
 
             templateOptions.ValueConverters.Add(x => x is JsonNode o ? new ObjectValue(o) : null);
