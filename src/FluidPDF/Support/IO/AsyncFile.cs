@@ -1,5 +1,4 @@
-﻿using Kyklos.Kernel.Core.Asserts;
-using System.IO;
+﻿using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -15,8 +14,6 @@ namespace FluidPDF.Support.IO
 
         private static async Task<string> InternalReadAllTextAsync(string path, Encoding? encoding = null)
         {
-            path.AssertArgumentHasText(nameof(path));
-
             using StreamReader sr = new(path, encoding ?? Encoding.Default, true, _StreamWriterDefaultBufferSize);
             return await sr.ReadToEndAsync().ConfigureAwait(false);
         }

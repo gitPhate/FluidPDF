@@ -1,5 +1,4 @@
-﻿using Kyklos.Kernel.Core.Asserts;
-using Kyklos.Kernel.Core.Strings;
+﻿using FluidPDF.Support;
 using PuppeteerSharp;
 using PuppeteerSharp.BrowserData;
 using System.IO;
@@ -36,8 +35,6 @@ namespace FluidPDF.PuppeteerSharp
 
         private static async Task<InstalledBrowser> FetchCromiumAsync(ChromiumRetrieverOptions options)
         {
-            options.AssertArgumentNotNull(nameof(options));
-
             InstalledBrowser browser =
                 await new BrowserFetcher
                 (

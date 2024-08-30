@@ -1,9 +1,8 @@
 ﻿using FluidPDF.Exceptions;
 using FluidPDF.Prototype;
 using FluidPDF.PuppeteerSharp;
+using FluidPDF.Support;
 using FluidPDF.Support.IO;
-using Kyklos.Kernel.Core.Asserts;
-using Kyklos.Kernel.Core.Strings;
 using PuppeteerSharp.Media;
 using System;
 using System.Globalization;
@@ -146,7 +145,6 @@ namespace FluidPDF.Builder
 
         public IFluidPDFBuilder WithCulture(string cultureCode)
         {
-            cultureCode.AssertArgumentHasText(nameof(cultureCode));
             _cultureInfo = new CultureInfo(cultureCode);
             return this;
         }
@@ -159,8 +157,6 @@ namespace FluidPDF.Builder
 
         public IFluidPDFBuilder WithTemplateFile(string filePath)
         {
-            filePath.AssertArgumentHasText(nameof(filePath));
-
             if (!File.Exists(filePath))
             {
                 throw new FileNotFoundException("The file was not found", filePath);
@@ -201,9 +197,9 @@ namespace FluidPDF.Builder
 
         private async ValueTask<string> GetTemplateAsync()
         {
-            if (!_template.IsNullOrBlankString())
+            if (_template.IsNotNullAndNotBlank())
             {
-                return _template;
+                return _template!;
             }
 
             string template =
@@ -235,8 +231,6 @@ namespace FluidPDF.Builder
                 throw new FluidPDFBuilderConfigException($"One or more information is missing: {missingInfo}");
             }
         }
-
-
     }
 
     public enum FluidPDFMargins
