@@ -1,14 +1,7 @@
-﻿using Sisifo.Json;
-
-namespace FluidPDF.Builder
+﻿namespace FluidPDF.Builder
 {
     public class FluidPDFBuilder
     {
-        public static IFluidPDFBuilder NewWithModel<T>(T model) => new FluidPDFInternalBuilder<T>(model);
-        public static IFluidPDFBuilder NewWithJsonModel(object model)
-        {
-            string jsonModel = model.ToJson();
-            return NewWithModel(jsonModel);
-        }
+        public static IFluidPDFBuilder NewWithModel<T>(T model) where T : notnull => new FluidPDFInternalBuilder<T>(model);
     }
 }

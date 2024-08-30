@@ -1,6 +1,5 @@
 ﻿using FluidPDF.Exceptions;
-using FluidPDF.KTemplating;
-using FluidPDF.PDF;
+using FluidPDF.Prototype;
 using FluidPDF.PuppeteerSharp;
 using FluidPDF.Support.IO;
 using Kyklos.Kernel.Core.Asserts;
@@ -14,6 +13,7 @@ using System.Threading.Tasks;
 namespace FluidPDF.Builder
 {
     internal class FluidPDFInternalBuilder<T> : IFluidPDFBuilder
+        where T : notnull
     {
         private const string _standaloneChromePath = "standalone";
 
@@ -192,10 +192,7 @@ namespace FluidPDF.Builder
                     Scale = Math.Min(Math.Max(_scale / 100M, 0.1M), 2) //between 0.1 and 2
                 };
 
-            KTemplateHelperWrapperOptions wrapperOptions = new(_cultureInfo);
-            KTemplateHelperWrapper wrapper = new(wrapperOptions);
-
-            PdfPrototypeFactory factory = new(chromiumRetrieverOptions, pdfPrototypeFactoryOptions, wrapper);
+            PdfPrototypeFactory factory = new(chromiumRetrieverOptions, pdfPrototypeFactoryOptions);
 
             string template = await GetTemplateAsync().ConfigureAwait(false);
             IPdfPrototype prototype = await factory.NewPdfPrototypeAsync(template, _model, _toBeCompressed).ConfigureAwait(false);
