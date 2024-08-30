@@ -4,6 +4,7 @@ using FluidPDF.Support;
 using PuppeteerSharp;
 using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
 using System.Threading.Tasks;
 
 namespace FluidPDF.Prototype
@@ -19,10 +20,10 @@ namespace FluidPDF.Prototype
             _fluidPdfOptions = fluidPDFOptions.GetNonNullOrThrow(nameof(fluidPDFOptions));
         }
 
-        internal async Task<IPdfPrototype> NewPdfPrototypeAsync<T>(string template, T model, bool toBeCompressed)
+        internal async Task<IPdfPrototype> NewPdfPrototypeAsync<T>(string template, T model, bool toBeCompressed, CultureInfo? cultureInfo = null)
             where T : notnull
         {
-            string renderedTemplate = await RenderTemplateByTypeAsync(template, model).ConfigureAwait(false);
+            string renderedTemplate = await RenderTemplateByTypeAsync(template, model, cultureInfo).ConfigureAwait(false);
 
             IBrowser browser = await ChromiumRetriever.RetrieveBrowserInstanceAsync(_chromiumRetrieverOptions).ConfigureAwait(false);
             IPage page = await browser.NewPageAsync().ConfigureAwait(false);
@@ -44,15 +45,15 @@ namespace FluidPDF.Prototype
             return prototype;
         }
 
-        private ValueTask<string> RenderTemplateByTypeAsync<T>(string template, T model)
+        private ValueTask<string> RenderTemplateByTypeAsync<T>(string template, T model, CultureInfo? cultureInfo = null)
             where T : notnull =>
             model switch
             {
-                DataRow => FluidHelper.RenderTemplateWithDataRowAsync(template, (model as DataRow)!),
-                DataTable => FluidHelper.RenderTemplateWithDataTableAsync(template, (model as DataTable)!),
-                Dictionary<string, object> => FluidHelper.RenderTemplateWithDictionaryAsync(template, (model as Dictionary<string, object>)!),
-                string => FluidHelper.RenderTemplateWithJsonStringAsync(template, (model as string)!),
-                FluidModel[] => FluidHelper.RenderTemplateWithMultipleModelsAsync(template, model as FluidModel[] ?? []),
+                DataRow => FluidHelper.RenderTemplateWithDataRowAsync(template, (model as DataRow)!, cultureInfo: cultureInfo, encodeHtml: true),
+                DataTable => FluidHelper.RenderTemplateWithDataTableAsync(template, (model as DataTable)!, cultureInfo: cultureInfo, encodeHtml: true),
+                Dictionary<string, object> => FluidHelper.RenderTemplateWithDictionaryAsync(template, (model as Dictionary<string, object>)!, cultureInfo: cultureInfo, encodeHtml: true),
+                string => FluidHelper.RenderTemplateWithJsonStringAsync(template, (model as string)!, cultureInfo: cultureInfo, encodeHtml: true),
+                FluidModel[] => FluidHelper.RenderTemplateWithMultipleModelsAsync(template, model as FluidModel[] ?? [], cultureInfo: cultureInfo, encodeHtml: true),
                 _ => FluidHelper.RenderTemplateWithObjectAsync(template, model)
             };
     }

@@ -191,7 +191,7 @@ namespace FluidPDF.Builder
             PdfPrototypeFactory factory = new(chromiumRetrieverOptions, pdfPrototypeFactoryOptions);
 
             string template = await GetTemplateAsync().ConfigureAwait(false);
-            IPdfPrototype prototype = await factory.NewPdfPrototypeAsync(template, _model, _toBeCompressed).ConfigureAwait(false);
+            IPdfPrototype prototype = await factory.NewPdfPrototypeAsync(template, _model, _toBeCompressed, _cultureInfo).ConfigureAwait(false);
             return prototype;
         }
 
