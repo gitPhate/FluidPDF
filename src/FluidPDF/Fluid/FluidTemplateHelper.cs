@@ -9,13 +9,18 @@ using System.Threading.Tasks;
 
 namespace FluidPDF.Fluid
 {
-    internal static class FluidHelper
+    internal static class FluidTemplateHelper
     {
         private const string _modelName = "Model";
 
         private static readonly FluidParser _parser = new();
 
-        internal static ValueTask<string> RenderTemplateWithDataRowAsync(string templateContent, DataRow dataRow, string modelName = _modelName, CultureInfo? cultureInfo = null, TimeZoneInfo? timeZone = null, bool encodeHtml = false) =>
+        //needed to ensure _parser singleton's thread safety
+        static FluidTemplateHelper()
+        {
+        }
+
+        internal static ValueTask<string> RenderWithDataRowAsync(string templateContent, DataRow dataRow, string modelName = _modelName, CultureInfo? cultureInfo = null, TimeZoneInfo? timeZone = null, bool encodeHtml = false) =>
             RenderTemplateAsync
             (
                 [FluidModel.FromDataRow(modelName, dataRow)],
@@ -25,7 +30,7 @@ namespace FluidPDF.Fluid
                 timeZone
             );
 
-        internal static ValueTask<string> RenderTemplateWithDictionaryAsync(string templateContent, Dictionary<string, object> dictionary, string modelName = _modelName, CultureInfo? cultureInfo = null, TimeZoneInfo? timeZone = null, bool encodeHtml = false) =>
+        internal static ValueTask<string> RenderWithDictionaryAsync(string templateContent, Dictionary<string, object> dictionary, string modelName = _modelName, CultureInfo? cultureInfo = null, TimeZoneInfo? timeZone = null, bool encodeHtml = false) =>
             RenderTemplateAsync
             (
                 [FluidModel.FromDictionary(modelName, dictionary)],
@@ -35,7 +40,7 @@ namespace FluidPDF.Fluid
                 timeZone
             );
 
-        internal static ValueTask<string> RenderTemplateWithJsonStringAsync(string templateContent, string jsonString, string modelName = _modelName, CultureInfo? cultureInfo = null, TimeZoneInfo? timeZone = null, bool encodeHtml = false) =>
+        internal static ValueTask<string> RenderWithJsonStringAsync(string templateContent, string jsonString, string modelName = _modelName, CultureInfo? cultureInfo = null, TimeZoneInfo? timeZone = null, bool encodeHtml = false) =>
             RenderTemplateAsync
             (
                 [FluidModel.FromJsonString(modelName, jsonString)],
@@ -45,7 +50,7 @@ namespace FluidPDF.Fluid
                 timeZone
             );
 
-        internal static ValueTask<string> RenderTemplateWithObjectAsync(string templateContent, object obj, string modelName = _modelName, CultureInfo? cultureInfo = null, TimeZoneInfo? timeZone = null, bool encodeHtml = false) =>
+        internal static ValueTask<string> RenderWithObjectAsync(string templateContent, object obj, string modelName = _modelName, CultureInfo? cultureInfo = null, TimeZoneInfo? timeZone = null, bool encodeHtml = false) =>
             RenderTemplateAsync
             (
                 [FluidModel.FromObject(modelName, obj)],
@@ -55,7 +60,7 @@ namespace FluidPDF.Fluid
                 timeZone
             );
 
-        internal static ValueTask<string> RenderTemplateWithMultipleModelsAsync(string templateContent, FluidModel[] models, string modelName = _modelName, CultureInfo? cultureInfo = null, TimeZoneInfo? timeZone = null, bool encodeHtml = false) =>
+        internal static ValueTask<string> RenderWithMultipleModelsAsync(string templateContent, FluidModel[] models, string modelName = _modelName, CultureInfo? cultureInfo = null, TimeZoneInfo? timeZone = null, bool encodeHtml = false) =>
             RenderTemplateAsync
             (
                 models,

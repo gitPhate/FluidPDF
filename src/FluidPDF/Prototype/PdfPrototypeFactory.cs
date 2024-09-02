@@ -49,11 +49,11 @@ namespace FluidPDF.Prototype
             where T : notnull =>
             model switch
             {
-                DataRow => FluidHelper.RenderTemplateWithDataRowAsync(template, (model as DataRow)!, cultureInfo: cultureInfo, encodeHtml: true),
-                Dictionary<string, object> => FluidHelper.RenderTemplateWithDictionaryAsync(template, (model as Dictionary<string, object>)!, cultureInfo: cultureInfo, encodeHtml: true),
-                string => FluidHelper.RenderTemplateWithJsonStringAsync(template, (model as string)!, cultureInfo: cultureInfo, encodeHtml: true),
-                FluidModel[] => FluidHelper.RenderTemplateWithMultipleModelsAsync(template, model as FluidModel[] ?? [], cultureInfo: cultureInfo, encodeHtml: true),
-                _ => FluidHelper.RenderTemplateWithObjectAsync(template, model)
+                DataRow => FluidTemplateHelper.RenderWithDataRowAsync(template, (model as DataRow)!, cultureInfo: cultureInfo, encodeHtml: true),
+                Dictionary<string, object> => FluidTemplateHelper.RenderWithDictionaryAsync(template, (model as Dictionary<string, object>)!, cultureInfo: cultureInfo, encodeHtml: true),
+                string => FluidTemplateHelper.RenderWithJsonStringAsync(template, (model as string)!, cultureInfo: cultureInfo, encodeHtml: true),
+                FluidModel[] => FluidTemplateHelper.RenderWithMultipleModelsAsync(template, model as FluidModel[] ?? [], cultureInfo: cultureInfo, encodeHtml: true),
+                _ => FluidTemplateHelper.RenderWithObjectAsync(template, model)
             };
     }
 }
