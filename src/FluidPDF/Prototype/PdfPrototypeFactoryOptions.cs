@@ -1,6 +1,6 @@
 ﻿using PuppeteerSharp.Media;
 
-namespace FluidPDF.PDF
+namespace FluidPDF.Prototype
 {
     internal class PdfPrototypeFactoryOptions
     {

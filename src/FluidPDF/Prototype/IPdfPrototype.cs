@@ -2,7 +2,7 @@
 using System.IO;
 using System.Threading.Tasks;
 
-namespace FluidPDF.PDF
+namespace FluidPDF.Prototype
 {
     public interface IPdfPrototype : IDisposable, IAsyncDisposable
     {

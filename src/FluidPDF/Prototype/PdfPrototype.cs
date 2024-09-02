@@ -1,10 +1,10 @@
-﻿using Kyklos.Kernel.Core.Asserts;
+﻿using FluidPDF.Support;
 using PuppeteerSharp;
 using Sisifo.PDF;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace FluidPDF.PDF
+namespace FluidPDF.Prototype
 {
     internal sealed class PdfPrototype : IPdfPrototype
     {

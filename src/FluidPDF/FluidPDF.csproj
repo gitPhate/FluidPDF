@@ -2,11 +2,11 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <LangVersion>9.0</LangVersion>
+    <LangVersion>12.0</LangVersion>
     <Nullable>enable</Nullable>
-    <AssemblyVersion>1.1.0.0</AssemblyVersion>
-    <FileVersion>1.1.0</FileVersion>
-    <Version>1.1.0</Version>
+    <AssemblyVersion>2.0.0.0</AssemblyVersion>
+    <FileVersion>2.0.0</FileVersion>
+    <Version>2.0.0</Version>
     <Description>PDF reports generation library with HTML templates and Liquid markup language</Description>
   </PropertyGroup>
 
@@ -16,9 +16,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="KTemplating.Core" Version="2.6.2-beta12" />
-    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" />
+    <PackageReference Include="Fluid.Core" Version="2.11.1" />
     <PackageReference Include="PuppeteerSharp" Version="19.0.1" />
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" />
     <PackageReference Include="Sisifo.Json" Version="1.0.6" />
     <PackageReference Include="Sisifo.PDF" Version="1.1.0" />
   </ItemGroup>
