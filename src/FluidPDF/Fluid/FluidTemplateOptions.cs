@@ -36,16 +36,15 @@ namespace FluidPDF.Fluid
                         return row[fieldName];
                     }
                 );
-
-            templateOptions.MemberAccessStrategy.Register<JsonNode, object>((src, name) => src[name]!);
             templateOptions.MemberAccessStrategy.Register<JsonValue, object>((src, name) => src[name]!);
             templateOptions.MemberAccessStrategy.Register<JsonObject, object>((src, name) => src[name]!);
             templateOptions.MemberAccessStrategy.Register<JsonArray, object>((src, name) => src[name]!);
+            templateOptions.MemberAccessStrategy.Register<JsonNode, object>((src, name) => src[name]!);
 
+            templateOptions.ValueConverters.Add(x => x is JsonArray o ? new ArrayValue(o.Select(x => new ObjectValue(x)).ToArray()) : null);
             templateOptions.ValueConverters.Add(x => x is JsonNode o ? new ObjectValue(o) : null);
             templateOptions.ValueConverters.Add(x => x is JsonValue o ? new ObjectValue(o) : null);
-            templateOptions.ValueConverters.Add(x => x is JsonObject o ? new ObjectValue(o) : null);
-            templateOptions.ValueConverters.Add(x => x is JsonArray o ? new ArrayValue(o.Select(x => new ObjectValue(x)).ToArray()) : null);
+            templateOptions.ValueConverters.Add(x => x is JsonObject o ? new ObjectValue(o) : null);            
 
             return templateOptions;
         }
