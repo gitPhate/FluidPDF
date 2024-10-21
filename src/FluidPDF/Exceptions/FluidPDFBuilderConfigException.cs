@@ -2,10 +2,7 @@
 
 namespace FluidPDF.Exceptions
 {
-    public class FluidPDFBuilderConfigException : Exception
+    public class FluidPDFBuilderConfigException(string message) : Exception(message)
     {
-        public FluidPDFBuilderConfigException(string message) : base(message)
-        {
-        }
     }
 }

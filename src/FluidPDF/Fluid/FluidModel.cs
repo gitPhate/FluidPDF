@@ -19,7 +19,6 @@ namespace FluidPDF.Fluid
     {
         public string Name { get; }
         public FluidModelType Type { get; }
-
         public DataRow? DataRow { get; }
         public Dictionary<string, object>? Dictionary { get; }
         public string? JsonString { get; }
@@ -93,7 +92,6 @@ namespace FluidPDF.Fluid
                 kModelType: FluidModelType.Object,
                 objectValue: obj.GetNonNullOrThrow(nameof(obj))
             );
-
 
         public static FluidModel FromPlainValue(string modelName, object value) =>
             new(
