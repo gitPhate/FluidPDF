@@ -47,7 +47,6 @@ namespace FluidPDF.Prototype
 
         private ValueTask<string> RenderTemplateByTypeAsync<T>(string template, T model, CultureInfo? cultureInfo = null)
             where T : notnull =>
-            model switch
             {
                 DataRow => FluidTemplateHelper.RenderWithDataRowAsync(template, (model as DataRow)!, cultureInfo: cultureInfo, encodeHtml: true),
                 Dictionary<string, object> => FluidTemplateHelper.RenderWithDictionaryAsync(template, (model as Dictionary<string, object>)!, cultureInfo: cultureInfo, encodeHtml: true),

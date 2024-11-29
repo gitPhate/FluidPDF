@@ -36,8 +36,7 @@ namespace FluidPDF.Tests
                 .BuildAsync();
 
             using MemoryStream stream = new();
-            await report.ToStreamAsync(stream);
-            byte[] bytes = stream.ToArray();
+            byte[] bytes = await report.ToByteArrayAsync();
             File.WriteAllBytes(@$"C:\temp\lol-{model.GetType().Name}.pdf", bytes);
         }
 
@@ -66,8 +65,7 @@ namespace FluidPDF.Tests
                 .BuildAsync();
 
             using MemoryStream stream = new();
-            await report.ToStreamAsync(stream);
-            byte[] bytes = stream.ToArray();
+            byte[] bytes = await report.ToByteArrayAsync();
             File.WriteAllBytes(@$"C:\temp\lol-multi-model.pdf", bytes);
         }
     }

@@ -20,59 +20,70 @@ namespace FluidPDF.Fluid
         {
         }
 
-        internal static ValueTask<string> RenderWithDataRowAsync(string templateContent, DataRow dataRow, string modelName = _modelName, CultureInfo? cultureInfo = null, TimeZoneInfo? timeZone = null, bool encodeHtml = false) =>
+        public static ValueTask<string> RenderTemplateByTypeAsync<T>(string template, T model, string modelName = _modelName, CultureInfo? cultureInfo = null, TimeZoneInfo? timeZone = null, bool encodeHtml = false)
+            where T : notnull =>
+            model switch
+            {
+                DataRow => RenderWithDataRowAsync(template, (model as DataRow)!, modelName, cultureInfo, timeZone, encodeHtml),
+                Dictionary<string, object> => RenderWithDictionaryAsync(template, (model as Dictionary<string, object>)!, modelName, cultureInfo, timeZone, encodeHtml),
+                string => RenderWithJsonStringAsync(template, (model as string)!, modelName, cultureInfo, timeZone, encodeHtml),
+                FluidModel[] => RenderWithMultipleModelsAsync(template, model as FluidModel[] ?? [], cultureInfo, timeZone, encodeHtml),
+                _ => RenderWithObjectAsync(template, model, modelName, cultureInfo, timeZone, encodeHtml)
+            };
+
+        public static ValueTask<string> RenderWithDataRowAsync(string template, DataRow dataRow, string modelName = _modelName, CultureInfo? cultureInfo = null, TimeZoneInfo? timeZone = null, bool encodeHtml = false) =>
             RenderTemplateAsync
             (
                 [FluidModel.FromDataRow(modelName, dataRow)],
-                templateContent,
+                template,
                 encodeHtml,
                 cultureInfo,
                 timeZone
             );
 
-        internal static ValueTask<string> RenderWithDictionaryAsync(string templateContent, Dictionary<string, object> dictionary, string modelName = _modelName, CultureInfo? cultureInfo = null, TimeZoneInfo? timeZone = null, bool encodeHtml = false) =>
+        public static ValueTask<string> RenderWithDictionaryAsync(string template, Dictionary<string, object> dictionary, string modelName = _modelName, CultureInfo? cultureInfo = null, TimeZoneInfo? timeZone = null, bool encodeHtml = false) =>
             RenderTemplateAsync
             (
                 [FluidModel.FromDictionary(modelName, dictionary)],
-                templateContent,
+                template,
                 encodeHtml,
                 cultureInfo,
                 timeZone
             );
 
-        internal static ValueTask<string> RenderWithJsonStringAsync(string templateContent, string jsonString, string modelName = _modelName, CultureInfo? cultureInfo = null, TimeZoneInfo? timeZone = null, bool encodeHtml = false) =>
+        public static ValueTask<string> RenderWithJsonStringAsync(string template, string jsonString, string modelName = _modelName, CultureInfo? cultureInfo = null, TimeZoneInfo? timeZone = null, bool encodeHtml = false) =>
             RenderTemplateAsync
             (
                 [FluidModel.FromJsonString(modelName, jsonString)],
-                templateContent,
+                template,
                 encodeHtml,
                 cultureInfo,
                 timeZone
             );
 
-        internal static ValueTask<string> RenderWithObjectAsync(string templateContent, object obj, string modelName = _modelName, CultureInfo? cultureInfo = null, TimeZoneInfo? timeZone = null, bool encodeHtml = false) =>
+        public static ValueTask<string> RenderWithObjectAsync(string template, object obj, string modelName = _modelName, CultureInfo? cultureInfo = null, TimeZoneInfo? timeZone = null, bool encodeHtml = false) =>
             RenderTemplateAsync
             (
                 [FluidModel.FromObject(modelName, obj)],
-                templateContent,
+                template,
                 encodeHtml,
                 cultureInfo,
                 timeZone
             );
 
-        internal static ValueTask<string> RenderWithMultipleModelsAsync(string templateContent, FluidModel[] models, string modelName = _modelName, CultureInfo? cultureInfo = null, TimeZoneInfo? timeZone = null, bool encodeHtml = false) =>
+        public static ValueTask<string> RenderWithMultipleModelsAsync(string template, FluidModel[] models, CultureInfo? cultureInfo = null, TimeZoneInfo? timeZone = null, bool encodeHtml = false) =>
             RenderTemplateAsync
             (
                 models,
-                templateContent,
+                template,
                 encodeHtml,
                 cultureInfo,
                 timeZone
             );
 
-        private static async ValueTask<string> RenderTemplateAsync(FluidModel[] models, string templateContent, bool encodeHtml = false, CultureInfo? cultureInfo = null, TimeZoneInfo? timeZone = null)
+        private static async ValueTask<string> RenderTemplateAsync(FluidModel[] models, string template, bool encodeHtml = false, CultureInfo? cultureInfo = null, TimeZoneInfo? timeZone = null)
         {
-            if (_parser.TryParse(templateContent, out IFluidTemplate? template, out string? error))
+            if (_parser.TryParse(template, out IFluidTemplate? fluidTemplate, out string? error))
             {
                 TemplateContext context = NewTemplateContext(models, cultureInfo, timeZone);
 
@@ -80,7 +91,7 @@ namespace FluidPDF.Fluid
 
                 TextEncoder encoder = encodeHtml ? HtmlEncoder.Default : NullEncoder.Default;
 
-                await template
+                await fluidTemplate
                     .RenderAsync(writer, encoder, context)
                     .ConfigureAwait(false);
 
