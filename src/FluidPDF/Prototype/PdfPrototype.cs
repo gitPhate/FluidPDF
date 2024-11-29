@@ -8,13 +8,16 @@ namespace FluidPDF.Prototype
 {
     internal sealed class PdfPrototype : IPdfPrototype
     {
+        public string RenderedContent { get; }
+
         internal IBrowser Browser { get; }
         internal IPage Page { get; }
         internal PdfOptions PdfOptions { get; }
         internal bool ToBeCompressed { get; }
 
-        internal PdfPrototype(IBrowser browser, IPage page, PdfOptions pdfOptions, bool toBeCompressed)
+        internal PdfPrototype(string renderedContent, IBrowser browser, IPage page, PdfOptions pdfOptions, bool toBeCompressed)
         {
+            RenderedContent = renderedContent;
             Browser = browser.GetNonNullOrThrow(nameof(browser));
             Page = page.GetNonNullOrThrow(nameof(page));
             PdfOptions = pdfOptions.GetNonNullOrThrow(nameof(pdfOptions));
