@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace FluidPDF.Fluid
 {
-    internal static class FluidTemplateHelper
+    public static class FluidTemplateHelper
     {
         private const string _modelName = "Model";
 
