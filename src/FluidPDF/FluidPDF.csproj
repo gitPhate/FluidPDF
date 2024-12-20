@@ -7,7 +7,7 @@
     <AssemblyVersion>2.1.1.0</AssemblyVersion>
     <FileVersion>2.1.1</FileVersion>
     <Version>2.1.1</Version>
-    <Description>PDF reports generation library with HTML templates and Liquid markup language</Description>
+    <Description>FluidPDF is a library for PDF generation with web development and the Liquid markup language</Description>
   </PropertyGroup>
 
   <ItemGroup>
