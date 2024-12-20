@@ -19,8 +19,7 @@
     <PackageReference Include="Fluid.Core" Version="2.13.1" />
     <PackageReference Include="PuppeteerSharp" Version="20.0.5" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="9.0.0" />
-    <PackageReference Include="Sisifo.Json" Version="1.0.7" />
-    <PackageReference Include="Sisifo.PDF" Version="1.1.0" />
+    <PackageReference Include="PDFsharp" Version="6.1.1" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,10 +1,10 @@
 using Fluid;
 using Fluid.Values;
 using FluidPDF.Fluid;
-using Sisifo.Json;
 using System.Data;
 using System.Globalization;
 using System.Text.Encodings.Web;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace FluidPDF.Tests
@@ -49,7 +49,8 @@ namespace FluidPDF.Tests
 
             Model testModel = new() { Value = "Hello World" };
 
-            FluidModel[] models = [FluidModel.FromJsonString("Model", testModel.ToJson())];
+            string jsonModel = JsonSerializer.Serialize(testModel);
+            FluidModel[] models = [FluidModel.FromJsonString("Model", jsonModel)];
 
             var context = new TemplateContext();
 
