@@ -5,8 +5,6 @@ VisualStudioVersion = 17.1.32228.430
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FluidPDF", "FluidPDF\FluidPDF.csproj", "{81E33647-E6E2-48F1-8206-A7FB2C6AA4D6}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D6604721-A4BC-40AA-9518-F97850797318}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluidPDF.Tests", "FluidPDF.Tests\FluidPDF.Tests.csproj", "{E9BE2087-EC85-474F-A1DF-D45FCD3D57C0}"
 EndProject
 Global

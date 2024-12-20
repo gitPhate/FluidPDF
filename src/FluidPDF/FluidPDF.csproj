@@ -11,8 +11,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\CSharp9Support\IsExternalInit.cs" Link="Support\CSharp9\IsExternalInit.cs" />
-    <Compile Include="..\..\CSharp9Support\NullableExtensions.cs" Link="Support\CSharp9\NullableExtensions.cs" />
+    <Compile Include="..\CSharp9Support\IsExternalInit.cs" Link="Support\CSharp9\IsExternalInit.cs" />
+    <Compile Include="..\CSharp9Support\NullableExtensions.cs" Link="Support\CSharp9\NullableExtensions.cs" />
   </ItemGroup>
 
   <ItemGroup>
