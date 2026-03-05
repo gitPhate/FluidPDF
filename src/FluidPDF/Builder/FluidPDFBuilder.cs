@@ -1,8 +1,8 @@
 ﻿using FluidPDF.Exceptions;
 using FluidPDF.Prototype;
-using FluidPDF.PuppeteerSharp;
 using FluidPDF.Support;
 using FluidPDF.Support.IO;
+using FluidPDF.Support.PuppeteerSharp;
 using PuppeteerSharp.Media;
 using System;
 using System.Globalization;

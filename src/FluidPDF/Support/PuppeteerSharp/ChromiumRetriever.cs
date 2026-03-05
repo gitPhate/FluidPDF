@@ -4,7 +4,7 @@ using PuppeteerSharp.BrowserData;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace FluidPDF.PuppeteerSharp
+namespace FluidPDF.Support.PuppeteerSharp
 {
     internal record ChromiumRetrieverOptions(string? ExternalExecutablePath, string? DownloadPath, string? Revision = null)
     {

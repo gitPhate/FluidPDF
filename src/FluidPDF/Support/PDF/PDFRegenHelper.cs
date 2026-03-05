@@ -3,7 +3,7 @@ using PdfSharp.Pdf.IO;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace FluidPDF.PDF
+namespace FluidPDF.Support.PDF
 {
     public static class PDFRegenHelper
     {

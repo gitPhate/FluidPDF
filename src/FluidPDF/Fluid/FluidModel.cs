@@ -40,7 +40,6 @@ namespace FluidPDF.Fluid
         (
             string modelName,
             FluidModelType kModelType,
-            DataTable? dataTable = null,
             DataRow? dataRow = null,
             Dictionary<string, object>? dictionary = null,
             string? jsonString = null,

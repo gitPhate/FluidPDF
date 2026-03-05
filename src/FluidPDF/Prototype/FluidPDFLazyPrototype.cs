@@ -1,5 +1,5 @@
-﻿using FluidPDF.PDF;
-using FluidPDF.Support;
+﻿using FluidPDF.Support;
+using FluidPDF.Support.PDF;
 using PuppeteerSharp;
 using System.IO;
 using System.Threading.Tasks;

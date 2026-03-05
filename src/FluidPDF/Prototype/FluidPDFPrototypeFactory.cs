@@ -1,6 +1,6 @@
 ﻿using FluidPDF.Fluid;
-using FluidPDF.PuppeteerSharp;
 using FluidPDF.Support;
+using FluidPDF.Support.PuppeteerSharp;
 using PuppeteerSharp;
 using System;
 using System.Globalization;
