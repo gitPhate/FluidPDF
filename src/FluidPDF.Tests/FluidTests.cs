@@ -49,8 +49,7 @@ namespace FluidPDF.Tests
 
             Model testModel = new() { Value = "Hello World" };
 
-            string jsonModel = JsonSerializer.Serialize(testModel);
-            FluidModel[] models = [FluidModel.FromJsonString("Model", jsonModel)];
+            FluidModel[] models = [FluidModel.FromJsonString("Model", JsonSerializer.Serialize(testModel))];
 
             var context = new TemplateContext();
 

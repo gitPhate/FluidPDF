@@ -28,12 +28,12 @@ namespace FluidPDF.Tests
         public async Task TestObjectModel<T>(T model)
             where T : notnull
         {
-            using IPdfPrototype report =
+            using IFluidPDFPrototype report =
                 await FluidPDFBuilder
                 .NewWithModel(model)
                 .WithTemplate(TestConsts.TestTemplate)
                 .WithStandaloneChromium()
-                .BuildAsync();
+                .BuildEagerByteArrayAsync();
 
             using MemoryStream stream = new();
             byte[] bytes = await report.ToByteArrayAsync();
@@ -57,7 +57,7 @@ namespace FluidPDF.Tests
             FluidModel model2 = FluidModel.FromObject("Model2", new Model { Value = "Hello World2" });
             FluidModel[] models = [model1, model2];
 
-            using IPdfPrototype report =
+            using IFluidPDFPrototype report =
                 await FluidPDFBuilder
                 .NewWithModel(models)
                 .WithTemplate(multipleModelTemplate)
