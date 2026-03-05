@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace FluidPDF.Prototype
 {
-    public interface IFluidPdfPrototype : IDisposable, IAsyncDisposable
+    public interface IFluidPDFPrototype : IDisposable, IAsyncDisposable
     {
         string RenderedContent { get; }
 

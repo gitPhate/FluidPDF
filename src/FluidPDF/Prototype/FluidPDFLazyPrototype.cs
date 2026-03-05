@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FluidPDF.Prototype
 {
-    internal sealed class FluidPdfLazyPrototype(string renderedContent, IBrowser browser, IPage page, PdfOptions pdfOptions, bool toBeCompressed) : IFluidPdfPrototype
+    internal sealed class FluidPDFLazyPrototype(string renderedContent, IBrowser browser, IPage page, PdfOptions pdfOptions, bool toBeCompressed) : IFluidPDFPrototype
     {
         public string RenderedContent { get; } = renderedContent;
 

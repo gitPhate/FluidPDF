@@ -22,8 +22,8 @@ namespace FluidPDF.Builder
         IFluidPDFBuilder WithTemplate(string template);
         IFluidPDFBuilder WithTemplateFile(string filePath);
         IFluidPDFBuilder WithCompression();
-        Task<IFluidPdfPrototype> BuildAsync();
-        Task<IFluidPdfPrototype> BuildEagerStreamAsync();
-        Task<IFluidPdfPrototype> BuildEagerByteArrayAsync();
+        Task<IFluidPDFPrototype> BuildAsync();
+        Task<IFluidPDFPrototype> BuildEagerStreamAsync();
+        Task<IFluidPDFPrototype> BuildEagerByteArrayAsync();
     }
 }

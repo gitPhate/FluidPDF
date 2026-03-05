@@ -2,7 +2,7 @@
 
 namespace FluidPDF.Prototype
 {
-    internal class FluidPdfPrototypeFactoryOptions
+    internal class FluidPDFPrototypeFactoryOptions
     {
         internal PaperFormat Format { get; set; } = PaperFormat.A4;
         internal bool Landscape { get; set; } = false;

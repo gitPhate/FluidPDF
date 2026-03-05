@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace FluidPDF.Prototype
 {
-    internal sealed class FluidPdfEagerStreamPrototype(Stream stream, string renderedContent, bool toBeCompressed) : IFluidPdfPrototype
+    internal sealed class FluidPDFEagerStreamPrototype(Stream stream, string renderedContent, bool toBeCompressed) : IFluidPDFPrototype
     {
         private readonly Stream _stream = stream;
 

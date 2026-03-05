@@ -9,18 +9,18 @@ using System.Threading.Tasks;
 
 namespace FluidPDF.Prototype
 {
-    internal class FluidPdfPrototypeFactory
+    internal class FluidPDFPrototypeFactory
     {
         private readonly ChromiumRetrieverOptions _chromiumRetrieverOptions;
-        private readonly FluidPdfPrototypeFactoryOptions _fluidPdfOptions;
+        private readonly FluidPDFPrototypeFactoryOptions _fluidPdfOptions;
 
-        internal FluidPdfPrototypeFactory(ChromiumRetrieverOptions chromiumRetrieverOptions, FluidPdfPrototypeFactoryOptions fluidPDFOptions)
+        internal FluidPDFPrototypeFactory(ChromiumRetrieverOptions chromiumRetrieverOptions, FluidPDFPrototypeFactoryOptions fluidPDFOptions)
         {
             _chromiumRetrieverOptions = chromiumRetrieverOptions.GetNonNullOrThrow(nameof(chromiumRetrieverOptions));
             _fluidPdfOptions = fluidPDFOptions.GetNonNullOrThrow(nameof(fluidPDFOptions));
         }
 
-        internal async Task<IFluidPdfPrototype> NewLazyAsync<T>(string template, T model, bool toBeCompressed, CultureInfo? cultureInfo = null)
+        internal async Task<IFluidPDFPrototype> NewLazyAsync<T>(string template, T model, bool toBeCompressed, CultureInfo? cultureInfo = null)
             where T : notnull
         {
             string reportContent = await FluidTemplateHelper.RenderTemplateByTypeAsync(template, model, cultureInfo: cultureInfo, encodeHtml: true).ConfigureAwait(false);
@@ -32,18 +32,18 @@ namespace FluidPDF.Prototype
 
             PdfOptions pdfOptions = NewPdfOptions();
 
-            FluidPdfLazyPrototype prototype = new(reportContent, browser, page, pdfOptions, toBeCompressed);
+            FluidPDFLazyPrototype prototype = new(reportContent, browser, page, pdfOptions, toBeCompressed);
             return prototype;
         }
 
-        internal Task<IFluidPdfPrototype> NewEagerStreamAsync<T>(string template, T model, bool toBeCompressed, CultureInfo? cultureInfo = null)
+        internal Task<IFluidPDFPrototype> NewEagerStreamAsync<T>(string template, T model, bool toBeCompressed, CultureInfo? cultureInfo = null)
             where T : notnull =>
             NewPrototypeAsync
             (
                 async (page, options, content, compress) =>
                 {
                     Stream stream = await page.PdfStreamAsync(options).ConfigureAwait(false);
-                    return new FluidPdfEagerStreamPrototype(stream, content, compress);
+                    return new FluidPDFEagerStreamPrototype(stream, content, compress);
                 },
                 template,
                 model,
@@ -51,14 +51,14 @@ namespace FluidPDF.Prototype
                 cultureInfo
             );
 
-        internal Task<IFluidPdfPrototype> NewEagerByteArrayAsync<T>(string template, T model, bool toBeCompressed, CultureInfo? cultureInfo = null)
+        internal Task<IFluidPDFPrototype> NewEagerByteArrayAsync<T>(string template, T model, bool toBeCompressed, CultureInfo? cultureInfo = null)
             where T : notnull =>
             NewPrototypeAsync
             (
                 async (page, options, content, compress) =>
                 {
                     byte[] data = await page.PdfDataAsync(options).ConfigureAwait(false);
-                    return new FluidPdfEagerByteArrayPrototype(data, content, compress);
+                    return new FluidPDFEagerByteArrayPrototype(data, content, compress);
                 },
                 template,
                 model,
@@ -66,7 +66,7 @@ namespace FluidPDF.Prototype
                 cultureInfo
             );
 
-        private async Task<IFluidPdfPrototype> NewPrototypeAsync<T>(Func<IPage, PdfOptions, string, bool, Task<IFluidPdfPrototype>> prototypeFactory, string template, T model, bool toBeCompressed, CultureInfo? cultureInfo = null)
+        private async Task<IFluidPDFPrototype> NewPrototypeAsync<T>(Func<IPage, PdfOptions, string, bool, Task<IFluidPDFPrototype>> prototypeFactory, string template, T model, bool toBeCompressed, CultureInfo? cultureInfo = null)
             where T : notnull
         {
             string reportContent = await FluidTemplateHelper.RenderTemplateByTypeAsync(template, model, cultureInfo: cultureInfo, encodeHtml: true).ConfigureAwait(false);
@@ -80,7 +80,7 @@ namespace FluidPDF.Prototype
 
                 PdfOptions pdfOptions = NewPdfOptions();
 
-                IFluidPdfPrototype prototype = await prototypeFactory(page, pdfOptions, reportContent, toBeCompressed).ConfigureAwait(false);
+                IFluidPDFPrototype prototype = await prototypeFactory(page, pdfOptions, reportContent, toBeCompressed).ConfigureAwait(false);
                 return prototype;
             }
             finally

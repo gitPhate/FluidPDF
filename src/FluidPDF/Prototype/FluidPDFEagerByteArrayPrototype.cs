@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace FluidPDF.Prototype
 {
-    internal sealed class FluidPdfEagerByteArrayPrototype(byte[] data, string renderedContent, bool toBeCompressed) : IFluidPdfPrototype
+    internal sealed class FluidPDFEagerByteArrayPrototype(byte[] data, string renderedContent, bool toBeCompressed) : IFluidPDFPrototype
     {
         private byte[] _data = data;
 
