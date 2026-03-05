@@ -8,9 +8,7 @@ namespace FluidPDF.Support.IO
     {
         private const int _streamWriterDefaultBufferSize = 4096;
 
-        public static Task<string> ReadAllTextAsync(string path) => InternalReadAllTextAsync(path);
-
-        public static Task<string> ReadAllTextAsync(string path, Encoding encoding) => InternalReadAllTextAsync(path, encoding);
+        public static Task<string> ReadAllTextAsync(string path, Encoding? encoding = null) => InternalReadAllTextAsync(path, encoding);
 
         private static async Task<string> InternalReadAllTextAsync(string path, Encoding? encoding = null)
         {
