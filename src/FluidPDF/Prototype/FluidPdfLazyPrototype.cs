@@ -6,25 +6,16 @@ using System.Threading.Tasks;
 
 namespace FluidPDF.Prototype
 {
-    internal sealed class PdfPrototype : IPdfPrototype
+    internal sealed class FluidPdfLazyPrototype(string renderedContent, IBrowser browser, IPage page, PdfOptions pdfOptions, bool toBeCompressed) : IFluidPdfPrototype
     {
-        public string RenderedContent { get; }
+        public string RenderedContent { get; } = renderedContent;
 
-        internal IBrowser Browser { get; }
-        internal IPage Page { get; }
-        internal PdfOptions PdfOptions { get; }
-        internal bool ToBeCompressed { get; }
+        internal IBrowser Browser { get; } = browser.GetNonNullOrThrow(nameof(browser));
+        internal IPage Page { get; } = page.GetNonNullOrThrow(nameof(page));
+        internal PdfOptions PdfOptions { get; } = pdfOptions.GetNonNullOrThrow(nameof(pdfOptions));
+        internal bool ToBeCompressed { get; } = toBeCompressed;
 
-        internal PdfPrototype(string renderedContent, IBrowser browser, IPage page, PdfOptions pdfOptions, bool toBeCompressed)
-        {
-            RenderedContent = renderedContent;
-            Browser = browser.GetNonNullOrThrow(nameof(browser));
-            Page = page.GetNonNullOrThrow(nameof(page));
-            PdfOptions = pdfOptions.GetNonNullOrThrow(nameof(pdfOptions));
-            ToBeCompressed = toBeCompressed;
-        }
-
-        public async Task<byte[]> ToByteArrayAsync()
+        public async ValueTask<byte[]> ToByteArrayAsync()
         {
             if (!ToBeCompressed)
             {
@@ -32,31 +23,36 @@ namespace FluidPDF.Prototype
             }
 
             using Stream stream = await Page.PdfStreamAsync(PdfOptions).ConfigureAwait(false);
-            return PDFRegenHelper.RegeneratePDF(stream);
+            return await PDFRegenHelper.RegeneratePDFAsync(stream).ConfigureAwait(false);
         }
 
-        public async Task ToStreamAsync(Stream outputStream)
+        public async ValueTask ToStreamAsync(Stream outputStream)
         {
             using Stream stream = await Page.PdfStreamAsync(PdfOptions).ConfigureAwait(false);
             if (ToBeCompressed)
             {
-                PDFRegenHelper.RegeneratePDF(stream, outputStream);
+                await PDFRegenHelper.RegeneratePDFAsync(stream, outputStream).ConfigureAwait(false);
             }
             else
             {
                 await stream.CopyToAsync(outputStream).ConfigureAwait(false);
             }
+
+            outputStream.Position = 0;
         }
 
-        public async Task ToFileAsync(string filePath)
+        public async ValueTask ToFileAsync(string filePath)
         {
             if (!ToBeCompressed)
             {
-                await Page.PdfAsync(filePath, PdfOptions);
+                await Page.PdfAsync(filePath, PdfOptions).ConfigureAwait(false);
+                return;
             }
+
             using FileStream outputStream = File.Open(filePath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Write);
             using Stream stream = await Page.PdfStreamAsync(PdfOptions).ConfigureAwait(false);
-            PDFRegenHelper.RegeneratePDF(stream, outputStream);
+            await PDFRegenHelper.RegeneratePDFAsync(stream, outputStream).ConfigureAwait(false);
+            await outputStream.FlushAsync().ConfigureAwait(false);
         }
 
         public void Dispose()

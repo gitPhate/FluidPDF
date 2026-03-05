@@ -1,6 +1,7 @@
 ﻿using PdfSharp.Pdf;
 using PdfSharp.Pdf.IO;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace FluidPDF.PDF
 {
@@ -16,17 +17,17 @@ namespace FluidPDF.PDF
             return outputDocument;
         }
 
-        public static void RegeneratePDF(Stream pdfStream, Stream outputDocumentStream)
+        public static async Task RegeneratePDFAsync(Stream pdfStream, Stream outputDocumentStream)
         {
             using PdfDocument inputDocument = PdfReader.Open(pdfStream, PdfDocumentOpenMode.Import);
             using PdfDocument outputDocument = RegeneratePDFImpl(inputDocument);
-            outputDocument.Save(outputDocumentStream);
+            await outputDocument.SaveAsync(outputDocumentStream).ConfigureAwait(false);
         }
 
-        public static byte[] RegeneratePDF(Stream pdfStream)
+        public static async Task<byte[]> RegeneratePDFAsync(Stream pdfStream)
         {
             using MemoryStream outputDocumentStream = new();
-            RegeneratePDF(pdfStream, outputDocumentStream);
+            await RegeneratePDFAsync(pdfStream, outputDocumentStream).ConfigureAwait(false);
             return outputDocumentStream.ToArray();
         }
     }

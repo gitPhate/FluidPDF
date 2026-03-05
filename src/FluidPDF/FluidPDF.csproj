@@ -19,10 +19,6 @@
     <PackageReference Include="Fluid.Core" Version="2.16.0" />
     <PackageReference Include="PuppeteerSharp" Version="20.0.5" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="9.0.0" />
-    <PackageReference Include="PDFsharp" Version="6.1.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Support\CSharp9\" />
+    <PackageReference Include="PDFsharp" Version="6.2.4" />
   </ItemGroup>
 </Project>

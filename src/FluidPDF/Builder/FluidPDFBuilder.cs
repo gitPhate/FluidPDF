@@ -177,28 +177,54 @@ namespace FluidPDF.Builder
             return this;
         }
 
-        public async Task<IPdfPrototype> BuildAsync()
+        public async Task<IFluidPdfPrototype> BuildAsync()
         {
             Verify();
 
-            string? chromePath = _chromeExePath == _standaloneChromePath ? null : _chromeExePath;
-            ChromiumRetrieverOptions chromiumRetrieverOptions = new(chromePath);
-
-            PdfPrototypeFactoryOptions pdfPrototypeFactoryOptions =
-                new()
-                {
-                    Format = _paperFormat,
-                    Landscape = _landscape,
-                    MarginOptions = _marginOptions,
-                    Scale = Math.Min(Math.Max(_scale / 100M, 0.1M), 2) //between 0.1 and 2
-                };
-
-            PdfPrototypeFactory factory = new(chromiumRetrieverOptions, pdfPrototypeFactoryOptions);
+            FluidPdfPrototypeFactory factory = NewFluidPdfPrototypeFactory();
 
             string template = await GetTemplateAsync().ConfigureAwait(false);
-            IPdfPrototype prototype = await factory.NewPdfPrototypeAsync(template, _model, _toBeCompressed, _cultureInfo).ConfigureAwait(false);
+
+            IFluidPdfPrototype prototype = await factory.NewLazyAsync(template, _model, _toBeCompressed, _cultureInfo).ConfigureAwait(false);
             return prototype;
         }
+
+        public async Task<IFluidPdfPrototype> BuildEagerStreamAsync()
+        {
+            Verify();
+
+            FluidPdfPrototypeFactory factory = NewFluidPdfPrototypeFactory();
+
+            string template = await GetTemplateAsync().ConfigureAwait(false);
+
+            IFluidPdfPrototype prototype = await factory.NewEagerStreamAsync(template, _model, _toBeCompressed, _cultureInfo).ConfigureAwait(false);
+            return prototype;
+        }
+
+        public async Task<IFluidPdfPrototype> BuildEagerByteArrayAsync()
+        {
+            Verify();
+
+            FluidPdfPrototypeFactory factory = NewFluidPdfPrototypeFactory();
+
+            string template = await GetTemplateAsync().ConfigureAwait(false);
+
+            IFluidPdfPrototype prototype = await factory.NewEagerByteArrayAsync(template, _model, _toBeCompressed, _cultureInfo).ConfigureAwait(false);
+            return prototype;
+        }
+
+        private FluidPdfPrototypeFactory NewFluidPdfPrototypeFactory() => new(NewChromiumRetrieverOptions(), NewFluidPdfPrototypeFactoryOptions());
+
+        private ChromiumRetrieverOptions NewChromiumRetrieverOptions() => new(_chromeExePath == _standaloneChromePath ? null : _chromeExePath);
+
+        private FluidPdfPrototypeFactoryOptions NewFluidPdfPrototypeFactoryOptions() =>
+            new()
+            {
+                Format = _paperFormat,
+                Landscape = _landscape,
+                MarginOptions = _marginOptions,
+                Scale = Math.Min(Math.Max(_scale / 100M, 0.1M), 2) //between 0.1 and 2
+            };
 
         private async ValueTask<string> GetTemplateAsync()
         {
