@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <LangVersion>12.0</LangVersion>
+    <LangVersion>14</LangVersion>
     <Nullable>enable</Nullable>
     <AssemblyVersion>2.1.1.0</AssemblyVersion>
     <FileVersion>2.1.1</FileVersion>
@@ -11,14 +11,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\CSharp9Support\IsExternalInit.cs" Link="Support\CSharp9\IsExternalInit.cs" />
-    <Compile Include="..\CSharp9Support\NullableExtensions.cs" Link="Support\CSharp9\NullableExtensions.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Fluid.Core" Version="2.16.0" />
     <PackageReference Include="PuppeteerSharp" Version="20.0.5" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="9.0.0" />
     <PackageReference Include="PDFsharp" Version="6.2.4" />
+    <PackageReference Include="PolySharp" Version="1.15.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 </Project>
