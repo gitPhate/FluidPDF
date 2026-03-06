@@ -1,4 +1,3 @@
-﻿using FluidPDF.Support;
 using PuppeteerSharp;
 using PuppeteerSharp.BrowserData;
 using System.IO;
@@ -6,20 +5,27 @@ using System.Threading.Tasks;
 
 namespace FluidPDF.Support.PuppeteerSharp
 {
-    internal record ChromiumRetrieverOptions(string? ExternalExecutablePath, string? DownloadPath, string? Revision = null)
+    public record ChromiumRetrieverOptions(string? ExternalExecutablePath, string? DownloadPath, string? Revision = null)
     {
         internal ChromiumRetrieverOptions(string? externalExecutablePath) : this(externalExecutablePath, null, null) { }
     }
 
-    internal static class ChromiumRetriever
+    public interface IChromiumRetriever
     {
-        internal static async Task<IBrowser> RetrieveBrowserInstanceAsync(ChromiumRetrieverOptions options)
-        {
-            string? exePath = options.ExternalExecutablePath;
+        Task<IBrowser> RetrieveBrowserInstanceAsync();
+    }
 
-            if (options.ExternalExecutablePath.IsNullOrBlankString() || !File.Exists(options.ExternalExecutablePath))
+    internal sealed class ChromiumRetriever(ChromiumRetrieverOptions options) : IChromiumRetriever
+    {
+        private readonly ChromiumRetrieverOptions _options = options.GetNonNullOrThrow(nameof(options));
+
+        public async Task<IBrowser> RetrieveBrowserInstanceAsync()
+        {
+            string? exePath = _options.ExternalExecutablePath;
+
+            if (_options.ExternalExecutablePath.IsNullOrBlankString() || !File.Exists(_options.ExternalExecutablePath))
             {
-                InstalledBrowser browser = await FetchCromiumAsync(options).ConfigureAwait(false);
+                InstalledBrowser browser = await FetchChromiumAsync(_options).ConfigureAwait(false);
                 exePath = browser.GetExecutablePath();
             }
 
@@ -33,17 +39,17 @@ namespace FluidPDF.Support.PuppeteerSharp
             return await Puppeteer.LaunchAsync(browserOptions).ConfigureAwait(false);
         }
 
-        private static async Task<InstalledBrowser> FetchCromiumAsync(ChromiumRetrieverOptions options)
+        private static async Task<InstalledBrowser> FetchChromiumAsync(ChromiumRetrieverOptions opts)
         {
             InstalledBrowser browser =
                 await new BrowserFetcher
                 (
                     new BrowserFetcherOptions
                     {
-                        Path = options.DownloadPath,
+                        Path = opts.DownloadPath,
                     }
                 )
-                .DownloadAsync(options.Revision ?? Chrome.DefaultBuildId)
+                .DownloadAsync(opts.Revision ?? Chrome.DefaultBuildId)
                 .ConfigureAwait(false);
 
             return browser;

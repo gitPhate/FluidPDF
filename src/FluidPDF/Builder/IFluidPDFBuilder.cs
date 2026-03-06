@@ -1,4 +1,4 @@
-﻿using FluidPDF.Prototype;
+﻿using System.IO;
 using System.Threading.Tasks;
 
 namespace FluidPDF.Builder
@@ -22,8 +22,7 @@ namespace FluidPDF.Builder
         IFluidPDFBuilder WithTemplate(string template);
         IFluidPDFBuilder WithTemplateFile(string filePath);
         IFluidPDFBuilder WithCompression();
-        Task<IFluidPDFPrototype> BuildAsync();
-        Task<IFluidPDFPrototype> BuildEagerStreamAsync();
-        Task<IFluidPDFPrototype> BuildEagerByteArrayAsync();
+        Task<byte[]> BuildAsync();
+        Task BuildAsync(Stream stream);
     }
 }

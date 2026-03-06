@@ -1,5 +1,4 @@
 ﻿using FluidPDF.Exceptions;
-using FluidPDF.Prototype;
 using FluidPDF.Support;
 using FluidPDF.Support.IO;
 using FluidPDF.Support.PuppeteerSharp;
@@ -177,47 +176,29 @@ namespace FluidPDF.Builder
             return this;
         }
 
-        public async Task<IFluidPDFPrototype> BuildAsync()
+        public async Task<byte[]> BuildAsync()
         {
             Verify();
 
-            FluidPDFPrototypeFactory factory = NewFluidPDFPrototypeFactory();
-
             string template = await GetTemplateAsync().ConfigureAwait(false);
-
-            IFluidPDFPrototype prototype = await factory.NewLazyAsync(template, _model, _toBeCompressed, _cultureInfo).ConfigureAwait(false);
-            return prototype;
+            FluidPDFReportFactory factory = NewFluidPDFReportFactory();
+            return await factory.CompileReportAsync(template, _model, _toBeCompressed, _cultureInfo).ConfigureAwait(false);
         }
 
-        public async Task<IFluidPDFPrototype> BuildEagerStreamAsync()
+        public async Task BuildAsync(Stream stream)
         {
             Verify();
 
-            FluidPDFPrototypeFactory factory = NewFluidPDFPrototypeFactory();
-
             string template = await GetTemplateAsync().ConfigureAwait(false);
-
-            IFluidPDFPrototype prototype = await factory.NewEagerStreamAsync(template, _model, _toBeCompressed, _cultureInfo).ConfigureAwait(false);
-            return prototype;
+            FluidPDFReportFactory factory = NewFluidPDFReportFactory();
+            await factory.CompileReportAsync(template, _model, stream, _toBeCompressed, _cultureInfo).ConfigureAwait(false);
         }
 
-        public async Task<IFluidPDFPrototype> BuildEagerByteArrayAsync()
-        {
-            Verify();
-
-            FluidPDFPrototypeFactory factory = NewFluidPDFPrototypeFactory();
-
-            string template = await GetTemplateAsync().ConfigureAwait(false);
-
-            IFluidPDFPrototype prototype = await factory.NewEagerByteArrayAsync(template, _model, _toBeCompressed, _cultureInfo).ConfigureAwait(false);
-            return prototype;
-        }
-
-        private FluidPDFPrototypeFactory NewFluidPDFPrototypeFactory() => new(NewChromiumRetrieverOptions(), NewFluidPDFPrototypeFactoryOptions());
+        private FluidPDFReportFactory NewFluidPDFReportFactory() => new(NewChromiumRetrieverOptions(), NewFluidPDFReportOptions());
 
         private ChromiumRetrieverOptions NewChromiumRetrieverOptions() => new(_chromeExePath == _standaloneChromePath ? null : _chromeExePath);
 
-        private FluidPDFPrototypeFactoryOptions NewFluidPDFPrototypeFactoryOptions() =>
+        private FluidPDFReportOptions NewFluidPDFReportOptions() =>
             new()
             {
                 Format = _paperFormat,
