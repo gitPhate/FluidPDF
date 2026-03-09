@@ -55,7 +55,7 @@ namespace FluidPDF.Builder
             return this;
         }
 
-        public IFluidPDFBuilder WithLanscapeOrientation()
+        public IFluidPDFBuilder WithLandscapeOrientation()
         {
             _landscape = true;
             return this;
@@ -198,7 +198,7 @@ namespace FluidPDF.Builder
 
         private ChromiumRetrieverOptions NewChromiumRetrieverOptions() => new(_chromeExePath == _standaloneChromePath ? null : _chromeExePath);
 
-        private FluidPDFReportOptions NewFluidPDFReportOptions() =>
+        internal FluidPDFReportOptions NewFluidPDFReportOptions() =>
             new()
             {
                 Format = _paperFormat,

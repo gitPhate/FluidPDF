@@ -7,7 +7,7 @@ namespace FluidPDF.Builder
     {
         IFluidPDFBuilder WithExternalChromeProcess(string chromeExePath);
         IFluidPDFBuilder WithStandaloneChromium();
-        IFluidPDFBuilder WithLanscapeOrientation();
+        IFluidPDFBuilder WithLandscapeOrientation();
         IFluidPDFBuilder WithA2Format();
         IFluidPDFBuilder WithA3Format();
         IFluidPDFBuilder WithA5Format();
