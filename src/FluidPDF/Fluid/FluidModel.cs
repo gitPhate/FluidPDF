@@ -31,7 +31,7 @@ namespace FluidPDF.Fluid
                 FluidModelType.DataRow => DataRow,
                 FluidModelType.Dictionary => Dictionary,
                 FluidModelType.JsonString => JsonNode.Parse(JsonString!),
-                FluidModelType.Object => JsonNode.Parse(JsonSerializer.Serialize(ObjectValue)),
+                FluidModelType.Object => JsonSerializer.SerializeToNode(ObjectValue),
                 FluidModelType.PlainValue => PlainValue,
                 _ => null
             };
@@ -39,7 +39,7 @@ namespace FluidPDF.Fluid
         private FluidModel
         (
             string modelName,
-            FluidModelType kModelType,
+            FluidModelType modelType,
             DataRow? dataRow = null,
             Dictionary<string, object>? dictionary = null,
             string? jsonString = null,
@@ -48,7 +48,7 @@ namespace FluidPDF.Fluid
         )
         {
             Name = modelName;
-            Type = kModelType;
+            Type = modelType;
             DataRow = dataRow;
             Dictionary = dictionary;
             JsonString = jsonString;
@@ -67,35 +67,35 @@ namespace FluidPDF.Fluid
         public static FluidModel FromDataRow(string modelName, DataRow dataRow) =>
             new(
                 modelName: modelName,
-                kModelType: FluidModelType.DataRow,
+                modelType: FluidModelType.DataRow,
                 dataRow: dataRow.GetNonNullOrThrow(nameof(dataRow))
             );
 
         public static FluidModel FromDictionary(string modelName, Dictionary<string, object> dictionary) =>
             new(
                 modelName: modelName,
-                kModelType: FluidModelType.Dictionary,
+                modelType: FluidModelType.Dictionary,
                 dictionary: dictionary.GetNonNullOrThrow(nameof(dictionary))
             );
 
         public static FluidModel FromJsonString(string modelName, string jsonString) =>
             new(
                 modelName: modelName,
-                kModelType: FluidModelType.JsonString,
+                modelType: FluidModelType.JsonString,
                 jsonString: jsonString.GetNonNullOrThrow(nameof(jsonString))
             );
 
         public static FluidModel FromObject(string modelName, object obj) =>
             new(
                 modelName: modelName,
-                kModelType: FluidModelType.Object,
+                modelType: FluidModelType.Object,
                 objectValue: obj.GetNonNullOrThrow(nameof(obj))
             );
 
         public static FluidModel FromPlainValue(string modelName, object value) =>
             new(
                 modelName: modelName,
-                kModelType: FluidModelType.PlainValue,
+                modelType: FluidModelType.PlainValue,
                 plainValue: value
             );
     }

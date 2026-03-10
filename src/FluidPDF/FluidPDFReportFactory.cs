@@ -1,28 +1,29 @@
-﻿using FluidPDF.Fluid;
-using FluidPDF.Support.PDF;
+﻿using FluidPDF.Support.PDF;
 using FluidPDF.Support.PuppeteerSharp;
+using FluidPDF.Templating;
 using PuppeteerSharp;
 using PuppeteerSharp.Media;
 using System;
 using System.Globalization;
 using System.IO;
-using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
 
 namespace FluidPDF
 {
     public class FluidPDFReportFactory
     {
+        private readonly IFluidPDFTemplateEngine _templateEngine;
         private readonly IChromiumRetriever _chromiumRetriever;
         private readonly PdfOptions _pdfOptions;
 
-        public FluidPDFReportFactory(ChromiumRetrieverOptions chromiumRetrieverOptions, FluidPDFReportOptions fluidPdfReportOptions)
-            : this(new ChromiumRetriever(chromiumRetrieverOptions), fluidPdfReportOptions)
+        public FluidPDFReportFactory(IFluidPDFTemplateEngine templateEngine, ChromiumRetrieverOptions chromiumRetrieverOptions, FluidPDFReportOptions fluidPdfReportOptions)
+            : this(templateEngine, new ChromiumRetriever(chromiumRetrieverOptions), fluidPdfReportOptions)
         {
         }
 
-        internal FluidPDFReportFactory(IChromiumRetriever chromiumRetriever, FluidPDFReportOptions fluidPdfReportOptions)
+        internal FluidPDFReportFactory(IFluidPDFTemplateEngine templateEngine, IChromiumRetriever chromiumRetriever, FluidPDFReportOptions fluidPdfReportOptions)
         {
+            _templateEngine = templateEngine;
             _chromiumRetriever = chromiumRetriever ?? throw new ArgumentNullException(nameof(chromiumRetriever));
             _pdfOptions = new PdfOptions()
             {
@@ -42,7 +43,12 @@ namespace FluidPDF
         public async Task<byte[]> CompileReportAsync<T>(string template, T model, bool toBeCompressed = false, CultureInfo? cultureInfo = null)
             where T : notnull
         {
-            string reportContent = await FluidTemplateHelper.RenderTemplateByTypeAsync(template, model, cultureInfo: cultureInfo, encodeHtml: true).ConfigureAwait(false);
+            FluidPDFTemplateRenderOptions options = new()
+            {
+                CultureInfo = cultureInfo
+            };
+
+            string reportContent = await _templateEngine.RenderTemplateAsync(template, model, options).ConfigureAwait(false);
 
             using IBrowser browser = await _chromiumRetriever.RetrieveBrowserInstanceAsync().ConfigureAwait(false);
             using IPage page = await browser.NewPageAsync().ConfigureAwait(false);

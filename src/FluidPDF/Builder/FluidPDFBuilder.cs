@@ -1,7 +1,9 @@
 ﻿using FluidPDF.Exceptions;
+using FluidPDF.Fluid;
 using FluidPDF.Support;
 using FluidPDF.Support.IO;
 using FluidPDF.Support.PuppeteerSharp;
+using FluidPDF.Templating;
 using PuppeteerSharp.Media;
 using System;
 using System.Globalization;
@@ -30,6 +32,7 @@ namespace FluidPDF.Builder
         private string? _template = null;
         private bool _toBeCompressed;
         private readonly T _model;
+        private readonly IFluidPDFTemplateEngine _templateEngine;
 
         internal FluidPDFBuilder(T model)
         {
@@ -41,6 +44,7 @@ namespace FluidPDF.Builder
             _cultureInfo = null;
             _toBeCompressed = false;
             _model = model;
+            _templateEngine = new FluidTemplateEngine();
         }
 
         public IFluidPDFBuilder WithExternalChromeProcess(string chromeExePath)
@@ -194,7 +198,7 @@ namespace FluidPDF.Builder
             await factory.CompileReportAsync(template, _model, stream, _toBeCompressed, _cultureInfo).ConfigureAwait(false);
         }
 
-        private FluidPDFReportFactory NewFluidPDFReportFactory() => new(NewChromiumRetrieverOptions(), NewFluidPDFReportOptions());
+        private FluidPDFReportFactory NewFluidPDFReportFactory() => new(_templateEngine, NewChromiumRetrieverOptions(), NewFluidPDFReportOptions());
 
         private ChromiumRetrieverOptions NewChromiumRetrieverOptions() => new(_chromeExePath == _standaloneChromePath ? null : _chromeExePath);
 
