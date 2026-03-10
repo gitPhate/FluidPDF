@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.1.32228.430
+# Visual Studio Version 18
+VisualStudioVersion = 18.3.11520.95 d18.3
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FluidPDF", "FluidPDF\FluidPDF.csproj", "{81E33647-E6E2-48F1-8206-A7FB2C6AA4D6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluidPDF.Tests", "FluidPDF.Tests\FluidPDF.Tests.csproj", "{E9BE2087-EC85-474F-A1DF-D45FCD3D57C0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluidPDF.Scriban", "FluidPDF.Scriban\FluidPDF.Scriban.csproj", "{E46E4CED-C9EA-4FD7-91BB-5F2D114D2742}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{E9BE2087-EC85-474F-A1DF-D45FCD3D57C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E9BE2087-EC85-474F-A1DF-D45FCD3D57C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E9BE2087-EC85-474F-A1DF-D45FCD3D57C0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E46E4CED-C9EA-4FD7-91BB-5F2D114D2742}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E46E4CED-C9EA-4FD7-91BB-5F2D114D2742}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E46E4CED-C9EA-4FD7-91BB-5F2D114D2742}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E46E4CED-C9EA-4FD7-91BB-5F2D114D2742}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
