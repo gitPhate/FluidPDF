@@ -20,31 +20,44 @@ namespace FluidPDF.Fluid
         private static readonly FluidParser _parser = new();
         private static readonly TemplateOptions _templateOptions = NewTemplateOptions();
 
-        public ValueTask<string> RenderTemplateAsync<T>(string template, T model, FluidPDFTemplateRenderOptions options)
-            where T : notnull =>
-            model switch
-            {
-                DataRow => RenderWithDataRowAsync(template, (model as DataRow)!, options.ModelName, options.CultureInfo, null, true),
-                Dictionary<string, object> => RenderWithDictionaryAsync(template, (model as Dictionary<string, object>)!, options.ModelName, options.CultureInfo, null, true),
-                string => RenderWithJsonStringAsync(template, (model as string)!, options.ModelName, options.CultureInfo, null, true),
-                FluidModel[] => RenderWithMultipleModelsAsync(template, model as FluidModel[] ?? [], options.CultureInfo, null, true),
-                _ => RenderWithObjectAsync(template, model, options.ModelName, options.CultureInfo, null, true)
-            };
+        public ValueTask<string> RenderTemplateAsync(string template, DataTable model, FluidPDFTemplateRenderOptions options)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ValueTask<string> RenderTemplateAsync(string template, IDictionary<string, object> model, FluidPDFTemplateRenderOptions options) =>
+            RenderWithDictionaryAsync(template, model, options.ModelName, options.CultureInfo, null, true);
+
+        public ValueTask<string> RenderTemplateAsync(string template, FluidPDFTemplateModel[] models, FluidPDFTemplateRenderOptions options) =>
+            RenderWithMultipleModelsAsync(template, models, options.CultureInfo, null, true);
+
+        public ValueTask<string> RenderTemplateAsync(string template, object model, FluidPDFTemplateRenderOptions options) =>
+            RenderWithObjectAsync(template, model, options.ModelName, options.CultureInfo, null, true);
 
         public static ValueTask<string> RenderWithDataRowAsync(string template, DataRow dataRow, string modelName = _modelName, CultureInfo? cultureInfo = null, TimeZoneInfo? timeZone = null, bool encodeHtml = false) =>
             RenderTemplateAsync
             (
-                [FluidModel.FromDataRow(modelName, dataRow)],
+                [FluidPDFTemplateModel.FromDataRow(modelName, dataRow)],
                 template,
                 encodeHtml,
                 cultureInfo,
                 timeZone
             );
 
-        public static ValueTask<string> RenderWithDictionaryAsync(string template, Dictionary<string, object> dictionary, string modelName = _modelName, CultureInfo? cultureInfo = null, TimeZoneInfo? timeZone = null, bool encodeHtml = false) =>
+        public static ValueTask<string> RenderWithDataTableAsync(string template, DataTable dataTable, string modelName = _modelName, CultureInfo? cultureInfo = null, TimeZoneInfo? timeZone = null, bool encodeHtml = false) =>
             RenderTemplateAsync
             (
-                [FluidModel.FromDictionary(modelName, dictionary)],
+                [FluidPDFTemplateModel.FromDataTable(modelName, dataTable)],
+                template,
+                encodeHtml,
+                cultureInfo,
+                timeZone
+            );
+
+        public static ValueTask<string> RenderWithDictionaryAsync(string template, IDictionary<string, object> dictionary, string modelName = _modelName, CultureInfo? cultureInfo = null, TimeZoneInfo? timeZone = null, bool encodeHtml = false) =>
+            RenderTemplateAsync
+            (
+                [FluidPDFTemplateModel.FromDictionary(modelName, dictionary)],
                 template,
                 encodeHtml,
                 cultureInfo,
@@ -54,7 +67,7 @@ namespace FluidPDF.Fluid
         public static ValueTask<string> RenderWithJsonStringAsync(string template, string jsonString, string modelName = _modelName, CultureInfo? cultureInfo = null, TimeZoneInfo? timeZone = null, bool encodeHtml = false) =>
             RenderTemplateAsync
             (
-                [FluidModel.FromJsonString(modelName, jsonString)],
+                [FluidPDFTemplateModel.FromJsonString(modelName, jsonString)],
                 template,
                 encodeHtml,
                 cultureInfo,
@@ -64,14 +77,14 @@ namespace FluidPDF.Fluid
         public static ValueTask<string> RenderWithObjectAsync(string template, object obj, string modelName = _modelName, CultureInfo? cultureInfo = null, TimeZoneInfo? timeZone = null, bool encodeHtml = false) =>
             RenderTemplateAsync
             (
-                [FluidModel.FromObject(modelName, obj)],
+                [FluidPDFTemplateModel.FromObject(modelName, obj)],
                 template,
                 encodeHtml,
                 cultureInfo,
                 timeZone
             );
 
-        public static ValueTask<string> RenderWithMultipleModelsAsync(string template, FluidModel[] models, CultureInfo? cultureInfo = null, TimeZoneInfo? timeZone = null, bool encodeHtml = false) =>
+        public static ValueTask<string> RenderWithMultipleModelsAsync(string template, FluidPDFTemplateModel[] models, CultureInfo? cultureInfo = null, TimeZoneInfo? timeZone = null, bool encodeHtml = false) =>
             RenderTemplateAsync
             (
                 models,
@@ -81,7 +94,7 @@ namespace FluidPDF.Fluid
                 timeZone
             );
 
-        private static async ValueTask<string> RenderTemplateAsync(FluidModel[] models, string template, bool encodeHtml = false, CultureInfo? cultureInfo = null, TimeZoneInfo? timeZone = null)
+        private static async ValueTask<string> RenderTemplateAsync(FluidPDFTemplateModel[] models, string template, bool encodeHtml = false, CultureInfo? cultureInfo = null, TimeZoneInfo? timeZone = null)
         {
             try
             {
@@ -111,7 +124,7 @@ namespace FluidPDF.Fluid
             }
         }
 
-        private static TemplateContext NewTemplateContext(FluidModel[] models, CultureInfo? cultureInfo = null, TimeZoneInfo? timeZone = null)
+        private static TemplateContext NewTemplateContext(FluidPDFTemplateModel[] models, CultureInfo? cultureInfo = null, TimeZoneInfo? timeZone = null)
         {
             TemplateContext context = new(_templateOptions)
             {
@@ -123,7 +136,7 @@ namespace FluidPDF.Fluid
                 context.TimeZone = timeZone;
             }
 
-            foreach (FluidModel model in models ?? [])
+            foreach (FluidPDFTemplateModel model in models ?? [])
             {
                 context.SetValue(model.Name, model.Value);
             }
@@ -155,7 +168,21 @@ namespace FluidPDF.Fluid
                     }
                 );
 
-            templateOptions.MemberAccessStrategy.Register<JsonValue, object>((src, name) => src[name]!);
+            templateOptions
+                .MemberAccessStrategy
+                .Register<DataTable, object>
+                (
+                    (table, fieldName) =>
+                    {
+                        if (!fieldName.Equals(nameof(DataTable.Rows)))
+                        {
+                            return DBNull.Value;
+                        }
+
+                        return table.Rows.Cast<DataRow>().ToArray();
+                    }
+                );
+
             templateOptions.MemberAccessStrategy.Register<JsonObject, object>((src, name) => src[name]!);
             templateOptions.MemberAccessStrategy.Register<JsonArray, object>((src, name) => src[name]!);
             templateOptions.MemberAccessStrategy.Register<JsonNode, object>((src, name) => src[name]!);

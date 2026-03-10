@@ -1,5 +1,6 @@
 using FluentAssertions;
 using FluidPDF.Fluid;
+using FluidPDF.Templating;
 using FluidPDF.Tests.Mothers;
 
 namespace FluidPDF.Tests
@@ -11,52 +12,41 @@ namespace FluidPDF.Tests
         {
             // Arrange
             object model = TemplateModelMother.SimpleObject();
-            string template = TemplateModelMother.SimpleObjectTemplate();
+            string template = TemplateModelMother.SimpleTemplate();
+            FluidTemplateEngine templateEngine = new();
 
             // Act
-            string result = await FluidTemplateHelper.RenderTemplateByTypeAsync(template, model);
+            string result = await templateEngine.RenderTemplateAsync(template, model, new());
 
             // Assert
             result.Should().Be(TemplateModelMother.SimpleObjectExpectedOutput());
         }
 
         [Fact]
-        public async Task RenderTemplateByTypeAsync_ShouldRenderJsonProperty_WhenJsonStringModelIsProvided()
-        {
-            // Arrange
-            string model = TemplateModelMother.SimpleJsonString();
-            string template = TemplateModelMother.SimpleJsonTemplate();
-
-            // Act
-            string result = await FluidTemplateHelper.RenderTemplateByTypeAsync(template, model);
-
-            // Assert
-            result.Should().Be(TemplateModelMother.SimpleJsonExpectedOutput());
-        }
-
-        [Fact]
         public async Task RenderTemplateByTypeAsync_ShouldRenderDictionaryValue_WhenDictionaryModelIsProvided()
         {
             // Arrange
-            System.Collections.Generic.Dictionary<string, object> model = TemplateModelMother.SimpleDictionary();
-            string template = TemplateModelMother.SimpleDictionaryTemplate();
+            Dictionary<string, object> model = TemplateModelMother.SimpleDictionary();
+            string template = TemplateModelMother.SimpleTemplate();
+            FluidTemplateEngine templateEngine = new();
 
             // Act
-            string result = await FluidTemplateHelper.RenderTemplateByTypeAsync(template, model);
+            string result = await templateEngine.RenderTemplateAsync(template, model, new());
 
             // Assert
             result.Should().Be(TemplateModelMother.SimpleDictionaryExpectedOutput());
         }
 
         [Fact]
-        public async Task RenderTemplateByTypeAsync_ShouldRenderBothModels_WhenFluidModelArrayIsProvided()
+        public async Task RenderTemplateByTypeAsync_ShouldRenderBothModels_WhenFluidPDFTemplateModelArrayIsProvided()
         {
             // Arrange
-            FluidModel[] models = TemplateModelMother.TwoModelArray();
+            FluidPDFTemplateModel[] models = TemplateModelMother.TwoModelArray();
             string template = TemplateModelMother.TwoModelTemplate();
+            FluidTemplateEngine templateEngine = new();
 
             // Act
-            string result = await FluidTemplateHelper.RenderTemplateByTypeAsync(template, models);
+            string result = await templateEngine.RenderTemplateAsync(template, models, new());
 
             // Assert
             result.Should().Be(TemplateModelMother.TwoModelExpectedOutput());
@@ -68,9 +58,10 @@ namespace FluidPDF.Tests
             // Arrange
             object model = TemplateModelMother.HtmlSpecialCharsObject();
             string template = TemplateModelMother.HtmlSpecialCharsTemplate();
+            FluidTemplateEngine templateEngine = new();
 
             // Act
-            string result = await FluidTemplateHelper.RenderTemplateByTypeAsync(template, model, encodeHtml: true);
+            string result = await templateEngine.RenderTemplateAsync(template, model, new());
 
             // Assert
             result.Should().Be(TemplateModelMother.HtmlEncodedExpectedOutput());
@@ -82,13 +73,14 @@ namespace FluidPDF.Tests
             // Arrange
             object model = TemplateModelMother.SimpleObject();
             string template = TemplateModelMother.InvalidTemplate();
+            FluidTemplateEngine templateEngine = new();
 
             // Act
-            System.Func<Task> act = async () =>
-                await FluidTemplateHelper.RenderTemplateByTypeAsync(template, model);
+            Func<Task> act = async () =>
+                await templateEngine.RenderTemplateAsync(template, model, new());
 
             // Assert
-            await act.Should().ThrowAsync<FluidRenderException>();
+            await act.Should().ThrowAsync<FluidPDFTemplateRenderException>();
         }
     }
 }

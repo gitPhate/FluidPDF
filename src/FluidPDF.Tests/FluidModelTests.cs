@@ -1,10 +1,10 @@
 using FluentAssertions;
-using FluidPDF.Fluid;
+using FluidPDF.Templating;
 using System.Text.Json.Nodes;
 
 namespace FluidPDF.Tests
 {
-    public class FluidModelTests
+    public class FluidPDFTemplateModelTests
     {
         [Fact]
         public void FromObject_ShouldSetTypeToObject_WhenCreatedWithAnObject()
@@ -13,10 +13,10 @@ namespace FluidPDF.Tests
             object subject = new { Name = "Alice" };
 
             // Act
-            FluidModel model = FluidModel.FromObject("Model", subject);
+            FluidPDFTemplateModel model = FluidPDFTemplateModel.FromObject("Model", subject);
 
             // Assert
-            model.Type.Should().Be(FluidModelType.Object);
+            model.Type.Should().Be(FluidPDFTemplateModelType.Object);
             model.IsObject.Should().BeTrue();
             model.Name.Should().Be("Model");
         }
@@ -28,10 +28,10 @@ namespace FluidPDF.Tests
             string subject = """{"Name":"Bob"}""";
 
             // Act
-            FluidModel model = FluidModel.FromJsonString("Model", subject);
+            FluidPDFTemplateModel model = FluidPDFTemplateModel.FromJsonString("Model", subject);
 
             // Assert
-            model.Type.Should().Be(FluidModelType.JsonString);
+            model.Type.Should().Be(FluidPDFTemplateModelType.JsonString);
             model.IsJsonString.Should().BeTrue();
             model.JsonString.Should().Be(subject);
         }
@@ -43,10 +43,10 @@ namespace FluidPDF.Tests
             Dictionary<string, object> subject = new() { { "Name", "Carol" } };
 
             // Act
-            FluidModel model = FluidModel.FromDictionary("Model", subject);
+            FluidPDFTemplateModel model = FluidPDFTemplateModel.FromDictionary("Model", subject);
 
             // Assert
-            model.Type.Should().Be(FluidModelType.Dictionary);
+            model.Type.Should().Be(FluidPDFTemplateModelType.Dictionary);
             model.IsDictionary.Should().BeTrue();
             model.Dictionary.Should().BeSameAs(subject);
         }
@@ -55,7 +55,7 @@ namespace FluidPDF.Tests
         public void FromObject_ShouldExposeNonNullValue_WhenObjectModelIsResolved()
         {
             // Arrange
-            FluidModel model = FluidModel.FromObject("Model", new { Name = "Dave" });
+            FluidPDFTemplateModel model = FluidPDFTemplateModel.FromObject("Model", new { Name = "Dave" });
 
             // Act
             object? value = model.Value;

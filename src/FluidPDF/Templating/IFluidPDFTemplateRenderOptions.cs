@@ -1,4 +1,5 @@
-﻿using System;
+﻿using System.Collections.Generic;
+using System.Data;
 using System.Globalization;
 using System.Threading.Tasks;
 
@@ -6,7 +7,10 @@ namespace FluidPDF.Templating
 {
     public interface IFluidPDFTemplateEngine
     {
-        ValueTask<string> RenderTemplateAsync<T>(string template, T model, FluidPDFTemplateRenderOptions options) where T : notnull;
+        ValueTask<string> RenderTemplateAsync(string template, DataTable model, FluidPDFTemplateRenderOptions options);
+        ValueTask<string> RenderTemplateAsync(string template, IDictionary<string, object> model, FluidPDFTemplateRenderOptions options);
+        ValueTask<string> RenderTemplateAsync(string template, object model, FluidPDFTemplateRenderOptions options);
+        ValueTask<string> RenderTemplateAsync(string template, FluidPDFTemplateModel[] models, FluidPDFTemplateRenderOptions options);
     }
 
     public record FluidPDFTemplateRenderOptions

@@ -1,4 +1,5 @@
 using FluentAssertions;
+using FluidPDF.Fluid;
 using FluidPDF.Support.PuppeteerSharp;
 using FluidPDF.Tests.Mocks;
 using FluidPDF.Tests.Mothers;
@@ -14,8 +15,9 @@ namespace FluidPDF.Tests
         {
             // Arrange
             IChromiumRetriever retriever = ChromiumRetrieverMock.CreateWithSinglePagePdf(out _, out _);
-            FluidPDFReportFactory factory = new(retriever, new FluidPDFReportOptions());
-            string template = TemplateModelMother.SimpleObjectTemplate();
+            FluidTemplateEngine templateEngine = new();
+            FluidPDFReportFactory factory = new(templateEngine, retriever, new FluidPDFReportOptions());
+            string template = TemplateModelMother.SimpleTemplate();
             object model = TemplateModelMother.SimpleObject();
 
             // Act
@@ -31,8 +33,9 @@ namespace FluidPDF.Tests
         {
             // Arrange
             IChromiumRetriever retriever = ChromiumRetrieverMock.CreateWithSinglePagePdf(out _, out _);
-            FluidPDFReportFactory factory = new(retriever, new FluidPDFReportOptions());
-            string template = TemplateModelMother.SimpleObjectTemplate();
+            FluidTemplateEngine templateEngine = new();
+            FluidPDFReportFactory factory = new(templateEngine, retriever, new FluidPDFReportOptions());
+            string template = TemplateModelMother.SimpleTemplate();
             object model = TemplateModelMother.SimpleObject();
             using MemoryStream stream = new();
 
@@ -49,10 +52,11 @@ namespace FluidPDF.Tests
         {
             // Arrange
             IChromiumRetriever retriever = ChromiumRetrieverMock.CreateWithSinglePagePdf(out IBrowser browser, out IPage page);
-            FluidPDFReportFactory factory = new(retriever, new FluidPDFReportOptions());
+            FluidTemplateEngine templateEngine = new();
+            FluidPDFReportFactory factory = new(templateEngine, retriever, new FluidPDFReportOptions());
 
             // Act
-            await factory.CompileReportAsync(TemplateModelMother.SimpleObjectTemplate(), TemplateModelMother.SimpleObject());
+            await factory.CompileReportAsync(TemplateModelMother.SimpleTemplate(), TemplateModelMother.SimpleObject());
 
             // Assert
             await page.Received(1).CloseAsync();
@@ -64,11 +68,12 @@ namespace FluidPDF.Tests
         {
             // Arrange
             IChromiumRetriever retriever = ChromiumRetrieverMock.CreateWithPageThatThrowsOnSetContent(out IBrowser browser, out IPage page);
-            FluidPDFReportFactory factory = new(retriever, new FluidPDFReportOptions());
+            FluidTemplateEngine templateEngine = new();
+            FluidPDFReportFactory factory = new(templateEngine, retriever, new FluidPDFReportOptions());
 
             // Act
             Func<Task> act = async () =>
-                await factory.CompileReportAsync(TemplateModelMother.SimpleObjectTemplate(), TemplateModelMother.SimpleObject());
+                await factory.CompileReportAsync(TemplateModelMother.SimpleTemplate(), TemplateModelMother.SimpleObject());
 
             // Assert
             await act.Should().ThrowAsync<Exception>();
