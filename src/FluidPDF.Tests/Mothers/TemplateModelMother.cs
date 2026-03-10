@@ -48,9 +48,27 @@ namespace FluidPDF.Tests.Mothers
             DataRow row = table.NewRow();
             row["Name"] = "Eve";
             row["Age"] = 31;
+            table.Rows.Add(row);
+            DataRow row2 = table.NewRow();
+            row2["Name"] = "Sarah";
+            row2["Age"] = 22;
+            table.Rows.Add(row2);
             return table;
         }
 
-        internal static string SimpleDataTableExpectedOutput() => "<p>Eve is 31</p>";
+        internal static string SimpleDataTableTemplate() => """
+<ul>
+{% for item in Model.Rows %}
+    <li>{{ item.Name }}</li>
+{% endfor %}
+</ul>
+""";
+
+        internal static string SimpleDataTableExpectedOutput() => """
+<ul>
+<li>Eve</li>
+<li>Sarah</li>
+</ul>
+""";
     }
 }

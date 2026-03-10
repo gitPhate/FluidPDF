@@ -20,10 +20,8 @@ namespace FluidPDF.Fluid
         private static readonly FluidParser _parser = new();
         private static readonly TemplateOptions _templateOptions = NewTemplateOptions();
 
-        public ValueTask<string> RenderTemplateAsync(string template, DataTable model, FluidPDFTemplateRenderOptions options)
-        {
-            throw new NotImplementedException();
-        }
+        public ValueTask<string> RenderTemplateAsync(string template, DataTable model, FluidPDFTemplateRenderOptions options) =>
+            RenderWithDataTableAsync(template, model, options.ModelName, options.CultureInfo, null, true);
 
         public ValueTask<string> RenderTemplateAsync(string template, IDictionary<string, object> model, FluidPDFTemplateRenderOptions options) =>
             RenderWithDictionaryAsync(template, model, options.ModelName, options.CultureInfo, null, true);

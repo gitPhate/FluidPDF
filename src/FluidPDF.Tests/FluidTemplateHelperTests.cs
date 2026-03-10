@@ -2,13 +2,14 @@ using FluentAssertions;
 using FluidPDF.Fluid;
 using FluidPDF.Templating;
 using FluidPDF.Tests.Mothers;
+using System.Data;
 
 namespace FluidPDF.Tests
 {
     public class FluidTemplateHelperTests
     {
         [Fact]
-        public async Task RenderTemplateByTypeAsync_ShouldRenderObjectProperty_WhenObjectModelIsProvided()
+        public async Task RenderTemplateAsync_ShouldRenderObjectValue_WhenObjectModelIsProvided()
         {
             // Arrange
             object model = TemplateModelMother.SimpleObject();
@@ -23,7 +24,7 @@ namespace FluidPDF.Tests
         }
 
         [Fact]
-        public async Task RenderTemplateByTypeAsync_ShouldRenderDictionaryValue_WhenDictionaryModelIsProvided()
+        public async Task RenderTemplateAsync_ShouldRenderDictionaryValue_WhenDictionaryModelIsProvided()
         {
             // Arrange
             Dictionary<string, object> model = TemplateModelMother.SimpleDictionary();
@@ -38,7 +39,7 @@ namespace FluidPDF.Tests
         }
 
         [Fact]
-        public async Task RenderTemplateByTypeAsync_ShouldRenderBothModels_WhenFluidPDFTemplateModelArrayIsProvided()
+        public async Task RenderTemplateAsync_ShouldRenderBothModels_WhenFluidPDFTemplateModelArrayIsProvided()
         {
             // Arrange
             FluidPDFTemplateModel[] models = TemplateModelMother.TwoModelArray();
@@ -53,7 +54,7 @@ namespace FluidPDF.Tests
         }
 
         [Fact]
-        public async Task RenderTemplateByTypeAsync_ShouldHtmlEncodeSpecialCharacters_WhenEncodeHtmlIsTrue()
+        public async Task RenderTemplateAsync_ShouldHtmlEncodeSpecialCharacters_WhenEncodeHtmlIsTrue()
         {
             // Arrange
             object model = TemplateModelMother.HtmlSpecialCharsObject();
@@ -68,7 +69,7 @@ namespace FluidPDF.Tests
         }
 
         [Fact]
-        public async Task RenderTemplateByTypeAsync_ShouldThrowFluidRenderException_WhenTemplateIsInvalid()
+        public async Task RenderTemplateAsync_ShouldThrowFluidRenderException_WhenTemplateIsInvalid()
         {
             // Arrange
             object model = TemplateModelMother.SimpleObject();
@@ -81,6 +82,21 @@ namespace FluidPDF.Tests
 
             // Assert
             await act.Should().ThrowAsync<FluidPDFTemplateRenderException>();
+        }
+
+        [Fact]
+        public async Task RenderTemplateAsync_ShouldRenderDataTableValue_WhenObjectModelIsProvided()
+        {
+            // Arrange
+            DataTable model = TemplateModelMother.SimpleDataTable();
+            string template = TemplateModelMother.SimpleDataTableTemplate();
+            FluidTemplateEngine templateEngine = new();
+
+            // Act
+            string result = await templateEngine.RenderTemplateAsync(template, model, new());
+
+            // Assert
+            result.Should().Be(TemplateModelMother.SimpleDataTableExpectedOutput());
         }
     }
 }

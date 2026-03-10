@@ -32,6 +32,7 @@ namespace FluidPDF.Templating
             Type switch
             {
                 FluidPDFTemplateModelType.DataRow => DataRow,
+                FluidPDFTemplateModelType.DataTable => DataTable,
                 FluidPDFTemplateModelType.Dictionary => Dictionary,
                 FluidPDFTemplateModelType.JsonString => JsonNode.Parse(JsonString!),
                 FluidPDFTemplateModelType.Object => JsonSerializer.SerializeToNode(ObjectValue),
