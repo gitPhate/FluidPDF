@@ -26,7 +26,7 @@ namespace FluidPDF.Tests
         {
             // Arrange
             IFluidPDFBuilder builder = FluidPDFBuilder.NewWithModel(TemplateModelMother.SimpleObject())
-                .WithTemplate(TemplateModelMother.SimpleTemplate());
+                .WithTemplate(TemplateModelMother.SimpleTemplate);
 
             // Act
             Func<Task> act = builder.BuildAsync;

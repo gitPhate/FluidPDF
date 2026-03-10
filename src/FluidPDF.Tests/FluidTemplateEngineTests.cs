@@ -15,14 +15,14 @@ namespace FluidPDF.Tests
         {
             // Arrange
             object model = TemplateModelMother.SimpleObject();
-            string template = TemplateModelMother.SimpleTemplate();
+            string template = TemplateModelMother.SimpleTemplate;
             FluidTemplateEngine templateEngine = new();
 
             // Act
             string result = await templateEngine.RenderTemplateAsync(template, model, new());
 
             // Assert
-            result.Should().Be(TemplateModelMother.SimpleObjectExpectedOutput());
+            result.Should().Be(TemplateModelMother.SimpleObjectExpectedOutput);
         }
 
         [Fact]
@@ -30,14 +30,14 @@ namespace FluidPDF.Tests
         {
             // Arrange
             Dictionary<string, object> model = TemplateModelMother.SimpleDictionary();
-            string template = TemplateModelMother.SimpleTemplate();
+            string template = TemplateModelMother.SimpleTemplate;
             FluidTemplateEngine templateEngine = new();
 
             // Act
             string result = await templateEngine.RenderTemplateAsync(template, model, new());
 
             // Assert
-            result.Should().Be(TemplateModelMother.SimpleDictionaryExpectedOutput());
+            result.Should().Be(TemplateModelMother.SimpleDictionaryExpectedOutput);
         }
 
         [Fact]
@@ -45,14 +45,14 @@ namespace FluidPDF.Tests
         {
             // Arrange
             DataTable model = TemplateModelMother.SimpleDataTable();
-            string template = TemplateModelMother.SimpleDataTableTemplate();
+            string template = TemplateModelMother.SimpleDataTableTemplate;
             FluidTemplateEngine templateEngine = new();
 
             // Act
             string result = await templateEngine.RenderTemplateAsync(template, model, new());
 
             // Assert
-            result.Should().Be(TemplateModelMother.SimpleDataTableExpectedOutput());
+            result.Should().Be(TemplateModelMother.SimpleDataTableExpectedOutput);
         }
 
         [Fact]
@@ -60,14 +60,14 @@ namespace FluidPDF.Tests
         {
             // Arrange
             FluidPDFTemplateModel[] models = TemplateModelMother.TwoModelArray();
-            string template = TemplateModelMother.TwoModelTemplate();
+            string template = TemplateModelMother.TwoModelTemplate;
             FluidTemplateEngine templateEngine = new();
 
             // Act
             string result = await templateEngine.RenderTemplateAsync(template, models, new());
 
             // Assert
-            result.Should().Be(TemplateModelMother.TwoModelExpectedOutput());
+            result.Should().Be(TemplateModelMother.TwoModelExpectedOutput);
         }
 
         [Fact]
@@ -75,14 +75,14 @@ namespace FluidPDF.Tests
         {
             // Arrange
             object model = TemplateModelMother.HtmlSpecialCharsObject();
-            string template = TemplateModelMother.HtmlSpecialCharsTemplate();
+            string template = TemplateModelMother.HtmlSpecialCharsTemplate;
             FluidTemplateEngine templateEngine = new();
 
             // Act
             string result = await templateEngine.RenderTemplateAsync(template, model, new());
 
             // Assert
-            result.Should().Be(TemplateModelMother.HtmlEncodedExpectedOutput());
+            result.Should().Be(TemplateModelMother.HtmlEncodedExpectedOutput);
         }
 
         [Fact]
@@ -90,7 +90,7 @@ namespace FluidPDF.Tests
         {
             // Arrange
             object model = TemplateModelMother.SimpleObject();
-            string template = TemplateModelMother.InvalidTemplate();
+            string template = TemplateModelMother.InvalidTemplate;
             FluidTemplateEngine templateEngine = new();
 
             // Act
@@ -99,6 +99,92 @@ namespace FluidPDF.Tests
 
             // Assert
             await act.Should().ThrowAsync<FluidPDFTemplateRenderException>();
+        }
+
+        // --- Static helper overloads ---
+
+        [Fact]
+        public async Task RenderWithObjectAsync_ShouldRenderObjectValue_WhenObjectModelIsProvided()
+        {
+            // Arrange
+            object model = TemplateModelMother.SimpleObject();
+            string template = TemplateModelMother.SimpleTemplate;
+
+            // Act
+            string result = await FluidTemplateEngine.RenderWithObjectAsync(template, model);
+
+            // Assert
+            result.Should().Be(TemplateModelMother.SimpleObjectExpectedOutput);
+        }
+
+        [Fact]
+        public async Task RenderWithDictionaryAsync_ShouldRenderDictionaryValue_WhenDictionaryModelIsProvided()
+        {
+            // Arrange
+            Dictionary<string, object> model = TemplateModelMother.SimpleDictionary();
+            string template = TemplateModelMother.SimpleTemplate;
+
+            // Act
+            string result = await FluidTemplateEngine.RenderWithDictionaryAsync(template, model);
+
+            // Assert
+            result.Should().Be(TemplateModelMother.SimpleDictionaryExpectedOutput);
+        }
+
+        [Fact]
+        public async Task RenderWithJsonStringAsync_ShouldRenderJsonStringValue_WhenJsonStringModelIsProvided()
+        {
+            // Arrange
+            string model = TemplateModelMother.SimpleJsonString;
+            string template = TemplateModelMother.SimpleTemplate;
+
+            // Act
+            string result = await FluidTemplateEngine.RenderWithJsonStringAsync(template, model);
+
+            // Assert
+            result.Should().Be(TemplateModelMother.SimpleJsonStringExpectedOutput);
+        }
+
+        [Fact]
+        public async Task RenderWithDataRowAsync_ShouldRenderDataRowValue_WhenDataRowModelIsProvided()
+        {
+            // Arrange
+            DataRow model = TemplateModelMother.SimpleDataRow();
+            string template = TemplateModelMother.SimpleTemplate;
+
+            // Act
+            string result = await FluidTemplateEngine.RenderWithDataRowAsync(template, model);
+
+            // Assert
+            result.Should().Be(TemplateModelMother.SimpleDataRowExpectedOutput);
+        }
+
+        [Fact]
+        public async Task RenderWithDataTableAsync_ShouldRenderDataTableValue_WhenDataTableModelIsProvided()
+        {
+            // Arrange
+            DataTable model = TemplateModelMother.SimpleDataTable();
+            string template = TemplateModelMother.SimpleDataTableTemplate;
+
+            // Act
+            string result = await FluidTemplateEngine.RenderWithDataTableAsync(template, model);
+
+            // Assert
+            result.Should().Be(TemplateModelMother.SimpleDataTableExpectedOutput);
+        }
+
+        [Fact]
+        public async Task RenderWithMultipleModelsAsync_ShouldRenderBothModels_WhenMultipleModelsAreProvided()
+        {
+            // Arrange
+            FluidPDFTemplateModel[] models = TemplateModelMother.TwoModelArray();
+            string template = TemplateModelMother.TwoModelTemplate;
+
+            // Act
+            string result = await FluidTemplateEngine.RenderWithMultipleModelsAsync(template, models);
+
+            // Assert
+            result.Should().Be(TemplateModelMother.TwoModelExpectedOutput);
         }
     }
 }
