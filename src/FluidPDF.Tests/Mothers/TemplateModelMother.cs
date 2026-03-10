@@ -70,5 +70,21 @@ namespace FluidPDF.Tests.Mothers
 <li>Sarah</li>
 </ul>
 """;
+
+        internal static DataRow SimpleDataRow()
+        {
+            DataTable table = new();
+            table.Columns.Add("Name", typeof(string));
+            table.Columns.Add("Age", typeof(int));
+            DataRow row = table.NewRow();
+            row["Name"] = "Frank";
+            row["Age"] = 45;
+            table.Rows.Add(row);
+            return row;
+        }
+
+        internal static string SimpleDataRowTemplate() => "<p>{{ Model.Name }} is {{ Model.Age }}</p>";
+
+        internal static string SimpleDataRowExpectedOutput() => "<p>Frank is 45</p>";
     }
 }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.Serialization;
 
 namespace FluidPDF.Templating
 {
@@ -14,10 +13,6 @@ namespace FluidPDF.Templating
         }
 
         public FluidPDFTemplateRenderException(string message, Exception innerException) : base(message, innerException)
-        {
-        }
-
-        protected FluidPDFTemplateRenderException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
         }
     }

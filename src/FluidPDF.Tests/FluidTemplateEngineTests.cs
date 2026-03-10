@@ -6,8 +6,10 @@ using System.Data;
 
 namespace FluidPDF.Tests
 {
-    public class FluidTemplateHelperTests
+    public class FluidTemplateEngineTests
     {
+        // --- Instance method overloads (IFluidPDFTemplateEngine) ---
+
         [Fact]
         public async Task RenderTemplateAsync_ShouldRenderObjectValue_WhenObjectModelIsProvided()
         {
@@ -39,6 +41,21 @@ namespace FluidPDF.Tests
         }
 
         [Fact]
+        public async Task RenderTemplateAsync_ShouldRenderDataTableValue_WhenDataTableModelIsProvided()
+        {
+            // Arrange
+            DataTable model = TemplateModelMother.SimpleDataTable();
+            string template = TemplateModelMother.SimpleDataTableTemplate();
+            FluidTemplateEngine templateEngine = new();
+
+            // Act
+            string result = await templateEngine.RenderTemplateAsync(template, model, new());
+
+            // Assert
+            result.Should().Be(TemplateModelMother.SimpleDataTableExpectedOutput());
+        }
+
+        [Fact]
         public async Task RenderTemplateAsync_ShouldRenderBothModels_WhenFluidPDFTemplateModelArrayIsProvided()
         {
             // Arrange
@@ -54,7 +71,7 @@ namespace FluidPDF.Tests
         }
 
         [Fact]
-        public async Task RenderTemplateAsync_ShouldHtmlEncodeSpecialCharacters_WhenEncodeHtmlIsTrue()
+        public async Task RenderTemplateAsync_ShouldHtmlEncodeSpecialCharacters_WhenInstanceOverloadIsUsed()
         {
             // Arrange
             object model = TemplateModelMother.HtmlSpecialCharsObject();
@@ -69,7 +86,7 @@ namespace FluidPDF.Tests
         }
 
         [Fact]
-        public async Task RenderTemplateAsync_ShouldThrowFluidRenderException_WhenTemplateIsInvalid()
+        public async Task RenderTemplateAsync_ShouldThrowFluidPDFTemplateRenderException_WhenTemplateIsInvalid()
         {
             // Arrange
             object model = TemplateModelMother.SimpleObject();
@@ -82,21 +99,6 @@ namespace FluidPDF.Tests
 
             // Assert
             await act.Should().ThrowAsync<FluidPDFTemplateRenderException>();
-        }
-
-        [Fact]
-        public async Task RenderTemplateAsync_ShouldRenderDataTableValue_WhenObjectModelIsProvided()
-        {
-            // Arrange
-            DataTable model = TemplateModelMother.SimpleDataTable();
-            string template = TemplateModelMother.SimpleDataTableTemplate();
-            FluidTemplateEngine templateEngine = new();
-
-            // Act
-            string result = await templateEngine.RenderTemplateAsync(template, model, new());
-
-            // Assert
-            result.Should().Be(TemplateModelMother.SimpleDataTableExpectedOutput());
         }
     }
 }

@@ -32,6 +32,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\FluidPDF.Scriban\FluidPDF.Scriban.csproj" />
     <ProjectReference Include="..\FluidPDF\FluidPDF.csproj" />
   </ItemGroup>
 
