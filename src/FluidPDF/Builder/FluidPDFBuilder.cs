@@ -28,8 +28,8 @@ namespace FluidPDF.Builder
         private MarginOptions _marginOptions;
         private int _scale;
         private CultureInfo? _cultureInfo;
-        private string? _templateFilePath = null;
-        private string? _template = null;
+        private string? _templateFilePath;
+        private string? _template;
         private bool _toBeCompressed;
         private readonly T _model;
         private readonly IFluidPDFTemplateEngine _templateEngine;
