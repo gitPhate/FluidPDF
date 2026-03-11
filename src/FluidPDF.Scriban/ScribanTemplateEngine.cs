@@ -34,30 +34,38 @@ namespace FluidPDF.Scriban
 
         private static async ValueTask<string> RenderTemplateAsync(FluidPDFTemplateModel[] models, string template, FluidPDFTemplateRenderOptions options)
         {
-            ScriptObject mainObject = [];
-
-            foreach (FluidPDFTemplateModel model in models)
+            try
             {
-                ScriptObject modelObject = CreateModelScriptObject(model);
-                mainObject.Add(options.ModelName, modelObject);
-            }
+                ScriptObject mainObject = [];
 
-            TemplateContext context =
-                new()
+                foreach (FluidPDFTemplateModel model in models)
                 {
-                    MemberRenamer = x => x.Name
-                };
+                    ScriptObject modelObject = CreateModelScriptObject(model);
+                    mainObject.Add(options.ModelName, modelObject);
+                }
 
-            if (options.CultureInfo is not null)
-            {
-                context.PushCulture(options.CultureInfo);
+                TemplateContext context =
+                    new()
+                    {
+                        MemberRenamer = x => x.Name
+                    };
+
+                if (options.CultureInfo is not null)
+                {
+                    context.PushCulture(options.CultureInfo);
+                }
+
+                context.PushGlobal(mainObject);
+
+                Template compiledTemplate = Template.Parse(template);
+                string result = await compiledTemplate.RenderAsync(context).ConfigureAwait(false);
+                return result;
             }
-
-            context.PushGlobal(mainObject);
-
-            Template compiledTemplate = Template.Parse(template);
-            string result = await compiledTemplate.RenderAsync(context).ConfigureAwait(false);
-            return result;
+            catch (Exception ex)
+            {
+                if (ex is FluidPDFTemplateRenderException) throw;
+                throw new FluidPDFTemplateRenderException("An error occurred while rendering the template", ex);
+            }
         }
 
         private static ScriptObject CreateModelScriptObject(FluidPDFTemplateModel model) =>

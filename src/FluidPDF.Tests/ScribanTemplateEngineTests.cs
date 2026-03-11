@@ -1,4 +1,5 @@
 using FluentAssertions;
+using FluentAssertions.Specialized;
 using FluidPDF.Scriban;
 using FluidPDF.Templating;
 using FluidPDF.Tests.Mothers;
@@ -73,7 +74,7 @@ namespace FluidPDF.Tests
         }
 
         [Fact]
-        public async Task RenderTemplateAsync_ShouldThrowInvalidOperationException_WhenPlainValueModelTypeIsProvided()
+        public async Task RenderTemplateAsync_ShouldThrowFluidPDFTemplateRenderException_WhenPlainValueModelTypeIsProvided()
         {
             // Arrange
             FluidPDFTemplateModel model = FluidPDFTemplateModel.FromPlainValue("Greeting", "Hello");
@@ -84,12 +85,14 @@ namespace FluidPDF.Tests
                 await templateEngine.RenderTemplateAsync("<p>{{ Greeting }}</p>", [model], new());
 
             // Assert
-            await act.Should().ThrowAsync<InvalidOperationException>()
+            ExceptionAssertions<FluidPDFTemplateRenderException> assertion =
+                await act.Should().ThrowAsync<FluidPDFTemplateRenderException>();
+            assertion.WithInnerException<InvalidOperationException>()
                 .WithMessage("*PlainValue*");
         }
 
         [Fact]
-        public async Task RenderTemplateAsync_ShouldThrowInvalidOperationException_WhenJsonStringModelTypeIsProvided()
+        public async Task RenderTemplateAsync_ShouldThrowFluidPDFTemplateRenderException_WhenJsonStringModelTypeIsProvided()
         {
             // Arrange
             FluidPDFTemplateModel model = FluidPDFTemplateModel.FromJsonString("Model", "{\"Name\":\"Alice\"}");
@@ -100,12 +103,14 @@ namespace FluidPDF.Tests
                 await templateEngine.RenderTemplateAsync("<p>{{ Model.Name }}</p>", [model], new());
 
             // Assert
-            await act.Should().ThrowAsync<InvalidOperationException>()
+            ExceptionAssertions<FluidPDFTemplateRenderException> assertion =
+                await act.Should().ThrowAsync<FluidPDFTemplateRenderException>();
+            assertion.WithInnerException<InvalidOperationException>()
                 .WithMessage("*JsonString*");
         }
 
         [Fact]
-        public async Task RenderTemplateAsync_ShouldThrowInvalidOperationException_WhenTemplateIsInvalid()
+        public async Task RenderTemplateAsync_ShouldThrowFluidPDFTemplateRenderException_WhenTemplateIsInvalid()
         {
             // Arrange
             object model = TemplateModelMother.SimpleObject();
@@ -116,13 +121,11 @@ namespace FluidPDF.Tests
                 await templateEngine.RenderTemplateAsync("{{ if }}", model, new());
 
             // Assert
-            // Scriban validates the template on RenderAsync and throws InvalidOperationException
-            // (unlike FluidTemplateEngine which wraps errors in FluidPDFTemplateRenderException).
-            await act.Should().ThrowAsync<InvalidOperationException>();
+            await act.Should().ThrowAsync<FluidPDFTemplateRenderException>();
         }
 
         [Fact]
-        public async Task RenderTemplateAsync_ShouldThrowArgumentException_WhenMultipleModelsShareTheSameKey()
+        public async Task RenderTemplateAsync_ShouldThrowFluidPDFTemplateRenderException_WhenMultipleModelsShareTheSameKey()
         {
             // Arrange
             // Both models are registered under options.ModelName ("Model") — the second Add call
@@ -138,7 +141,9 @@ namespace FluidPDF.Tests
             // Assert
             // This documents the known bug: the engine always uses options.ModelName as the key
             // for every model in the array rather than each model's own Name property.
-            await act.Should().ThrowAsync<ArgumentException>()
+            ExceptionAssertions<FluidPDFTemplateRenderException> assertion =
+                await act.Should().ThrowAsync<FluidPDFTemplateRenderException>();
+            assertion.WithInnerException<ArgumentException>()
                 .WithMessage("*already been added*");
         }
     }
