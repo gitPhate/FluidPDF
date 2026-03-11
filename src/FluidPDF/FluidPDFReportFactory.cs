@@ -25,6 +25,17 @@ namespace FluidPDF
         {
             _templateEngine = templateEngine;
             _chromiumRetriever = chromiumRetriever ?? throw new ArgumentNullException(nameof(chromiumRetriever));
+
+            if (fluidPdfReportOptions is null)
+            {
+                throw new ArgumentNullException(nameof(fluidPdfReportOptions));
+            }
+
+            if (fluidPdfReportOptions.Scale < 0.1M || fluidPdfReportOptions.Scale > 2.0M)
+            {
+                throw new ArgumentOutOfRangeException(nameof(fluidPdfReportOptions), fluidPdfReportOptions.Scale, "Scale must be between 0.1 and 2.0.");
+            }
+
             _pdfOptions = new PdfOptions()
             {
                 PreferCSSPageSize = true,
