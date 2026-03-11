@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace FluidPDF.Support.PDF
 {
-    public static class PDFCompressHelper
+    internal static class PDFCompressHelper
     {
         public static async Task<byte[]> CompressPDFAsync(byte[] data)
         {
