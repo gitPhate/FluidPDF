@@ -1,6 +1,7 @@
 ﻿using FluidPDF.Templating;
 using Scriban;
 using Scriban.Runtime;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Text.Json;
@@ -10,7 +11,28 @@ namespace FluidPDF.Scriban
 {
     public class ScribanTemplateEngine : IFluidPDFTemplateEngine
     {
-        private async ValueTask<string> RenderTemplateAsync(FluidPDFTemplateModel[] models, string template, FluidPDFTemplateRenderOptions options)
+        public async ValueTask<string> RenderTemplateAsync(string template, DataTable model, FluidPDFTemplateRenderOptions options)
+        {
+            FluidPDFTemplateModel managedModel = FluidPDFTemplateModel.FromDataTable(options.ModelName, model);
+            return await RenderTemplateAsync([managedModel], template, options).ConfigureAwait(false);
+        }
+
+        public async ValueTask<string> RenderTemplateAsync(string template, IDictionary<string, object> model, FluidPDFTemplateRenderOptions options)
+        {
+            FluidPDFTemplateModel managedModel = FluidPDFTemplateModel.FromDictionary(options.ModelName, model);
+            return await RenderTemplateAsync([managedModel], template, options).ConfigureAwait(false);
+        }
+
+        public async ValueTask<string> RenderTemplateAsync(string template, object model, FluidPDFTemplateRenderOptions options)
+        {
+            FluidPDFTemplateModel managedModel = FluidPDFTemplateModel.FromObject(options.ModelName, model);
+            return await RenderTemplateAsync([managedModel], template, options).ConfigureAwait(false);
+        }
+
+        public ValueTask<string> RenderTemplateAsync(string template, FluidPDFTemplateModel[] models, FluidPDFTemplateRenderOptions options) =>
+            RenderTemplateAsync(models, template, options);
+
+        private static async ValueTask<string> RenderTemplateAsync(FluidPDFTemplateModel[] models, string template, FluidPDFTemplateRenderOptions options)
         {
             ScriptObject mainObject = [];
 
@@ -38,37 +60,14 @@ namespace FluidPDF.Scriban
             return result;
         }
 
-        public async ValueTask<string> RenderTemplateAsync(string template, DataTable model, FluidPDFTemplateRenderOptions options)
-        {
-            FluidPDFTemplateModel managedModel = FluidPDFTemplateModel.FromDataTable(options.ModelName, model);
-            return await RenderTemplateAsync([managedModel], template, options).ConfigureAwait(false);
-        }
-
-        public async ValueTask<string> RenderTemplateAsync(string template, IDictionary<string, object> model, FluidPDFTemplateRenderOptions options)
-        {
-            FluidPDFTemplateModel managedModel = FluidPDFTemplateModel.FromDictionary(options.ModelName, model);
-            return await RenderTemplateAsync([managedModel], template, options).ConfigureAwait(false);
-        }
-
-        public async ValueTask<string> RenderTemplateAsync(string template, object model, FluidPDFTemplateRenderOptions options)
-        {
-            FluidPDFTemplateModel managedModel = FluidPDFTemplateModel.FromObject(options.ModelName, model);
-            return await RenderTemplateAsync([managedModel], template, options).ConfigureAwait(false);
-        }
-
-        public async ValueTask<string> RenderTemplateAsync(string template, FluidPDFTemplateModel[] models, FluidPDFTemplateRenderOptions options)
-        {
-            return await RenderTemplateAsync(models, template, options).ConfigureAwait(false);
-        }
-
-        private ScriptObject CreateModelScriptObject(FluidPDFTemplateModel model) =>
+        private static ScriptObject CreateModelScriptObject(FluidPDFTemplateModel model) =>
             model.Type switch
             {
-                FluidPDFTemplateModelType.DataRow    => DataRowToScriptObject(model.DataRow!),
-                FluidPDFTemplateModelType.DataTable  => DataTableToScriptObject(model.DataTable!),
+                FluidPDFTemplateModelType.DataRow => DataRowToScriptObject(model.DataRow!),
+                FluidPDFTemplateModelType.DataTable => DataTableToScriptObject(model.DataTable!),
                 FluidPDFTemplateModelType.Dictionary => ScriptObject.From(model.Dictionary!),
-                FluidPDFTemplateModelType.Object     => ScriptObject.From(JsonSerializer.SerializeToElement(model.ObjectValue)),
-                _                                    => throw new System.InvalidOperationException($"Unsupported model type: {model.Type}")
+                FluidPDFTemplateModelType.Object => ScriptObject.From(JsonSerializer.SerializeToElement(model.ObjectValue)),
+                _ => throw new InvalidOperationException($"Unsupported model type: {model.Type}")
             };
 
         private static ScriptObject DataRowToScriptObject(DataRow row)
