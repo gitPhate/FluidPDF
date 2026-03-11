@@ -147,6 +147,7 @@ namespace FluidPDF.Builder
 
         public IFluidPDFBuilder WithCustomScalePercentage(int scale)
         {
+            // TODO: int is a struct; GetNonNullOrThrow requires a struct-friendly overload before this call is meaningful.
             _scale = scale.GetNonNullOrThrow(nameof(scale));
             return this;
         }
