@@ -118,6 +118,7 @@ namespace FluidPDF.Fluid
             }
             catch (Exception ex)
             {
+                if (ex is FluidPDFTemplateRenderException) throw;
                 throw new FluidPDFTemplateRenderException("An error occurred in rendering the template", ex);
             }
         }
