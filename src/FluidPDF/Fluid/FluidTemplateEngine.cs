@@ -135,7 +135,7 @@ namespace FluidPDF.Fluid
                 context.TimeZone = timeZone;
             }
 
-            foreach (FluidPDFTemplateModel model in models ?? [])
+            foreach (FluidPDFTemplateModel model in models)
             {
                 context.SetValue(model.Name, model.Value);
             }
