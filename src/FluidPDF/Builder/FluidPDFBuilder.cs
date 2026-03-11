@@ -139,7 +139,7 @@ namespace FluidPDF.Builder
                 FluidPDFMargins.ZeroPoint3 => new MarginOptions { Bottom = "0.3 in", Left = "0.3 in", Right = "0.3 in", Top = "0.3 in" },
                 FluidPDFMargins.ZeroPoint2 => new MarginOptions { Bottom = "0.2 in", Left = "0.2 in", Right = "0.2 in", Top = "0.2 in" },
                 FluidPDFMargins.ZeroPoint1 => new MarginOptions { Bottom = "0.1 in", Left = "0.1 in", Right = "0.1 in", Top = "0.1 in" },
-                _ => throw new NotImplementedException()
+                _ => throw new ArgumentOutOfRangeException(nameof(margins), margins, null)
             };
 
             return this;
