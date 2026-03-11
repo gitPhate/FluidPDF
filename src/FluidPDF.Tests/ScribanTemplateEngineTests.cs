@@ -3,7 +3,6 @@ using FluentAssertions.Specialized;
 using FluidPDF.Scriban;
 using FluidPDF.Templating;
 using FluidPDF.Tests.Mothers;
-using System.Collections.Generic;
 using System.Data;
 
 namespace FluidPDF.Tests
