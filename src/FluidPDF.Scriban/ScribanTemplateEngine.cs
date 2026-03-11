@@ -41,7 +41,7 @@ namespace FluidPDF.Scriban
                 foreach (FluidPDFTemplateModel model in models)
                 {
                     ScriptObject modelObject = CreateModelScriptObject(model);
-                    mainObject.Add(options.ModelName, modelObject);
+                    mainObject.Add(model.Name, modelObject);
                 }
 
                 TemplateContext context =
