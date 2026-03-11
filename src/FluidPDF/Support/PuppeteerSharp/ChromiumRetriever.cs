@@ -1,7 +1,10 @@
 using PuppeteerSharp;
 using PuppeteerSharp.BrowserData;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+
+[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 
 namespace FluidPDF.Support.PuppeteerSharp
 {
@@ -10,7 +13,7 @@ namespace FluidPDF.Support.PuppeteerSharp
         internal ChromiumRetrieverOptions(string? externalExecutablePath) : this(externalExecutablePath, null, null) { }
     }
 
-    public interface IChromiumRetriever
+    internal interface IChromiumRetriever
     {
         Task<IBrowser> RetrieveBrowserInstanceAsync();
     }
