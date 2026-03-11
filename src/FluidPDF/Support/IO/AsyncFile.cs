@@ -6,14 +6,15 @@ namespace FluidPDF.Support.IO
 {
     internal static class AsyncFile
     {
-        private const int _streamWriterDefaultBufferSize = 4096;
-
-        public static Task<string> ReadAllTextAsync(string path, Encoding? encoding = null) => InternalReadAllTextAsync(path, encoding);
-
-        private static async Task<string> InternalReadAllTextAsync(string path, Encoding? encoding = null)
+        public static async Task<string> ReadAllTextAsync(string path, Encoding? encoding = null)
         {
+#if NETSTANDARD2_0
+            const int _streamWriterDefaultBufferSize = 4096;
             using StreamReader sr = new(path, encoding ?? Encoding.Default, true, _streamWriterDefaultBufferSize);
             return await sr.ReadToEndAsync().ConfigureAwait(false);
+#else
+            return await File.ReadAllTextAsync(path, encoding ?? Encoding.Default).ConfigureAwait(false);
+#endif
         }
     }
 }
