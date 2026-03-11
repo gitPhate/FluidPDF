@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace FluidPDF.Scriban
 {
-    public class ScribanTemplateEngine : IFluidPDFTemplateEngine
+    public sealed class ScribanTemplateEngine : IFluidPDFTemplateEngine
     {
         public async ValueTask<string> RenderTemplateAsync(string template, DataTable model, FluidPDFTemplateRenderOptions options)
         {

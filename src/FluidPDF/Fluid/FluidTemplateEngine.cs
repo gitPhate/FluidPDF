@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace FluidPDF.Fluid
 {
-    public class FluidTemplateEngine : IFluidPDFTemplateEngine
+    public sealed class FluidTemplateEngine : IFluidPDFTemplateEngine
     {
         private const string _modelName = "Model";
 
