@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace FluidPDF
 {
-    public class FluidPDFReportFactory
+    public sealed class FluidPDFReportFactory
     {
         private readonly IFluidPDFTemplateEngine _templateEngine;
         private readonly IChromiumRetriever _chromiumRetriever;
@@ -85,7 +85,7 @@ namespace FluidPDF
         }
     }
 
-    public class FluidPDFReportOptions
+    public sealed class FluidPDFReportOptions
     {
         public PaperFormat Format { get; set; } = PaperFormat.A4;
         public bool Landscape { get; set; } = false;
