@@ -4,11 +4,13 @@
 
 FluidPDF is a .NET class library (NuGet package) for PDF generation. It uses the Fluid templating
 engine (Liquid syntax) to render HTML from a data model, then uses PuppeteerSharp (headless
-Chromium) to print the HTML to a PDF. PDFsharp is used optionally for compression.
+Chromium) to print the HTML to a PDF. PDFsharp is used optionally for compression. An optional
+`FluidPDF.Scriban` adapter package adds Scriban template engine support.
 
 - **Solution:** `src/FluidPDF.sln`
 - **Library:** `src/FluidPDF/` (targets `netstandard2.0;net9.0;net10.0`, C# 14 via PolySharp 1.15.0)
-- **Tests:** no test project is currently in the solution
+- **Scriban adapter:** `src/FluidPDF.Scriban/` (targets `netstandard2.0` only)
+- **Tests:** `src/FluidPDF.Tests/` (targets `net8.0`, xUnit v3 + FluentAssertions + NSubstitute)
 
 ### Key Dependencies
 
@@ -19,6 +21,10 @@ Chromium) to print the HTML to a PDF. PDFsharp is used optionally for compressio
 | FluidPDF | PDFsharp | 6.2.4 |
 | FluidPDF | Microsoft.Bcl.AsyncInterfaces | 10.0.3 |
 | FluidPDF | PolySharp *(analyzer only)* | 1.15.0 |
+| FluidPDF.Scriban | Scriban | 6.5.5 |
+| FluidPDF.Tests | xunit.v3 | 3.2.2 |
+| FluidPDF.Tests | FluentAssertions | 8.8.0 |
+| FluidPDF.Tests | NSubstitute | 5.3.0 |
 
 ---
 
@@ -38,23 +44,32 @@ dotnet build src/FluidPDF.sln -c Release
 
 # Pack as NuGet
 dotnet pack src/FluidPDF/FluidPDF.csproj -c Release
+dotnet pack src/FluidPDF.Scriban/FluidPDF.Scriban.csproj -c Release
 ```
 
 ---
 
 ## Test Commands
 
-There is no test project in the solution at this time. When a test project is added it should
-target `net8.0` or later and use xUnit + FluentAssertions (the prior convention). The commands
-below will apply once a test project exists:
-
 ```bash
+# Run all tests
 dotnet test src/FluidPDF.sln
+
+# Run without rebuilding
 dotnet test src/FluidPDF.sln --no-build
-dotnet test src/FluidPDF.sln --filter "FullyQualifiedName=<namespace>.<class>.<method>"
-dotnet test src/FluidPDF.sln --filter "ClassName=<namespace>.<class>"
-dotnet test src/FluidPDF.sln --filter "Name=<method>"
+
+# Run a single test by fully-qualified name
+dotnet test src/FluidPDF.sln --filter "FullyQualifiedName=FluidPDF.Tests.FluidTemplateEngineTests.RenderWithObject_ReturnsRenderedTemplate"
+
+# Run all tests in a class
+dotnet test src/FluidPDF.sln --filter "ClassName=FluidPDF.Tests.FluidTemplateEngineTests"
+
+# Run a single test by method name (matches across all classes)
+dotnet test src/FluidPDF.sln --filter "Name=RenderWithObject_ReturnsRenderedTemplate"
 ```
+
+Test classes: `FluidPDFBuilderConfigTests`, `FluidPDFBuilderOptionsTests`, `FluidPDFReportFactoryTests`,
+`FluidPDFTemplateModelTests`, `FluidTemplateEngineTests`, `ScribanTemplateEngineTests`.
 
 ---
 
@@ -71,11 +86,11 @@ present in the library project.
 The library exposes **two independent public APIs**:
 
 ### 1. `FluidPDFReportFactory` (direct factory)
-Instantiated directly with options; renders a Liquid template and returns the PDF.
+Instantiated with `IFluidPDFTemplateEngine`, `ChromiumRetrieverOptions`, and `FluidPDFReportOptions`.
 
 ```csharp
-FluidPDFReportFactory factory = new(chromiumRetrieverOptions, fluidPdfReportOptions);
-byte[]  pdf    = await factory.CompileReportAsync(template, model);
+FluidPDFReportFactory factory = new(templateEngine, chromiumRetrieverOptions, fluidPdfReportOptions);
+byte[] pdf = await factory.CompileReportAsync(template, model);
 // or write directly to a stream:
 await factory.CompileReportAsync(template, model, destinationStream);
 ```
@@ -86,25 +101,22 @@ await factory.CompileReportAsync(template, model, destinationStream);
   implementation; can be replaced for testing
 
 ### 2. `FluidPDFBuilder` (fluent builder)
-Static entry point returning `IFluidPDFBuilder`; configured via `With*()` chain; delegates to
-`FluidPDFReportFactory` internally. Two terminal methods:
+Static entry point; configured via `With*()` chain; delegates to `FluidPDFReportFactory` internally.
 
 ```csharp
 byte[] pdf = await FluidPDFBuilder.NewWithModel(model)
     .WithStandaloneChromium()
     .WithTemplate(templateString)
     .BuildAsync();
-
-await FluidPDFBuilder.NewWithModel(model)
-    .WithStandaloneChromium()
-    .WithTemplate(templateString)
-    .BuildAsync(destinationStream);
 ```
 
 ### Supporting subsystems
-- **`FluidTemplateHelper`** (`public static`) — renders Liquid templates; dispatches by model type
-- **`FluidModel`** — discriminated-union sealed class; factory methods `FromDataRow`,
-  `FromDictionary`, `FromJsonString`, `FromObject`, `FromPlainValue`
+- **`FluidTemplateEngine`** — renders Liquid templates via Fluid; implements `IFluidPDFTemplateEngine`
+- **`ScribanTemplateEngine`** (`FluidPDF.Scriban`) — renders Scriban templates; implements same interface
+- **`FluidPDFTemplateModel`** — discriminated-union sealed class; factory methods `FromDataRow`,
+  `FromDataTable`, `FromDictionary`, `FromJsonString`, `FromObject`, `FromPlainValue`
+- **`IFluidPDFTemplateEngine`** — interface with four `RenderTemplateAsync` overloads returning
+  `ValueTask<string>`; accepts `(string template, FluidPDFTemplateModel model, FluidPDFTemplateRenderOptions?)`
 - **`PDFCompressHelper`** (`Support/PDF/`) — re-encodes a PDF via PDFsharp to compress it
 - **`ChromiumRetriever`** (`Support/PuppeteerSharp/`) — downloads or locates Chromium, launches
   a headless browser; implements `IChromiumRetriever`
@@ -115,17 +127,24 @@ await FluidPDFBuilder.NewWithModel(model)
 ## Directory Structure
 
 ```
-src/FluidPDF/
-├── Builder/                  FluidPDFBuilder.cs, IFluidPDFBuilder.cs
-├── Exceptions/               FluidPDFBuilderConfigException.cs
-├── Fluid/                    FluidModel.cs, FluidTemplateHelper.cs,
-│                             FluidTemplateOptions.cs, FluidRenderException.cs
-├── Support/
-│   ├── IO/                   AsyncFile.cs
-│   ├── PDF/                  PDFCompressHelper.cs
-│   └── PuppeteerSharp/       ChromiumRetriever.cs (+ IChromiumRetriever, ChromiumRetrieverOptions)
-├── FluidPDFReportFactory.cs  (main public factory + FluidPDFReportOptions)
-└── FluidPDF.csproj
+src/
+├── FluidPDF/
+│   ├── Builder/              FluidPDFBuilder.cs, IFluidPDFBuilder.cs
+│   ├── Exceptions/           FluidPDFBuilderConfigException.cs
+│   ├── Fluid/                FluidTemplateEngine.cs
+│   ├── Support/
+│   │   ├── IO/               AsyncFile.cs
+│   │   ├── PDF/              PDFCompressHelper.cs
+│   │   └── PuppeteerSharp/   ChromiumRetriever.cs (+ IChromiumRetriever, ChromiumRetrieverOptions)
+│   ├── Templating/           FluidPDFTemplateModel.cs, FluidPDFTemplateRenderException.cs,
+│   │                         IFluidPDFTemplateRenderOptions.cs (contains IFluidPDFTemplateEngine
+│   │                         and FluidPDFTemplateRenderOptions)
+│   └── FluidPDFReportFactory.cs  (main public factory + FluidPDFReportOptions)
+├── FluidPDF.Scriban/
+│   └── ScribanTemplateEngine.cs
+└── FluidPDF.Tests/
+    ├── Mocks/                ChromiumRetrieverMock.cs
+    └── Mothers/              PDFDocumentMother.cs, TemplateModelMother.cs
 ```
 
 ---
@@ -136,11 +155,10 @@ src/FluidPDF/
 
 - **Indent:** 4 spaces (no tabs)
 - **Braces:** Allman style — opening brace on its own line for classes, methods, and control flow
-- **Expression-bodied members:** use liberally for single-expression methods, properties, and
-  constructors:
+- **Expression-bodied members:** use liberally for single-expression methods and properties:
   ```csharp
-  public bool IsObject => IsFluidModelType(FluidModelType.Object);
-  private bool IsFluidModelType(FluidModelType value) => Type == value;
+  public bool IsObject => Type == FluidPDFTemplateModelType.Object;
+  private bool IsFluidModelType(FluidPDFTemplateModelType value) => Type == value;
   ```
 - **Object initializers:** single-line when short; multi-line with trailing comma when longer:
   ```csharp
@@ -153,16 +171,14 @@ src/FluidPDF/
       MarginOptions = fluidPdfReportOptions.MarginOptions,
   };
   ```
-- **Blank lines:** one blank line between methods; no blank line between namespace declaration and
-  class declaration
+- **Blank lines:** one blank line between methods; no blank line between namespace and class
 - **Line endings:** CRLF
 
 ### Imports (`using` directives)
 
 - All `using` directives go at the top of the file, outside the namespace
 - Namespaces are braced (not file-scoped)
-- No strict ordering is enforced; the convention groups project/third-party namespaces before
-  `System.*` namespaces
+- Convention groups project/third-party namespaces before `System.*` namespaces
 - No `using static`; no `#region` blocks
 
 ### Naming Conventions
@@ -175,34 +191,33 @@ src/FluidPDF/
 | Parameters and local variables | `camelCase` | `modelName`, `cultureInfo` |
 | Properties and methods | `PascalCase` | `CompileReportAsync()`, `RenderedContent` |
 | Async methods | Suffix `Async` | `CompileReportAsync()`, `RetrieveBrowserInstanceAsync()` |
-| Static factory methods | `NewXxx()` or `FromXxx()` | `NewFluidPDFReportFactory()`, `FromObject()` |
+| Static factory methods | `NewXxx()` or `FromXxx()` | `NewWithModel()`, `FromObject()` |
 | Interface names | `I` prefix | `IFluidPDFBuilder`, `IChromiumRetriever` |
-| Files | Match class name exactly | `FluidPDFBuilder.cs`, `ChromiumRetriever.cs` |
+| Files | Match primary class name exactly | `FluidPDFBuilder.cs`, `ChromiumRetriever.cs` |
 | Directories | `PascalCase` | `Builder/`, `Support/IO/`, `Support/PDF/` |
 | Enum values | `PascalCase` | `ZeroPoint5`, `DataRow`, `JsonString` |
+| Test classes | `<Subject>Tests` | `FluidTemplateEngineTests` |
+| Test methods | `<Action>_<ExpectedResult>` | `RenderWithObject_ReturnsRenderedTemplate` |
 
 ### Types
 
 - **Nullable reference types** are enabled (`<Nullable>enable</Nullable>`) — honour all warnings
-- Prefer **explicit types** over `var` in library code
-- Use **`ValueTask<T>`** for high-frequency / interface-level async paths (e.g. `FluidTemplateHelper`
-  render methods); use `Task<T>` for lower-frequency factory and builder methods
+- Prefer **explicit types** over `var` in library code (tests may use implicit types)
+- Use **`ValueTask<string>`** for `IFluidPDFTemplateEngine` render methods (high-frequency interface
+  paths); use `Task<T>` for factory and builder terminal methods
 - Use **`decimal`** for scale/ratio values (not `double` or `float`)
-- Apply **`sealed`** to all concrete implementation classes (e.g. `ChromiumRetriever`)
-- Mark stateless helper/utility classes as **`static`** (e.g. `FluidTemplateHelper`,
-  `PDFCompressHelper`, `AsyncFile`)
+- Apply **`sealed`** to all concrete implementation classes (e.g. `ChromiumRetriever`,
+  `FluidPDFTemplateModel`)
+- Mark stateless helper/utility classes as **`static`** (e.g. `PDFCompressHelper`, `AsyncFile`)
 - Apply **`where T : notnull`** generic constraint where nullability must be excluded
-- Prefer **primary constructors** (C# 12, backported via PolySharp) for simple classes and records:
+- Prefer **primary constructors** (C# 12+) for simple classes and records:
   ```csharp
   internal sealed class ChromiumRetriever(ChromiumRetrieverOptions options) : IChromiumRetriever { }
   public class FluidPDFBuilderConfigException(string message) : Exception(message) { }
   ```
-- Prefer **collection expressions** (`[...]`) over `new List<T>()` or array initializers:
-  ```csharp
-  FluidModel[] models = [model1, model2];
-  ```
+- Prefer **collection expressions** (`[...]`) over `new List<T>()` or array initializers
 - Use **switch expressions** for exhaustive enum/type dispatch
-- Use `#if NETSTANDARD2_0` / `#else` blocks when a newer API is preferred on modern TFMs:
+- Use `#if NETSTANDARD2_0` / `#else` for TFM-conditional APIs:
   ```csharp
   #if NETSTANDARD2_0
       await stream.WriteAsync(data, 0, data.Length).ConfigureAwait(false);
@@ -213,24 +228,17 @@ src/FluidPDF/
 
 ### Async and ConfigureAwait
 
-- **Always call `.ConfigureAwait(false)`** on every `await` in library code:
-  ```csharp
-  byte[] data = await page.PdfDataAsync(_pdfOptions).ConfigureAwait(false);
-  ```
+- **Always call `.ConfigureAwait(false)`** on every `await` in library code
 - Use `try/finally` blocks to guarantee `IPage.CloseAsync()` / `IBrowser.CloseAsync()` are called
   even when an exception is thrown mid-method
 
 ### Error Handling
 
-- Throw **domain exceptions** (`FluidRenderException`, `FluidPDFBuilderConfigException`) for
-  library-level errors; wrap low-level exceptions as `innerException`
-- Custom exceptions: use a primary constructor for simple message-only exceptions; provide all
-  four standard constructors (default, message, message + inner, serialization) when the exception
-  is serializable
+- Throw **domain exceptions** (`FluidPDFTemplateRenderException`, `FluidPDFBuilderConfigException`)
+  for library-level errors; wrap low-level exceptions as `innerException`
+- Custom exceptions: use a primary constructor for simple message-only exceptions
 - Use the internal extension guard `GetNonNullOrThrow<T>()` for null argument validation:
   ```csharp
-  _chromiumRetriever = chromiumRetriever ?? throw new ArgumentNullException(nameof(chromiumRetriever));
-  // or via extension:
   _options = options.GetNonNullOrThrow(nameof(options));
   ```
 - Use `File.Exists()` before accepting file paths; throw `FileNotFoundException` with the path
@@ -244,5 +252,4 @@ src/FluidPDF/
 - Do not remove `.ConfigureAwait(false)` from `await` calls in library code
 - Do not use `float` or `double` for margin, scale, or ratio values — use `decimal`
 - Do not add `#region` blocks
-- Do not use `NotImplementedException` as a switch catch-all for invalid enum values — use
-  `ArgumentOutOfRangeException` instead
+- Do not use `NotImplementedException` as a switch catch-all — use `ArgumentOutOfRangeException`
