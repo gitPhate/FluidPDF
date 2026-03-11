@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace FluidPDF.Builder
 {
-    public class FluidPDFBuilder
+    public static class FluidPDFBuilder
     {
         public static IFluidPDFBuilder NewWithModel<T>(T model) where T : notnull => new FluidPDFBuilder<T>(model);
     }
