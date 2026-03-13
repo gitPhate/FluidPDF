@@ -1,5 +1,6 @@
 ﻿using Fluid;
 using Fluid.Values;
+using FluidPDF.Exceptions;
 using FluidPDF.Templating;
 using System;
 using System.Collections.Generic;
@@ -94,32 +95,24 @@ namespace FluidPDF.Fluid
 
         private static async ValueTask<string> RenderTemplateAsync(FluidPDFTemplateModel[] models, string template, bool encodeHtml = false, CultureInfo? cultureInfo = null, TimeZoneInfo? timeZone = null)
         {
-            try
+            if (_parser.TryParse(template, out IFluidTemplate? fluidTemplate, out string? error))
             {
-                if (_parser.TryParse(template, out IFluidTemplate? fluidTemplate, out string? error))
-                {
-                    TemplateContext context = NewTemplateContext(models, cultureInfo, timeZone);
+                TemplateContext context = NewTemplateContext(models, cultureInfo, timeZone);
 
-                    using StringWriter writer = new();
+                using StringWriter writer = new();
 
-                    TextEncoder encoder = encodeHtml ? HtmlEncoder.Default : NullEncoder.Default;
+                TextEncoder encoder = encodeHtml ? HtmlEncoder.Default : NullEncoder.Default;
 
-                    await fluidTemplate
-                        .RenderAsync(writer, encoder, context)
-                        .ConfigureAwait(false);
+                await fluidTemplate
+                    .RenderAsync(writer, encoder, context)
+                    .ConfigureAwait(false);
 
-                    string renderedValue = writer.ToString();
-                    return renderedValue;
-                }
-                else
-                {
-                    throw new Exception(error);
-                }
+                string renderedValue = writer.ToString();
+                return renderedValue;
             }
-            catch (Exception ex)
+            else
             {
-                if (ex is FluidPDFTemplateRenderException) throw;
-                throw new FluidPDFTemplateRenderException("An error occurred in rendering the template", ex);
+                throw new FluidTemplateRenderException(error);
             }
         }
 

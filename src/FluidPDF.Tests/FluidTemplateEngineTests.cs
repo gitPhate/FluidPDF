@@ -1,4 +1,5 @@
 using FluentAssertions;
+using FluidPDF.Exceptions;
 using FluidPDF.Fluid;
 using FluidPDF.Templating;
 using FluidPDF.Tests.Mothers;
@@ -98,7 +99,7 @@ namespace FluidPDF.Tests
                 await templateEngine.RenderTemplateAsync(template, model, new());
 
             // Assert
-            await act.Should().ThrowAsync<FluidPDFTemplateRenderException>();
+            await act.Should().ThrowAsync<FluidTemplateRenderException>();
         }
 
         // --- Static helper overloads ---

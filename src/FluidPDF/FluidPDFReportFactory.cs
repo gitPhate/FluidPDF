@@ -1,4 +1,5 @@
-﻿using FluidPDF.Support.PDF;
+﻿using FluidPDF.Exceptions;
+using FluidPDF.Support.PDF;
 using FluidPDF.Support.PuppeteerSharp;
 using FluidPDF.Templating;
 using PuppeteerSharp;
@@ -59,7 +60,15 @@ namespace FluidPDF
                 CultureInfo = cultureInfo
             };
 
-            string reportContent = await _templateEngine.RenderTemplateAsync(template, model, options).ConfigureAwait(false);
+            string reportContent;
+            try
+            {
+                reportContent = await _templateEngine.RenderTemplateAsync(template, model, options).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                throw new FluidPDFTemplateRenderException("An error occurred in rendering the template", ex);
+            }
 
             using IBrowser browser = await _chromiumRetriever.RetrieveBrowserInstanceAsync().ConfigureAwait(false);
             using IPage page = await browser.NewPageAsync().ConfigureAwait(false);

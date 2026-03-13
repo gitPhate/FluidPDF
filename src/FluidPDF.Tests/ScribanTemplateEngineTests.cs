@@ -1,6 +1,4 @@
 using FluentAssertions;
-using FluentAssertions.Specialized;
-using FluidPDF.Fluid;
 using FluidPDF.Scriban;
 using FluidPDF.Templating;
 using FluidPDF.Tests.Mothers;
@@ -89,24 +87,6 @@ namespace FluidPDF.Tests
         }
 
         [Fact]
-        public async Task RenderTemplateAsync_ShouldThrowFluidPDFTemplateRenderException_WhenPlainValueModelTypeIsProvided()
-        {
-            // Arrange
-            FluidPDFTemplateModel model = FluidPDFTemplateModel.FromPlainValue("Greeting", "Hello");
-            ScribanTemplateEngine templateEngine = new();
-
-            // Act
-            Func<Task> act = async () =>
-                await templateEngine.RenderTemplateAsync("<p>{{ Greeting }}</p>", [model], new());
-
-            // Assert
-            ExceptionAssertions<FluidPDFTemplateRenderException> assertion =
-                await act.Should().ThrowAsync<FluidPDFTemplateRenderException>();
-            assertion.WithInnerException<InvalidOperationException>()
-                .WithMessage("*PlainValue*");
-        }
-
-        [Fact]
         public async Task RenderTemplateAsync_ShouldThrowFluidPDFTemplateRenderException_WhenJsonStringModelTypeIsProvided()
         {
             // Arrange
@@ -118,10 +98,7 @@ namespace FluidPDF.Tests
                 await templateEngine.RenderTemplateAsync("<p>{{ Model.Name }}</p>", [model], new());
 
             // Assert
-            ExceptionAssertions<FluidPDFTemplateRenderException> assertion =
-                await act.Should().ThrowAsync<FluidPDFTemplateRenderException>();
-            assertion.WithInnerException<InvalidOperationException>()
-                .WithMessage("*JsonString*");
+            await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*JsonString*");
         }
 
         [Fact]
@@ -136,7 +113,7 @@ namespace FluidPDF.Tests
                 await templateEngine.RenderTemplateAsync("{{ if }}", model, new());
 
             // Assert
-            await act.Should().ThrowAsync<FluidPDFTemplateRenderException>();
+            await act.Should().ThrowAsync<InvalidOperationException>();
         }
 
         [Fact]
@@ -156,10 +133,7 @@ namespace FluidPDF.Tests
             // Assert
             // This documents the known bug: the engine always uses options.ModelName as the key
             // for every model in the array rather than each model's own Name property.
-            ExceptionAssertions<FluidPDFTemplateRenderException> assertion =
-                await act.Should().ThrowAsync<FluidPDFTemplateRenderException>();
-            assertion.WithInnerException<ArgumentException>()
-                .WithMessage("*already been added*");
+            await act.Should().ThrowAsync<ArgumentException>().WithMessage("*already been added*");
         }
     }
 }

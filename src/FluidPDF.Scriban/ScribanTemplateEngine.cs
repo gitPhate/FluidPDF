@@ -34,46 +34,38 @@ namespace FluidPDF.Scriban
 
         private static async ValueTask<string> RenderTemplateAsync(FluidPDFTemplateModel[] models, string template, FluidPDFTemplateRenderOptions options)
         {
-            try
+            ScriptObject mainObject = [];
+
+            foreach (FluidPDFTemplateModel model in models)
             {
-                ScriptObject mainObject = [];
-
-                foreach (FluidPDFTemplateModel model in models)
+                switch (model.Type)
                 {
-                    switch (model.Type)
-                    {
-                        case FluidPDFTemplateModelType.PlainValue:
-                            mainObject.Add(model.Name, model.PlainValue!);
-                            break;
-                        default:
-                            ScriptObject modelObject = CreateModelScriptObject(model);
-                            mainObject.Add(model.Name, modelObject);
-                            break;
-                    }
+                    case FluidPDFTemplateModelType.PlainValue:
+                        mainObject.Add(model.Name, model.PlainValue!);
+                        break;
+                    default:
+                        ScriptObject modelObject = CreateModelScriptObject(model);
+                        mainObject.Add(model.Name, modelObject);
+                        break;
                 }
-
-                TemplateContext context =
-                    new()
-                    {
-                        MemberRenamer = x => x.Name
-                    };
-
-                if (options.CultureInfo is not null)
-                {
-                    context.PushCulture(options.CultureInfo);
-                }
-
-                context.PushGlobal(mainObject);
-
-                Template compiledTemplate = Template.Parse(template);
-                string result = await compiledTemplate.RenderAsync(context).ConfigureAwait(false);
-                return result;
             }
-            catch (Exception ex)
+
+            TemplateContext context =
+                new()
+                {
+                    MemberRenamer = x => x.Name
+                };
+
+            if (options.CultureInfo is not null)
             {
-                if (ex is FluidPDFTemplateRenderException) throw;
-                throw new FluidPDFTemplateRenderException("An error occurred while rendering the template", ex);
+                context.PushCulture(options.CultureInfo);
             }
+
+            context.PushGlobal(mainObject);
+
+            Template compiledTemplate = Template.Parse(template);
+            string result = await compiledTemplate.RenderAsync(context).ConfigureAwait(false);
+            return result;
         }
 
         private static ScriptObject CreateModelScriptObject(FluidPDFTemplateModel model) =>
