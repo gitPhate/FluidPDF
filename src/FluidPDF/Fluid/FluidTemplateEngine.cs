@@ -33,6 +33,9 @@ namespace FluidPDF.Fluid
         public ValueTask<string> RenderTemplateAsync(string template, object model, FluidPDFTemplateRenderOptions options) =>
             RenderWithObjectAsync(template, model, options.ModelName, options.CultureInfo, null, true);
 
+        public ValueTask<string> RenderTemplateAsync(string template, string jsonModel, FluidPDFTemplateRenderOptions options) =>
+            RenderWithJsonStringAsync(template, jsonModel, options.ModelName, options.CultureInfo, null, true);
+
         public static ValueTask<string> RenderWithDataRowAsync(string template, DataRow dataRow, string modelName = _modelName, CultureInfo? cultureInfo = null, TimeZoneInfo? timeZone = null, bool encodeHtml = false) =>
             RenderTemplateAsync
             (
@@ -126,6 +129,11 @@ namespace FluidPDF.Fluid
             if (timeZone is not null)
             {
                 context.TimeZone = timeZone;
+            }
+
+            if(models.Select(x => x.Name).Distinct().Count() != models.Length)
+            {
+                throw new ArgumentException("Some models with the same name have already been added");
             }
 
             foreach (FluidPDFTemplateModel model in models)

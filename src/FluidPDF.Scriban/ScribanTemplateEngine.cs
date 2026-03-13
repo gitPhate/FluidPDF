@@ -29,6 +29,12 @@ namespace FluidPDF.Scriban
             return await RenderTemplateAsync([managedModel], template, options).ConfigureAwait(false);
         }
 
+        public async ValueTask<string> RenderTemplateAsync(string template, string jsonModel, FluidPDFTemplateRenderOptions options)
+        {
+            FluidPDFTemplateModel managedModel = FluidPDFTemplateModel.FromJsonString(options.ModelName, jsonModel);
+            return await RenderTemplateAsync([managedModel], template, options).ConfigureAwait(false);
+        }
+
         public ValueTask<string> RenderTemplateAsync(string template, FluidPDFTemplateModel[] models, FluidPDFTemplateRenderOptions options) =>
             RenderTemplateAsync(models, template, options);
 
@@ -75,6 +81,7 @@ namespace FluidPDF.Scriban
                 FluidPDFTemplateModelType.DataTable => DataTableToScriptObject(model.DataTable!),
                 FluidPDFTemplateModelType.Dictionary => ScriptObject.From(model.Dictionary!),
                 FluidPDFTemplateModelType.Object => ScriptObject.From(JsonSerializer.SerializeToElement(model.ObjectValue)),
+                FluidPDFTemplateModelType.JsonString => JsonStringToScriptObject(model.JsonString!),
                 _ => throw new InvalidOperationException($"Unsupported model type: {model.Type}")
             };
 
@@ -103,6 +110,12 @@ namespace FluidPDF.Scriban
             ScriptObject scriptObject = [];
             scriptObject.Add(nameof(DataTable.Rows), rows);
             return scriptObject;
+        }
+
+        private static ScriptObject JsonStringToScriptObject(string json)
+        {
+            JsonElement root = JsonSerializer.Deserialize<JsonElement>(json);
+            return ScriptObject.From(root);
         }
     }
 }

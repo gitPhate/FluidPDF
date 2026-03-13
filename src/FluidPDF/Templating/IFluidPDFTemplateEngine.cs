@@ -9,6 +9,7 @@ namespace FluidPDF.Templating
     {
         ValueTask<string> RenderTemplateAsync(string template, DataTable model, FluidPDFTemplateRenderOptions options);
         ValueTask<string> RenderTemplateAsync(string template, IDictionary<string, object> model, FluidPDFTemplateRenderOptions options);
+        ValueTask<string> RenderTemplateAsync(string template, string jsonModel, FluidPDFTemplateRenderOptions options);
         ValueTask<string> RenderTemplateAsync(string template, object model, FluidPDFTemplateRenderOptions options);
         ValueTask<string> RenderTemplateAsync(string template, FluidPDFTemplateModel[] models, FluidPDFTemplateRenderOptions options);
     }

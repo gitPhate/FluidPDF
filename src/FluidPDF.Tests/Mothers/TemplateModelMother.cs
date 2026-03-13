@@ -21,37 +21,34 @@ namespace FluidPDF.Tests.Mothers
 
         internal const string InvalidTemplate = "{% if %}";
 
-        internal const string SimpleDataTableTemplate = """
-<ul>
-{% for item in Model.Rows %}
-    <li>{{ item.Name }}</li>
-{% endfor %}
-</ul>
-""";
+        internal static string SimpleDataTableTemplate() => "<ul>" + Environment.NewLine
++ "{% for item in Model.Rows %}" + Environment.NewLine
++ "<li>{{ item.Name }}</li>" + Environment.NewLine
++ "{% endfor %}"  + Environment.NewLine
++ "</ul>";
 
-        internal const string SimpleDataTableExpectedOutput = """
-<ul>
-<li>Eve</li>
-<li>Sarah</li>
-</ul>
-""";
+        internal static string SimpleDataTableExpectedOutput() => $"<ul>{Environment.NewLine}<li>Eve</li>{Environment.NewLine}<li>Sarah</li>{Environment.NewLine}</ul>";
 
         internal const string SimpleDataRowExpectedOutput = "<p>Frank is 45</p>";
-
-        internal const string SimpleJsonString = "{\"Name\":\"Grace\",\"Age\":28}";
 
         internal const string SimpleJsonStringExpectedOutput = "<p>Grace is 28</p>";
 
         // --- Scriban-specific fixtures (template syntax and expected output differ from Fluid) ---
 
         internal const string ScribanDataTableTemplate =
-            "{{ for item in Model.Rows }}<li>{{ item.Name }}</li>{{ end }}";
-
-        internal const string ScribanDataTableExpectedOutput = "<li>Eve</li><li>Sarah</li>";
+            """
+<ul>
+{{ for item in Model.Rows -}}
+    <li>{{ item.Name }}</li>
+{{ end -}}
+</ul>
+""";
 
         internal const string ScribanHtmlSpecialCharsExpectedOutput = "<p><script></p>";
 
         // --- Object/collection factories (must remain methods — allocate new instances each call) ---
+
+        internal const string SimpleJsonString = "{\"Name\":\"Alice\", \"Age\": 30}";
 
         internal static object SimpleObject() => new { Name = "Alice", Age = 30 };
 
