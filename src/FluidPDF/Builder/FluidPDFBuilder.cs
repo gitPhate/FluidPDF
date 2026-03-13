@@ -33,8 +33,11 @@ namespace FluidPDF.Builder
         private bool _toBeCompressed;
         private readonly T _model;
         private readonly IFluidPDFTemplateEngine _templateEngine;
+        private readonly IChromiumRetriever? _chromiumRetriever;
 
-        internal FluidPDFBuilder(T model)
+        internal FluidPDFBuilder(T model) : this(model, null) { }
+
+        internal FluidPDFBuilder(T model, IChromiumRetriever? chromiumRetriever)
         {
             _chromeExePath = null;
             _paperFormat = PaperFormat.A4;
@@ -45,6 +48,7 @@ namespace FluidPDF.Builder
             _toBeCompressed = false;
             _model = model;
             _templateEngine = new FluidTemplateEngine();
+            _chromiumRetriever = chromiumRetriever;
         }
 
         public IFluidPDFBuilder WithExternalChromeProcess(string chromeExePath)
@@ -89,57 +93,26 @@ namespace FluidPDF.Builder
             return this;
         }
 
-        //public IFluidPDFBuilder WithPixelMargin(double margin) =>
-        //    WithPixelMargin(margin, margin, margin, margin);
+        public IFluidPDFBuilder WithPixelMargin(decimal margin) =>
+            WithPixelMargin(margin, margin, margin, margin);
 
-        //public IFluidPDFBuilder WithPixelMargin(double bottom, double left, double right, double top) =>
-        //    WithMargin(bottom, left, right, top, "px");
+        public IFluidPDFBuilder WithPixelMargin(decimal bottom, decimal left, decimal right, decimal top) =>
+            WithMargin(bottom, left, right, top, "px");
 
-        //public IFluidPDFBuilder WithInchMargin(double margin) =>
-        //    WithInchMargin(margin, margin, margin, margin);
+        public IFluidPDFBuilder WithInchMargin(decimal margin) =>
+            WithInchMargin(margin, margin, margin, margin);
 
-        //public IFluidPDFBuilder WithInchMargin(double bottom, double left, double right, double top) =>
-        //    WithMargin(bottom, left, right, top, "in");
+        public IFluidPDFBuilder WithInchMargin(decimal bottom, decimal left, decimal right, decimal top) =>
+            WithMargin(bottom, left, right, top, "in");
 
-        //internal IFluidPDFBuilder WithMargin(double bottom, double left, double right, double top, string unit)
-        //{
-        //    string strBottom = (Math.Round(bottom * 10) / 10).ToString();
-        //    string strLeft = (Math.Round(left * 10) / 10).ToString();
-        //    string strRight = (Math.Round(right * 10) / 10).ToString();
-        //    string strTop = (Math.Round(top * 10) / 10).ToString();
-
-        //    byte[] bytes = Encoding.Default.GetBytes(strBottom + " " + unit);
-        //    string measure = Encoding.ASCII.GetString(bytes);
-
-        //    _marginOptions =
-        //        new()
-        //        {
-        //            Bottom = $"{Math.Round(bottom * 10) / 10} {unit}",
-        //            Left = $"{Math.Round(left * 10) / 10} {unit}",
-        //            Right = $"{Math.Round(right * 10) / 10} {unit}",
-        //            Top = $"{Math.Round(top * 10) / 10} {unit}",
-        //        };
-
-        //    return this;
-        //}
-
-        //public IFluidPDFBuilder WithCustomMargin(MarginOptions marginOptions)
-        //{
-        //    _marginOptions = marginOptions.GetNonNullOrThrow(nameof(marginOptions));
-        //    return this;
-        //}
-
-        public IFluidPDFBuilder WithCustomMargin(FluidPDFMargins margins)
+        private IFluidPDFBuilder WithMargin(decimal bottom, decimal left, decimal right, decimal top, string unit)
         {
-            _marginOptions = margins switch
+            _marginOptions = new MarginOptions
             {
-                FluidPDFMargins.None => new MarginOptions(),
-                FluidPDFMargins.ZeroPoint5 => new MarginOptions { Bottom = "0.5 in", Left = "0.5 in", Right = "0.5 in", Top = "0.5 in" },
-                FluidPDFMargins.ZeroPoint4 => new MarginOptions { Bottom = "0.4 in", Left = "0.4 in", Right = "0.4 in", Top = "0.4 in" },
-                FluidPDFMargins.ZeroPoint3 => new MarginOptions { Bottom = "0.3 in", Left = "0.3 in", Right = "0.3 in", Top = "0.3 in" },
-                FluidPDFMargins.ZeroPoint2 => new MarginOptions { Bottom = "0.2 in", Left = "0.2 in", Right = "0.2 in", Top = "0.2 in" },
-                FluidPDFMargins.ZeroPoint1 => new MarginOptions { Bottom = "0.1 in", Left = "0.1 in", Right = "0.1 in", Top = "0.1 in" },
-                _ => throw new ArgumentOutOfRangeException(nameof(margins), margins, null)
+                Bottom = $"{bottom.ToString(CultureInfo.InvariantCulture)} {unit}",
+                Left = $"{left.ToString(CultureInfo.InvariantCulture)} {unit}",
+                Right = $"{right.ToString(CultureInfo.InvariantCulture)} {unit}",
+                Top = $"{top.ToString(CultureInfo.InvariantCulture)} {unit}",
             };
 
             return this;
@@ -198,7 +171,15 @@ namespace FluidPDF.Builder
             await factory.CompileReportAsync(template, _model, stream, _toBeCompressed, _cultureInfo).ConfigureAwait(false);
         }
 
-        private FluidPDFReportFactory NewFluidPDFReportFactory() => new(_templateEngine, NewChromiumRetrieverOptions(), NewFluidPDFReportOptions());
+        private FluidPDFReportFactory NewFluidPDFReportFactory()
+        {
+            if (_chromiumRetriever is not null)
+            {
+                return new(_templateEngine, _chromiumRetriever, NewFluidPDFReportOptions());
+            }
+
+            return new(_templateEngine, NewChromiumRetrieverOptions(), NewFluidPDFReportOptions());
+        }
 
         private ChromiumRetrieverOptions NewChromiumRetrieverOptions() => new(_chromeExePath == _standaloneChromePath ? null : _chromeExePath);
 
@@ -229,7 +210,7 @@ namespace FluidPDF.Builder
         private void Verify()
         {
             bool hasTemplate = _template.IsNotNullAndNotBlank() || _templateFilePath.IsNotNullAndNotBlank();
-            bool hasChromeSetting = _chromeExePath.IsNotNullAndNotBlank();
+            bool hasChromeSetting = _chromiumRetriever is not null || _chromeExePath.IsNotNullAndNotBlank();
 
             bool finalCondition = hasTemplate && hasChromeSetting;
             if (!finalCondition)
@@ -247,15 +228,5 @@ namespace FluidPDF.Builder
                 throw new FluidPDFBuilderConfigException($"One or more information is missing: {missingInfo}");
             }
         }
-    }
-
-    public enum FluidPDFMargins
-    {
-        None,
-        ZeroPoint5,
-        ZeroPoint4,
-        ZeroPoint3,
-        ZeroPoint2,
-        ZeroPoint1
     }
 }

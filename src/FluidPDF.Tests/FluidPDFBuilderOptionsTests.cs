@@ -62,22 +62,5 @@ namespace FluidPDF.Tests
             // Assert
             options.Scale.Should().Be(2.0M);
         }
-
-        [Fact]
-        public void NewFluidPDFReportOptions_ShouldSetEmptyMargins_WhenWithCustomMarginNoneIsCalled()
-        {
-            // Arrange
-            FluidPDFBuilder<object> builder = new(TemplateModelMother.SimpleObject());
-            builder.WithCustomMargin(FluidPDFMargins.None);
-
-            // Act
-            FluidPDFReportOptions options = builder.NewFluidPDFReportOptions();
-
-            // Assert
-            ((string?)options.MarginOptions.Bottom).Should().BeNullOrEmpty();
-            ((string?)options.MarginOptions.Left).Should().BeNullOrEmpty();
-            ((string?)options.MarginOptions.Right).Should().BeNullOrEmpty();
-            ((string?)options.MarginOptions.Top).Should().BeNullOrEmpty();
-        }
     }
 }
