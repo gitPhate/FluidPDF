@@ -1,5 +1,6 @@
 using FluentAssertions;
 using FluentAssertions.Specialized;
+using FluidPDF.Fluid;
 using FluidPDF.Scriban;
 using FluidPDF.Templating;
 using FluidPDF.Tests.Mothers;
@@ -54,6 +55,21 @@ namespace FluidPDF.Tests
 
             // Assert
             result.Should().Be(TemplateModelMother.ScribanDataTableExpectedOutput);
+        }
+
+        [Fact]
+        public async Task RenderTemplateAsync_ShouldRenderBothModels_WhenFluidPDFTemplateModelArrayIsProvided()
+        {
+            // Arrange
+            FluidPDFTemplateModel[] models = TemplateModelMother.TwoModelArray();
+            string template = TemplateModelMother.TwoModelTemplate;
+            ScribanTemplateEngine templateEngine = new();
+
+            // Act
+            string result = await templateEngine.RenderTemplateAsync(template, models, new());
+
+            // Assert
+            result.Should().Be(TemplateModelMother.TwoModelExpectedOutput);
         }
 
         [Fact]

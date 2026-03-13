@@ -40,8 +40,16 @@ namespace FluidPDF.Scriban
 
                 foreach (FluidPDFTemplateModel model in models)
                 {
-                    ScriptObject modelObject = CreateModelScriptObject(model);
-                    mainObject.Add(model.Name, modelObject);
+                    switch (model.Type)
+                    {
+                        case FluidPDFTemplateModelType.PlainValue:
+                            mainObject.Add(model.Name, model.PlainValue!);
+                            break;
+                        default:
+                            ScriptObject modelObject = CreateModelScriptObject(model);
+                            mainObject.Add(model.Name, modelObject);
+                            break;
+                    }
                 }
 
                 TemplateContext context =
