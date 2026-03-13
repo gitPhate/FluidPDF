@@ -32,7 +32,7 @@ namespace FluidPDF.Builder
         private string? _template;
         private bool _toBeCompressed;
         private readonly T _model;
-        private readonly IFluidPDFTemplateEngine _templateEngine;
+        private IFluidPDFTemplateEngine _templateEngine;
         private readonly IChromiumRetriever? _chromiumRetriever;
 
         internal FluidPDFBuilder(T model) : this(model, null) { }
@@ -49,6 +49,12 @@ namespace FluidPDF.Builder
             _model = model;
             _templateEngine = new FluidTemplateEngine();
             _chromiumRetriever = chromiumRetriever;
+        }
+
+        public IFluidPDFBuilder WithTemplateEngine(IFluidPDFTemplateEngine templateEngine)
+        {
+            _templateEngine = templateEngine.GetNonNullOrThrow(nameof(templateEngine));
+            return this;
         }
 
         public IFluidPDFBuilder WithExternalChromeProcess(string chromeExePath)

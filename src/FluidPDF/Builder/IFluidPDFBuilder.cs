@@ -1,10 +1,11 @@
-﻿using System.IO;
+﻿using FluidPDF.Templating;
+using System.IO;
 using System.Threading.Tasks;
-
 namespace FluidPDF.Builder
 {
     public interface IFluidPDFBuilder
     {
+        IFluidPDFBuilder WithTemplateEngine(IFluidPDFTemplateEngine templateEngine);
         IFluidPDFBuilder WithExternalChromeProcess(string chromeExePath);
         IFluidPDFBuilder WithStandaloneChromium();
         IFluidPDFBuilder WithLandscapeOrientation();
