@@ -4,12 +4,13 @@
 
 FluidPDF is a .NET class library (NuGet package) for PDF generation. It uses the Fluid templating
 engine (Liquid syntax) to render HTML from a data model, then uses PuppeteerSharp (headless
-Chromium) to print the HTML to a PDF. PDFsharp is used optionally for compression. An optional
-`FluidPDF.Scriban` adapter package adds Scriban template engine support.
+Chromium) to print the HTML to a PDF. PDFsharp is used optionally for compression. Two optional
+adapter packages add Scriban and Razor template engine support.
 
 - **Solution:** `src/FluidPDF.sln`
 - **Library:** `src/FluidPDF/` (targets `netstandard2.0;net9.0;net10.0`, C# 14 via PolySharp 1.15.0)
 - **Scriban adapter:** `src/FluidPDF.Scriban/` (targets `netstandard2.0` only)
+- **Razor adapter:** `src/FluidPDF.Razor/` (targets `netstandard2.0;net9.0;net10.0`)
 - **Tests:** `src/FluidPDF.Tests/` (targets `net8.0`, xUnit v3 + FluentAssertions + NSubstitute)
 
 ### Key Dependencies
@@ -22,6 +23,7 @@ Chromium) to print the HTML to a PDF. PDFsharp is used optionally for compressio
 | FluidPDF | Microsoft.Bcl.AsyncInterfaces | 10.0.3 |
 | FluidPDF | PolySharp *(analyzer only)* | 1.15.0 |
 | FluidPDF.Scriban | Scriban | 6.5.5 |
+| FluidPDF.Razor | RazorEngineCore | 2026.1.1 |
 | FluidPDF.Tests | xunit.v3 | 3.2.2 |
 | FluidPDF.Tests | FluentAssertions | 8.8.0 |
 | FluidPDF.Tests | NSubstitute | 5.3.0 |
@@ -45,6 +47,7 @@ dotnet build src/FluidPDF.sln -c Release
 # Pack as NuGet
 dotnet pack src/FluidPDF/FluidPDF.csproj -c Release
 dotnet pack src/FluidPDF.Scriban/FluidPDF.Scriban.csproj -c Release
+dotnet pack src/FluidPDF.Razor/FluidPDF.Razor.csproj -c Release
 ```
 
 ---
@@ -68,8 +71,10 @@ dotnet test src/FluidPDF.sln --filter "ClassName=FluidPDF.Tests.FluidTemplateEng
 dotnet test src/FluidPDF.sln --filter "Name=RenderWithObject_ReturnsRenderedTemplate"
 ```
 
-Test classes: `FluidPDFBuilderConfigTests`, `FluidPDFBuilderOptionsTests`, `FluidPDFReportFactoryTests`,
-`FluidPDFTemplateModelTests`, `FluidTemplateEngineTests`, `ScribanTemplateEngineTests`.
+Test classes: `FluidPDFBuilderConfigTests`, `FluidPDFBuilderMarginTests`, `FluidPDFBuilderOptionsTests`,
+`FluidPDFBuilderScribanExtensionsTests`, `FluidPDFReportFactoryTests`, `FluidPDFTemplateModelTests`,
+`FluidTemplateEngineTests`, `ScribanTemplateEngineTests`, `RazorTemplateEngineTests`,
+`InternalExtensionMethodsTests`, `ExpandoObjectConverterTests`.
 
 ---
 
@@ -113,14 +118,19 @@ byte[] pdf = await FluidPDFBuilder.NewWithModel(model)
 ### Supporting subsystems
 - **`FluidTemplateEngine`** — renders Liquid templates via Fluid; implements `IFluidPDFTemplateEngine`
 - **`ScribanTemplateEngine`** (`FluidPDF.Scriban`) — renders Scriban templates; implements same interface
+- **`RazorTemplateEngine`** (`FluidPDF.Razor`) — renders Razor templates; implements same interface
 - **`FluidPDFTemplateModel`** — discriminated-union sealed class; factory methods `FromDataRow`,
   `FromDataTable`, `FromDictionary`, `FromJsonString`, `FromObject`, `FromPlainValue`
-- **`IFluidPDFTemplateEngine`** — interface with four `RenderTemplateAsync` overloads returning
+- **`IFluidPDFTemplateEngine`** — interface with `RenderTemplateAsync` overloads returning
   `ValueTask<string>`; accepts `(string template, FluidPDFTemplateModel model, FluidPDFTemplateRenderOptions?)`
 - **`PDFCompressHelper`** (`Support/PDF/`) — re-encodes a PDF via PDFsharp to compress it
 - **`ChromiumRetriever`** (`Support/PuppeteerSharp/`) — downloads or locates Chromium, launches
   a headless browser; implements `IChromiumRetriever`
 - **`AsyncFile`** (`Support/IO/`) — async text file reader
+- **`InternalExtensionMethods`** (`Support/`) — string guards (`IsNullOrBlankString`,
+  `IsNotNullAndNotBlank`, `ToNullIfBlank`) and null guards (`GetNonNullOrThrow<T>`)
+- **`ExpandoObjectConverter`** (`Support/Json/`) — converts various model types to `ExpandoObject`
+  for template engine consumption
 
 ---
 
@@ -133,7 +143,9 @@ src/
 │   ├── Exceptions/           FluidPDFBuilderConfigException.cs
 │   ├── Fluid/                FluidTemplateEngine.cs
 │   ├── Support/
+│   │   ├── InternalExtensionMethods.cs
 │   │   ├── IO/               AsyncFile.cs
+│   │   ├── Json/             ExpandoObjectConverter.cs
 │   │   ├── PDF/              PDFCompressHelper.cs
 │   │   └── PuppeteerSharp/   ChromiumRetriever.cs (+ IChromiumRetriever, ChromiumRetrieverOptions)
 │   ├── Templating/           FluidPDFTemplateModel.cs, FluidPDFTemplateRenderException.cs,
@@ -142,6 +154,9 @@ src/
 │   └── FluidPDFReportFactory.cs  (main public factory + FluidPDFReportOptions)
 ├── FluidPDF.Scriban/
 │   └── ScribanTemplateEngine.cs
+├── FluidPDF.Razor/
+│   ├── RazorTemplateEngine.cs
+│   └── FluidPDFBuilderRazorExtensions.cs
 └── FluidPDF.Tests/
     ├── Mocks/                ChromiumRetrieverMock.cs
     └── Mothers/              PDFDocumentMother.cs, TemplateModelMother.cs
@@ -159,6 +174,11 @@ src/
   ```csharp
   public bool IsObject => Type == FluidPDFTemplateModelType.Object;
   private bool IsFluidModelType(FluidPDFTemplateModelType value) => Type == value;
+  ```
+- **Fluent builder `With*` methods** may use the comma operator to mutate and return `this`:
+  ```csharp
+  public IFluidPDFBuilder WithTemplateEngine(IFluidPDFTemplateEngine templateEngine) =>
+      (_templateEngine = templateEngine.GetNonNullOrThrow(nameof(templateEngine))), this;
   ```
 - **Object initializers:** single-line when short; multi-line with trailing comma when longer:
   ```csharp
@@ -197,7 +217,7 @@ src/
 | Directories | `PascalCase` | `Builder/`, `Support/IO/`, `Support/PDF/` |
 | Enum values | `PascalCase` | `ZeroPoint5`, `DataRow`, `JsonString` |
 | Test classes | `<Subject>Tests` | `FluidTemplateEngineTests` |
-| Test methods | `<Action>_<ExpectedResult>` | `RenderWithObject_ReturnsRenderedTemplate` |
+| Test methods | `<Action>_<ExpectedResult>` or `<Action>_Should<What>_When<Condition>` | `RenderWithObject_ReturnsRenderedTemplate`, `BuildAsync_ShouldThrowFluidPDFBuilderConfigException_WhenNoTemplateIsSet` |
 
 ### Types
 
@@ -208,7 +228,8 @@ src/
 - Use **`decimal`** for scale/ratio values (not `double` or `float`)
 - Apply **`sealed`** to all concrete implementation classes (e.g. `ChromiumRetriever`,
   `FluidPDFTemplateModel`)
-- Mark stateless helper/utility classes as **`static`** (e.g. `PDFCompressHelper`, `AsyncFile`)
+- Mark stateless helper/utility classes as **`static`** (e.g. `PDFCompressHelper`, `AsyncFile`,
+  `InternalExtensionMethods`)
 - Apply **`where T : notnull`** generic constraint where nullability must be excluded
 - Prefer **primary constructors** (C# 12+) for simple classes and records:
   ```csharp
@@ -216,7 +237,8 @@ src/
   public class FluidPDFBuilderConfigException(string message) : Exception(message) { }
   ```
 - Prefer **collection expressions** (`[...]`) over `new List<T>()` or array initializers
-- Use **switch expressions** for exhaustive enum/type dispatch
+- Use **switch expressions** for exhaustive enum/type dispatch; use `ArgumentOutOfRangeException`
+  as the default arm (never `NotImplementedException`)
 - Use `#if NETSTANDARD2_0` / `#else` for TFM-conditional APIs:
   ```csharp
   #if NETSTANDARD2_0
@@ -237,9 +259,11 @@ src/
 - Throw **domain exceptions** (`FluidPDFTemplateRenderException`, `FluidPDFBuilderConfigException`)
   for library-level errors; wrap low-level exceptions as `innerException`
 - Custom exceptions: use a primary constructor for simple message-only exceptions
-- Use the internal extension guard `GetNonNullOrThrow<T>()` for null argument validation:
+- Use the internal extension guard `GetNonNullOrThrow<T>()` for null argument validation;
+  two overloads exist — one taking a `string paramName`, one taking a `Func<Exception>` factory:
   ```csharp
   _options = options.GetNonNullOrThrow(nameof(options));
+  _value = value.GetNonNullOrThrow(() => new InvalidOperationException("..."));
   ```
 - Use `File.Exists()` before accepting file paths; throw `FileNotFoundException` with the path
 - Validate configuration before use; compute boolean guards into named local variables first
