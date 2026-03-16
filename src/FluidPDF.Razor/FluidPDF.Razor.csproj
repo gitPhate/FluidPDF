@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;net9.0;net10.0</TargetFrameworks>
+    <LangVersion>14</LangVersion>
+    <Nullable>enable</Nullable>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0</FileVersion>
+    <Version>1.0.0</Version>
+    <Description>FluidPDF template engine using Razor (RazorEngineCore)</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="RazorEngineCore" Version="2026.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FluidPDF\FluidPDF.csproj" />
+  </ItemGroup>
+
+</Project>

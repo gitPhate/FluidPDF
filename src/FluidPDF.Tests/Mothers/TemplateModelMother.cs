@@ -46,6 +46,23 @@ namespace FluidPDF.Tests.Mothers
 
         internal const string ScribanHtmlSpecialCharsExpectedOutput = "<p><script></p>";
 
+        // --- Razor-specific fixtures (template syntax differs from Fluid/Scriban) ---
+
+        internal const string RazorSimpleTemplate = "<p>@Model.Name is @Model.Age</p>";
+
+        internal const string RazorTwoModelTemplate = "<p>@Model.Greeting, @Model.Person.Name</p>";
+
+        internal const string RazorHtmlSpecialCharsTemplate = "<p>@Model.Value</p>";
+
+        internal const string RazorHtmlSpecialCharsExpectedOutput = "<p><script></p>";
+
+        internal static string RazorDataTableTemplate() =>
+            "<ul>" + Environment.NewLine
+            + "@foreach (var item in Model.Rows) {" + Environment.NewLine
+            + "<li>@item.Name</li>" + Environment.NewLine
+            + "}" + Environment.NewLine
+            + "</ul>";
+
         // --- Object/collection factories (must remain methods — allocate new instances each call) ---
 
         internal const string SimpleJsonString = "{\"Name\":\"Alice\", \"Age\": 30}";

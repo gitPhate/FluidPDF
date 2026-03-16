@@ -1,8 +1,6 @@
 using FluentAssertions;
-using FluidPDF.Scriban;
 using FluidPDF.Templating;
 using FluidPDF.Tests.Mothers;
-using Scriban;
 using System.Data;
 
 namespace FluidPDF.Tests
@@ -13,12 +11,16 @@ namespace FluidPDF.Tests
         protected abstract string DataTableTemplate { get; }
         protected abstract string HtmlSpecialCharsExpectedOutput { get; }
 
+        protected virtual string SimpleTemplate => TemplateModelMother.SimpleTemplate;
+        protected virtual string TwoModelTemplate => TemplateModelMother.TwoModelTemplate;
+        protected virtual string HtmlSpecialCharsTemplate => TemplateModelMother.HtmlSpecialCharsTemplate;
+
         [Fact]
         public async Task RenderTemplateAsync_ShouldRenderObjectValue_WhenObjectModelIsProvided()
         {
             // Arrange
             object model = TemplateModelMother.SimpleObject();
-            string template = TemplateModelMother.SimpleTemplate;
+            string template = SimpleTemplate;
             IFluidPDFTemplateEngine templateEngine = CreateEngine();
 
             // Act
@@ -33,7 +35,7 @@ namespace FluidPDF.Tests
         {
             // Arrange
             Dictionary<string, object> model = TemplateModelMother.SimpleDictionary();
-            string template = TemplateModelMother.SimpleTemplate;
+            string template = SimpleTemplate;
             IFluidPDFTemplateEngine templateEngine = CreateEngine();
 
             // Act
@@ -48,7 +50,7 @@ namespace FluidPDF.Tests
         {
             // Arrange
             FluidPDFTemplateModel[] models = TemplateModelMother.TwoModelArray();
-            string template = TemplateModelMother.TwoModelTemplate;
+            string template = TwoModelTemplate;
             IFluidPDFTemplateEngine templateEngine = CreateEngine();
 
             // Act
@@ -78,7 +80,7 @@ namespace FluidPDF.Tests
         {
             // Arrange
             string model = TemplateModelMother.SimpleJsonString;
-            string template = TemplateModelMother.SimpleTemplate;
+            string template = SimpleTemplate;
             IFluidPDFTemplateEngine templateEngine = CreateEngine();
 
             // Act
@@ -93,7 +95,7 @@ namespace FluidPDF.Tests
         {
             // Arrange
             object model = TemplateModelMother.HtmlSpecialCharsObject();
-            string template = TemplateModelMother.HtmlSpecialCharsTemplate;
+            string template = HtmlSpecialCharsTemplate;
             IFluidPDFTemplateEngine templateEngine = CreateEngine();
 
             // Act
