@@ -1,4 +1,5 @@
 ﻿using FluidPDF.Exceptions;
+using FluidPDF.Support.IO;
 using FluidPDF.Support.PDF;
 using FluidPDF.Support.PuppeteerSharp;
 using FluidPDF.Templating;
@@ -96,12 +97,8 @@ namespace FluidPDF
         public async Task CompileReportAsync<T>(string template, T model, Stream destinationStream, bool toBeCompressed = false, CultureInfo? cultureInfo = null)
             where T : notnull
         {
-            byte[] data = await CompileReportAsync<T>(template, model, toBeCompressed, cultureInfo).ConfigureAwait(false);
-#if NETSTANDARD2_0
-            await destinationStream.WriteAsync(data, 0, data.Length).ConfigureAwait(false);
-#else
-            await destinationStream.WriteAsync(data).ConfigureAwait(false);
-#endif
+            byte[] data = await CompileReportAsync(template, model, toBeCompressed, cultureInfo).ConfigureAwait(false);
+            await AsyncFile.WriteStreamAsync(destinationStream, data).ConfigureAwait(false);
         }
     }
 

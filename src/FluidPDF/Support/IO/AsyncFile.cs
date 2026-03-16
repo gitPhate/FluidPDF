@@ -16,5 +16,14 @@ namespace FluidPDF.Support.IO
             return await File.ReadAllTextAsync(path, encoding ?? Encoding.Default).ConfigureAwait(false);
 #endif
         }
+
+        public static async Task WriteStreamAsync(Stream destinationStream, byte[] data)
+        {
+#if NETSTANDARD2_0
+            await destinationStream.WriteAsync(data, 0, data.Length).ConfigureAwait(false);
+#else
+            await destinationStream.WriteAsync(data).ConfigureAwait(false);
+#endif
+        }
     }
 }
