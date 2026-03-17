@@ -8,6 +8,7 @@ using PuppeteerSharp.Media;
 using System;
 using System.Globalization;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace FluidPDF.Builder
@@ -20,7 +21,8 @@ namespace FluidPDF.Builder
     internal class FluidPDFBuilder<T> : IFluidPDFBuilder
         where T : notnull
     {
-        private const string _standaloneChromePath = "standalone";
+        private readonly T _model;
+        private readonly IChromiumRetriever? _chromiumRetriever;
 
         private string? _chromeExePath;
         private bool _landscape;
@@ -31,19 +33,16 @@ namespace FluidPDF.Builder
         private string? _templateFilePath;
         private string? _template;
         private bool _toBeCompressed;
-        private readonly T _model;
         private IFluidPDFTemplateEngine _templateEngine;
-        private readonly IChromiumRetriever? _chromiumRetriever;
 
         internal FluidPDFBuilder(T model) : this(model, null) { }
 
         internal FluidPDFBuilder(T model, IChromiumRetriever? chromiumRetriever)
         {
-            _chromeExePath = null;
             _paperFormat = PaperFormat.A4;
             _landscape = false;
             _marginOptions = new MarginOptions { Bottom = "0.4 in", Left = "0.4 in", Right = "0.4 in", Top = "0.4 in" };
-            _scale = 100;
+            _scale = 1; //100%
             _cultureInfo = null;
             _toBeCompressed = false;
             _model = model;
@@ -60,12 +59,6 @@ namespace FluidPDF.Builder
         public IFluidPDFBuilder WithExternalChromeProcess(string chromeExePath)
         {
             _chromeExePath = chromeExePath.GetNonNullOrThrow(nameof(chromeExePath));
-            return this;
-        }
-
-        public IFluidPDFBuilder WithStandaloneChromium()
-        {
-            _chromeExePath = _standaloneChromePath;
             return this;
         }
 
@@ -124,7 +117,7 @@ namespace FluidPDF.Builder
             return this;
         }
 
-        public IFluidPDFBuilder WithCustomScalePercentage(int scale)
+        public IFluidPDFBuilder WithScalePercentage(int scale)
         {
             _scale = scale;
             return this;
@@ -153,7 +146,7 @@ namespace FluidPDF.Builder
             return this;
         }
 
-        public IFluidPDFBuilder WithCompression()
+        public IFluidPDFBuilder WithPDFCompression()
         {
             _toBeCompressed = true;
             return this;
@@ -187,7 +180,7 @@ namespace FluidPDF.Builder
             return new(_templateEngine, NewChromiumRetrieverOptions(), NewFluidPDFReportOptions());
         }
 
-        private ChromiumRetrieverOptions NewChromiumRetrieverOptions() => new(_chromeExePath == _standaloneChromePath ? null : _chromeExePath);
+        private ChromiumRetrieverOptions NewChromiumRetrieverOptions() => new(_chromeExePath);
 
         internal FluidPDFReportOptions NewFluidPDFReportOptions() =>
             new()
@@ -215,23 +208,21 @@ namespace FluidPDF.Builder
 
         private void Verify()
         {
-            bool hasTemplate = _template.IsNotNullAndNotBlank() || _templateFilePath.IsNotNullAndNotBlank();
-            bool hasChromeSetting = _chromiumRetriever is not null || _chromeExePath.IsNotNullAndNotBlank();
+            StringBuilder builder = new();
 
-            bool finalCondition = hasTemplate && hasChromeSetting;
-            if (!finalCondition)
+            if (_template.IsNullOrBlankString())
             {
-                string? missingInfo = null;
-                if (!hasTemplate)
-                {
-                    missingInfo = "template (file or string)";
-                }
-                else if (!hasChromeSetting)
-                {
-                    missingInfo = "chrome info";
-                }
+                builder.AppendLine("Missing template (file or string)");
+            }
 
-                throw new FluidPDFBuilderConfigException($"One or more information is missing: {missingInfo}");
+            if (_scale < 0.1M || _scale > 2.0M)
+            {
+                builder.AppendLine("Scale must be between 0.1 and 2.0");
+            }
+
+            if(builder.Length > 0)
+            {
+                throw new FluidPDFBuilderConfigException($"One or more info are missing or wrong:{Environment.NewLine}{builder.ToString()}");
             }
         }
     }

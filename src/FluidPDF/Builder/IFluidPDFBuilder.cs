@@ -7,7 +7,6 @@ namespace FluidPDF.Builder
     {
         IFluidPDFBuilder WithTemplateEngine(IFluidPDFTemplateEngine templateEngine);
         IFluidPDFBuilder WithExternalChromeProcess(string chromeExePath);
-        IFluidPDFBuilder WithStandaloneChromium();
         IFluidPDFBuilder WithLandscapeOrientation();
         IFluidPDFBuilder WithA2Format();
         IFluidPDFBuilder WithA3Format();
@@ -17,11 +16,11 @@ namespace FluidPDF.Builder
         IFluidPDFBuilder WithPixelMargin(decimal bottom, decimal left, decimal right, decimal top);
         IFluidPDFBuilder WithInchMargin(decimal margin);
         IFluidPDFBuilder WithInchMargin(decimal bottom, decimal left, decimal right, decimal top);
-        IFluidPDFBuilder WithCustomScalePercentage(int scale);
+        IFluidPDFBuilder WithScalePercentage(int scale);
         IFluidPDFBuilder WithCulture(string cultureCode);
         IFluidPDFBuilder WithTemplate(string template);
         IFluidPDFBuilder WithTemplateFile(string filePath);
-        IFluidPDFBuilder WithCompression();
+        IFluidPDFBuilder WithPDFCompression();
         Task<byte[]> BuildAsync();
         Task BuildAsync(Stream stream);
     }

@@ -15,14 +15,14 @@ namespace FluidPDF.Support.PuppeteerSharp
 
     internal interface IChromiumRetriever
     {
-        Task<IBrowser> RetrieveBrowserInstanceAsync();
+        Task<IBrowser> LaunchBrowserAsync();
     }
 
     internal sealed class ChromiumRetriever(ChromiumRetrieverOptions options) : IChromiumRetriever
     {
         private readonly ChromiumRetrieverOptions _options = options.GetNonNullOrThrow(nameof(options));
 
-        public async Task<IBrowser> RetrieveBrowserInstanceAsync()
+        public async Task<IBrowser> LaunchBrowserAsync()
         {
             string? exePath = _options.ExternalExecutablePath;
 

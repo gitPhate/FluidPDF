@@ -22,7 +22,7 @@ namespace FluidPDF.Tests.Mocks
             page = Substitute.For<IPage>();
 
             retriever
-                .RetrieveBrowserInstanceAsync()
+                .LaunchBrowserAsync()
                 .Returns(Task.FromResult(browser));
 
             browser
@@ -66,7 +66,7 @@ namespace FluidPDF.Tests.Mocks
             page = Substitute.For<IPage>();
 
             retriever
-                .RetrieveBrowserInstanceAsync()
+                .LaunchBrowserAsync()
                 .Returns(Task.FromResult(browser));
 
             browser
@@ -110,7 +110,7 @@ namespace FluidPDF.Tests.Mocks
             page = Substitute.For<IPage>();
 
             retriever
-                .RetrieveBrowserInstanceAsync()
+                .LaunchBrowserAsync()
                 .Returns(Task.FromResult(browser));
 
             browser

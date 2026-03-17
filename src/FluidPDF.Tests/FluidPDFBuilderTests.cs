@@ -1,5 +1,6 @@
 using FluentAssertions;
 using FluidPDF.Builder;
+using FluidPDF.Exceptions;
 using FluidPDF.Support.PuppeteerSharp;
 using FluidPDF.Tests.Mocks;
 using FluidPDF.Tests.Mothers;
@@ -8,7 +9,7 @@ using PuppeteerSharp.Media;
 
 namespace FluidPDF.Tests
 {
-    public class FluidPDFBuilderMarginTests
+    public class FluidPDFBuilderTests
     {
         [Fact]
         public async Task BuildAsync_ShouldPassUniformInchMarginToPdfDataAsync_WhenWithInchMarginUniformIsCalled()
@@ -108,6 +109,101 @@ namespace FluidPDF.Tests
             options.MarginOptions.Left.Should().Be("20 px");
             options.MarginOptions.Right.Should().Be("30 px");
             options.MarginOptions.Top.Should().Be("40 px");
+        }
+
+        [Fact]
+        public async Task BuildAsync_ShouldThrowFluidPDFBuilderConfigException_WhenNoTemplateIsSet()
+        {
+            // Arrange
+            IFluidPDFBuilder builder = FluidPDFBuilder.NewWithModel(TemplateModelMother.SimpleObject());
+
+            // Act
+            Func<Task> act = builder.BuildAsync;
+
+            // Assert
+            await act.Should().ThrowAsync<FluidPDFBuilderConfigException>();
+        }
+
+        [Fact]
+        public void NewFluidPDFReportOptions_ShouldDefaultToA4Portrait_WhenNoFormatOrOrientationIsSet()
+        {
+            // Arrange
+            FluidPDFBuilder<object> builder = new(TemplateModelMother.SimpleObject());
+
+            // Act
+            FluidPDFReportOptions options = builder.NewFluidPDFReportOptions();
+
+            // Assert
+            options.Format.Should().Be(PaperFormat.A4);
+            options.Landscape.Should().BeFalse();
+        }
+
+        [Fact]
+        public void NewFluidPDFReportOptions_ShouldSetLandscapeTrue_WhenWithLandscapeOrientationIsCalled()
+        {
+            // Arrange
+            FluidPDFBuilder<object> builder = new(TemplateModelMother.SimpleObject());
+            builder.WithLandscapeOrientation();
+
+            // Act
+            FluidPDFReportOptions options = builder.NewFluidPDFReportOptions();
+
+            // Assert
+            options.Landscape.Should().BeTrue();
+        }
+
+        [Fact]
+        public void NewFluidPDFReportOptions_ShouldClampScaleToMinimum_WhenScalePercentageIsBelowTen()
+        {
+            // Arrange
+            FluidPDFBuilder<object> builder = new(TemplateModelMother.SimpleObject());
+            builder.WithScalePercentage(1);
+
+            // Act
+            FluidPDFReportOptions options = builder.NewFluidPDFReportOptions();
+
+            // Assert
+            options.Scale.Should().Be(0.1M);
+        }
+
+        [Fact]
+        public void NewFluidPDFReportOptions_ShouldClampScaleToMaximum_WhenScalePercentageIsAboveTwoHundred()
+        {
+            // Arrange
+            FluidPDFBuilder<object> builder = new(TemplateModelMother.SimpleObject());
+            builder.WithScalePercentage(300);
+
+            // Act
+            FluidPDFReportOptions options = builder.NewFluidPDFReportOptions();
+
+            // Assert
+            options.Scale.Should().Be(2.0M);
+        }
+
+        [Fact]
+        public void WithTemplateFile_ShouldThrowFileNotFoundException_WhenFilePathDoesNotExist()
+        {
+            // Arrange
+            IFluidPDFBuilder builder = FluidPDFBuilder.NewWithModel(TemplateModelMother.SimpleObject());
+
+            // Act
+            Action act = () => builder.WithTemplateFile("C:\\nonexistent\\path\\template.html");
+
+            // Assert
+            act.Should().Throw<FileNotFoundException>();
+        }
+
+        [Fact]
+        public void WithExternalChromeProcess_ShouldThrowArgumentNullException_WhenNullIsPassedAsPath()
+        {
+            // Arrange
+            IFluidPDFBuilder builder = FluidPDFBuilder.NewWithModel(TemplateModelMother.SimpleObject());
+
+            // Act
+            Action act = () => builder.WithExternalChromeProcess(null!);
+
+            // Assert
+            act.Should().Throw<ArgumentNullException>();
         }
     }
 }
