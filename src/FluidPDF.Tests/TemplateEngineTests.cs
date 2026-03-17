@@ -111,8 +111,8 @@ namespace FluidPDF.Tests
             // Arrange
             // Both models are registered under options.ModelName ("Model") — the second Add call
             // raises ArgumentException because ScriptObject does not allow duplicate keys.
-            FluidPDFTemplateModel m1 = FluidPDFTemplateModel.FromObject("Model", new { Name = "Dave" });
-            FluidPDFTemplateModel m2 = FluidPDFTemplateModel.FromObject("Model", new { Name = "Eve" });
+            FluidPDFTemplateModel m1 = FluidPDFTemplateModel.FromObject(new { Name = "Dave" });
+            FluidPDFTemplateModel m2 = FluidPDFTemplateModel.FromObject(new { Name = "Eve" });
             IFluidPDFTemplateEngine templateEngine = CreateEngine();
 
             // Act

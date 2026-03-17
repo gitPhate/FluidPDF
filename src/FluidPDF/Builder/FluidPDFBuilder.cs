@@ -6,6 +6,8 @@ using FluidPDF.Support.PuppeteerSharp;
 using FluidPDF.Templating;
 using PuppeteerSharp.Media;
 using System;
+using System.Collections.Generic;
+using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -13,17 +15,16 @@ using System.Threading.Tasks;
 
 namespace FluidPDF.Builder
 {
-    public static class FluidPDFBuilder
+    public static class FluidPDF
     {
-        public static IFluidPDFBuilder NewWithModel<T>(T model) where T : notnull => new FluidPDFBuilder<T>(model);
+        public static IFluidPDFBuilder NewReport() => new FluidPDFBuilder();
     }
 
-    internal class FluidPDFBuilder<T> : IFluidPDFBuilder
-        where T : notnull
+    internal class FluidPDFBuilder : IFluidPDFBuilder
     {
-        private readonly T _model;
         private readonly IChromiumRetriever? _chromiumRetriever;
 
+        private FluidPDFTemplateModel? _model;
         private string? _chromeExePath;
         private bool _landscape;
         private PaperFormat _paperFormat;
@@ -35,19 +36,47 @@ namespace FluidPDF.Builder
         private bool _toBeCompressed;
         private IFluidPDFTemplateEngine _templateEngine;
 
-        internal FluidPDFBuilder(T model) : this(model, null) { }
-
-        internal FluidPDFBuilder(T model, IChromiumRetriever? chromiumRetriever)
+        internal FluidPDFBuilder(IChromiumRetriever? chromiumRetriever = null)
         {
+            _model = null;
             _paperFormat = PaperFormat.A4;
             _landscape = false;
             _marginOptions = new MarginOptions { Bottom = "0.4 in", Left = "0.4 in", Right = "0.4 in", Top = "0.4 in" };
             _scale = 1; //100%
             _cultureInfo = null;
             _toBeCompressed = false;
-            _model = model;
             _templateEngine = new FluidTemplateEngine();
             _chromiumRetriever = chromiumRetriever;
+        }
+
+        public IFluidPDFBuilder WithDataRowModel(DataRow dataRow, string modelName = FluidPDFTemplateModel.DefaultName)
+        {
+            _model = FluidPDFTemplateModel.FromDataRow(dataRow, modelName);
+            return this;
+        }
+
+        public IFluidPDFBuilder WithDataTableModel(DataTable dataTable, string modelName = FluidPDFTemplateModel.DefaultName)
+        {
+            _model = FluidPDFTemplateModel.FromDataTable(dataTable, modelName);
+            return this;
+        }
+
+        public IFluidPDFBuilder WithDictionaryModel(IDictionary<string, object> dictionary, string modelName = FluidPDFTemplateModel.DefaultName)
+        {
+            _model = FluidPDFTemplateModel.FromDictionary(dictionary, modelName);
+            return this;
+        }
+
+        public IFluidPDFBuilder WithJsonStringModel(string jsonString, string modelName = FluidPDFTemplateModel.DefaultName)
+        {
+            _model = FluidPDFTemplateModel.FromJsonString(jsonString, modelName);
+            return this;
+        }
+
+        public IFluidPDFBuilder WithObjectModel(object obj, string modelName = FluidPDFTemplateModel.DefaultName)
+        {
+            _model = FluidPDFTemplateModel.FromObject(obj, modelName);
+            return this;
         }
 
         public IFluidPDFBuilder WithTemplateEngine(IFluidPDFTemplateEngine templateEngine)
@@ -158,7 +187,7 @@ namespace FluidPDF.Builder
 
             string template = await GetTemplateAsync().ConfigureAwait(false);
             FluidPDFReportFactory factory = NewFluidPDFReportFactory();
-            return await factory.CompileReportAsync(template, _model, _toBeCompressed, _cultureInfo).ConfigureAwait(false);
+            return await factory.CompileReportAsync(template, _model!, _toBeCompressed, _cultureInfo).ConfigureAwait(false);
         }
 
         public async Task BuildAsync(Stream stream)
@@ -167,7 +196,7 @@ namespace FluidPDF.Builder
 
             string template = await GetTemplateAsync().ConfigureAwait(false);
             FluidPDFReportFactory factory = NewFluidPDFReportFactory();
-            await factory.CompileReportAsync(template, _model, stream, _toBeCompressed, _cultureInfo).ConfigureAwait(false);
+            await factory.CompileReportAsync(template, _model!, stream, _toBeCompressed, _cultureInfo).ConfigureAwait(false);
         }
 
         private FluidPDFReportFactory NewFluidPDFReportFactory()
@@ -212,7 +241,12 @@ namespace FluidPDF.Builder
 
             if (_template.IsNullOrBlankString())
             {
-                builder.AppendLine("Missing template (file or string)");
+                builder.AppendLine("The template is missing (file or string)");
+            }
+
+            if (_model is null)
+            {
+                builder.AppendLine("The model is missing");
             }
 
             if (_scale < 0.1M || _scale > 2.0M)
@@ -220,7 +254,7 @@ namespace FluidPDF.Builder
                 builder.AppendLine("Scale must be between 0.1 and 2.0");
             }
 
-            if(builder.Length > 0)
+            if (builder.Length > 0)
             {
                 throw new FluidPDFBuilderConfigException($"One or more info are missing or wrong:{Environment.NewLine}{builder.ToString()}");
             }

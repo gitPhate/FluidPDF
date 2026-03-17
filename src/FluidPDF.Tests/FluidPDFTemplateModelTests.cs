@@ -1,7 +1,6 @@
 using FluentAssertions;
 using FluidPDF.Templating;
 using System.Data;
-using System.Text.Json.Nodes;
 
 namespace FluidPDF.Tests
 {
@@ -14,12 +13,12 @@ namespace FluidPDF.Tests
             object subject = new { Name = "Alice" };
 
             // Act
-            FluidPDFTemplateModel model = FluidPDFTemplateModel.FromObject("Model", subject);
+            FluidPDFTemplateModel model = FluidPDFTemplateModel.FromObject(subject);
 
             // Assert
             model.Type.Should().Be(FluidPDFTemplateModelType.Object);
             model.IsObject.Should().BeTrue();
-            model.Name.Should().Be("Model");
+            model.Name.Should().Be(FluidPDFTemplateModel.DefaultName);
         }
 
         [Fact]
@@ -29,7 +28,7 @@ namespace FluidPDF.Tests
             string subject = """{"Name":"Bob"}""";
 
             // Act
-            FluidPDFTemplateModel model = FluidPDFTemplateModel.FromJsonString("Model", subject);
+            FluidPDFTemplateModel model = FluidPDFTemplateModel.FromJsonString(subject);
 
             // Assert
             model.Type.Should().Be(FluidPDFTemplateModelType.JsonString);
@@ -44,7 +43,7 @@ namespace FluidPDF.Tests
             Dictionary<string, object> subject = new() { { "Name", "Carol" } };
 
             // Act
-            FluidPDFTemplateModel model = FluidPDFTemplateModel.FromDictionary("Model", subject);
+            FluidPDFTemplateModel model = FluidPDFTemplateModel.FromDictionary(subject);
 
             // Assert
             model.Type.Should().Be(FluidPDFTemplateModelType.Dictionary);
@@ -63,7 +62,7 @@ namespace FluidPDF.Tests
             table.Rows.Add(subject);
 
             // Act
-            FluidPDFTemplateModel model = FluidPDFTemplateModel.FromDataRow("Row", subject);
+            FluidPDFTemplateModel model = FluidPDFTemplateModel.FromDataRow(subject, "Row");
 
             // Assert
             model.Type.Should().Be(FluidPDFTemplateModelType.DataRow);
@@ -80,7 +79,7 @@ namespace FluidPDF.Tests
             subject.Columns.Add("Name", typeof(string));
 
             // Act
-            FluidPDFTemplateModel model = FluidPDFTemplateModel.FromDataTable("Table", subject);
+            FluidPDFTemplateModel model = FluidPDFTemplateModel.FromDataTable(subject, "Table");
 
             // Assert
             model.Type.Should().Be(FluidPDFTemplateModelType.DataTable);
@@ -93,7 +92,7 @@ namespace FluidPDF.Tests
         public void FromPlainValue_ShouldSetTypeToPlainValue_WhenCreatedWithAString()
         {
             // Act
-            FluidPDFTemplateModel model = FluidPDFTemplateModel.FromPlainValue("Greeting", "Hello");
+            FluidPDFTemplateModel model = FluidPDFTemplateModel.FromPlainValue("Hello", "Greeting");
 
             // Assert
             model.Type.Should().Be(FluidPDFTemplateModelType.PlainValue);
@@ -106,47 +105,42 @@ namespace FluidPDF.Tests
         public void FromPlainValue_ShouldAllowNull_WhenNullIsPassedAsValue()
         {
             // Act
-            FluidPDFTemplateModel model = FluidPDFTemplateModel.FromPlainValue("Empty", null!);
+            FluidPDFTemplateModel model = FluidPDFTemplateModel.FromPlainValue(null!);
 
             // Assert
             model.Type.Should().Be(FluidPDFTemplateModelType.PlainValue);
             model.PlainValue.Should().BeNull();
-            model.Value.Should().BeNull();
         }
 
         [Fact]
-        public void FromObject_ShouldExposeNonNullValue_WhenObjectModelIsResolved()
+        public void FromObject_ShouldExposeNonNullObjectValue_WhenObjectModelIsCreated()
         {
             // Arrange
-            FluidPDFTemplateModel model = FluidPDFTemplateModel.FromObject("Model", new { Name = "Dave" });
-
-            // Act
-            object? value = model.Value;
+            object subject = new { Name = "Dave" };
+            FluidPDFTemplateModel model = FluidPDFTemplateModel.FromObject(subject);
 
             // Assert
-            value.Should().NotBeNull();
-            value.Should().BeAssignableTo<JsonNode>();
+            model.ObjectValue.Should().NotBeNull();
+            model.ObjectValue.Should().BeSameAs(subject);
         }
 
         [Fact]
-        public void FromJsonString_ShouldExposeNonNullValue_WhenJsonStringModelIsResolved()
+        public void FromJsonString_ShouldExposeNonNullJsonString_WhenJsonStringModelIsCreated()
         {
             // Arrange
-            FluidPDFTemplateModel model = FluidPDFTemplateModel.FromJsonString("Model", """{"Name":"Frank"}""");
-
-            // Act
-            object? value = model.Value;
+            string json = """{"Name":"Frank"}""";
+            FluidPDFTemplateModel model = FluidPDFTemplateModel.FromJsonString(json);
 
             // Assert
-            value.Should().NotBeNull();
-            value.Should().BeAssignableTo<JsonNode>();
+            model.JsonString.Should().NotBeNull();
+            model.JsonString.Should().Be(json);
         }
 
         [Fact]
         public void FromDataRow_ShouldThrowArgumentNullException_WhenNullIsPassedAsDataRow()
         {
             // Act
-            Action act = () => FluidPDFTemplateModel.FromDataRow("Row", null!);
+            Action act = () => FluidPDFTemplateModel.FromDataRow(null!);
 
             // Assert
             act.Should().Throw<ArgumentNullException>();
@@ -156,7 +150,7 @@ namespace FluidPDF.Tests
         public void FromDataTable_ShouldThrowArgumentNullException_WhenNullIsPassedAsDataTable()
         {
             // Act
-            Action act = () => FluidPDFTemplateModel.FromDataTable("Table", null!);
+            Action act = () => FluidPDFTemplateModel.FromDataTable(null!);
 
             // Assert
             act.Should().Throw<ArgumentNullException>();
@@ -166,7 +160,7 @@ namespace FluidPDF.Tests
         public void FromObject_ShouldThrowArgumentNullException_WhenNullIsPassedAsObject()
         {
             // Act
-            Action act = () => FluidPDFTemplateModel.FromObject("Model", null!);
+            Action act = () => FluidPDFTemplateModel.FromObject(null!);
 
             // Assert
             act.Should().Throw<ArgumentNullException>();
@@ -176,7 +170,7 @@ namespace FluidPDF.Tests
         public void FromJsonString_ShouldThrowArgumentNullException_WhenNullIsPassedAsJsonString()
         {
             // Act
-            Action act = () => FluidPDFTemplateModel.FromJsonString("Model", null!);
+            Action act = () => FluidPDFTemplateModel.FromJsonString(null!);
 
             // Assert
             act.Should().Throw<ArgumentNullException>();
@@ -186,7 +180,7 @@ namespace FluidPDF.Tests
         public void FromDictionary_ShouldThrowArgumentNullException_WhenNullIsPassedAsDictionary()
         {
             // Act
-            Action act = () => FluidPDFTemplateModel.FromDictionary("Model", null!);
+            Action act = () => FluidPDFTemplateModel.FromDictionary(null!);
 
             // Assert
             act.Should().Throw<ArgumentNullException>();

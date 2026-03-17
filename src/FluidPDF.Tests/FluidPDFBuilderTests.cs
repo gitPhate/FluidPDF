@@ -20,7 +20,8 @@ namespace FluidPDF.Tests
                 out _,
                 out PdfOptions?[] box);
 
-            FluidPDFBuilder<object> builder = new(TemplateModelMother.SimpleObject(), retriever);
+            FluidPDFBuilder builder = new(retriever);
+            builder.WithObjectModel(TemplateModelMother.SimpleObject());
             builder.WithInchMargin(0.75m);
             builder.WithTemplate(TemplateModelMother.SimpleTemplate);
 
@@ -45,7 +46,8 @@ namespace FluidPDF.Tests
                 out _,
                 out PdfOptions?[] box);
 
-            FluidPDFBuilder<object> builder = new(TemplateModelMother.SimpleObject(), retriever);
+            FluidPDFBuilder builder = new(retriever);
+            builder.WithObjectModel(TemplateModelMother.SimpleObject());
             builder.WithInchMargin(bottom: 0.1m, left: 0.2m, right: 0.3m, top: 0.4m);
             builder.WithTemplate(TemplateModelMother.SimpleTemplate);
 
@@ -70,7 +72,8 @@ namespace FluidPDF.Tests
                 out _,
                 out PdfOptions?[] box);
 
-            FluidPDFBuilder<object> builder = new(TemplateModelMother.SimpleObject(), retriever);
+            FluidPDFBuilder builder = new(retriever);
+            builder.WithObjectModel(TemplateModelMother.SimpleObject());
             builder.WithPixelMargin(20m);
             builder.WithTemplate(TemplateModelMother.SimpleTemplate);
 
@@ -95,7 +98,8 @@ namespace FluidPDF.Tests
                 out _,
                 out PdfOptions?[] box);
 
-            FluidPDFBuilder<object> builder = new(TemplateModelMother.SimpleObject(), retriever);
+            FluidPDFBuilder builder = new(retriever);
+            builder.WithObjectModel(TemplateModelMother.SimpleObject());
             builder.WithPixelMargin(bottom: 10m, left: 20m, right: 30m, top: 40m);
             builder.WithTemplate(TemplateModelMother.SimpleTemplate);
 
@@ -115,7 +119,7 @@ namespace FluidPDF.Tests
         public async Task BuildAsync_ShouldThrowFluidPDFBuilderConfigException_WhenNoTemplateIsSet()
         {
             // Arrange
-            IFluidPDFBuilder builder = FluidPDFBuilder.NewWithModel(TemplateModelMother.SimpleObject());
+            IFluidPDFBuilder builder = FluidPDF.Builder.FluidPDF.NewReport().WithObjectModel(TemplateModelMother.SimpleObject());
 
             // Act
             Func<Task> act = builder.BuildAsync;
@@ -128,7 +132,8 @@ namespace FluidPDF.Tests
         public void NewFluidPDFReportOptions_ShouldDefaultToA4Portrait_WhenNoFormatOrOrientationIsSet()
         {
             // Arrange
-            FluidPDFBuilder<object> builder = new(TemplateModelMother.SimpleObject());
+            FluidPDFBuilder builder = new();
+            builder.WithObjectModel(TemplateModelMother.SimpleObject());
 
             // Act
             FluidPDFReportOptions options = builder.NewFluidPDFReportOptions();
@@ -142,7 +147,8 @@ namespace FluidPDF.Tests
         public void NewFluidPDFReportOptions_ShouldSetLandscapeTrue_WhenWithLandscapeOrientationIsCalled()
         {
             // Arrange
-            FluidPDFBuilder<object> builder = new(TemplateModelMother.SimpleObject());
+            FluidPDFBuilder builder = new();
+            builder.WithObjectModel(TemplateModelMother.SimpleObject());
             builder.WithLandscapeOrientation();
 
             // Act
@@ -156,7 +162,8 @@ namespace FluidPDF.Tests
         public void NewFluidPDFReportOptions_ShouldClampScaleToMinimum_WhenScalePercentageIsBelowTen()
         {
             // Arrange
-            FluidPDFBuilder<object> builder = new(TemplateModelMother.SimpleObject());
+            FluidPDFBuilder builder = new();
+            builder.WithObjectModel(TemplateModelMother.SimpleObject());
             builder.WithScalePercentage(1);
 
             // Act
@@ -170,7 +177,8 @@ namespace FluidPDF.Tests
         public void NewFluidPDFReportOptions_ShouldClampScaleToMaximum_WhenScalePercentageIsAboveTwoHundred()
         {
             // Arrange
-            FluidPDFBuilder<object> builder = new(TemplateModelMother.SimpleObject());
+            FluidPDFBuilder builder = new();
+            builder.WithObjectModel(TemplateModelMother.SimpleObject());
             builder.WithScalePercentage(300);
 
             // Act
@@ -184,7 +192,7 @@ namespace FluidPDF.Tests
         public void WithTemplateFile_ShouldThrowFileNotFoundException_WhenFilePathDoesNotExist()
         {
             // Arrange
-            IFluidPDFBuilder builder = FluidPDFBuilder.NewWithModel(TemplateModelMother.SimpleObject());
+            IFluidPDFBuilder builder = FluidPDF.Builder.FluidPDF.NewReport().WithObjectModel(TemplateModelMother.SimpleObject());
 
             // Act
             Action act = () => builder.WithTemplateFile("C:\\nonexistent\\path\\template.html");
@@ -197,7 +205,7 @@ namespace FluidPDF.Tests
         public void WithExternalChromeProcess_ShouldThrowArgumentNullException_WhenNullIsPassedAsPath()
         {
             // Arrange
-            IFluidPDFBuilder builder = FluidPDFBuilder.NewWithModel(TemplateModelMother.SimpleObject());
+            IFluidPDFBuilder builder = FluidPDF.Builder.FluidPDF.NewReport().WithObjectModel(TemplateModelMother.SimpleObject());
 
             // Act
             Action act = () => builder.WithExternalChromeProcess(null!);

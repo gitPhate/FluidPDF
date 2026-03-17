@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 
 namespace FluidPDF.Scriban
@@ -13,25 +14,25 @@ namespace FluidPDF.Scriban
     {
         public async ValueTask<string> RenderTemplateAsync(string template, DataTable model, FluidPDFTemplateRenderOptions options)
         {
-            FluidPDFTemplateModel managedModel = FluidPDFTemplateModel.FromDataTable(options.ModelName, model);
+            FluidPDFTemplateModel managedModel = FluidPDFTemplateModel.FromDataTable(model, options.ModelName);
             return await RenderTemplateAsync([managedModel], template, options).ConfigureAwait(false);
         }
 
         public async ValueTask<string> RenderTemplateAsync(string template, IDictionary<string, object> model, FluidPDFTemplateRenderOptions options)
         {
-            FluidPDFTemplateModel managedModel = FluidPDFTemplateModel.FromDictionary(options.ModelName, model);
+            FluidPDFTemplateModel managedModel = FluidPDFTemplateModel.FromDictionary(model, options.ModelName);
             return await RenderTemplateAsync([managedModel], template, options).ConfigureAwait(false);
         }
 
         public async ValueTask<string> RenderTemplateAsync(string template, object model, FluidPDFTemplateRenderOptions options)
         {
-            FluidPDFTemplateModel managedModel = FluidPDFTemplateModel.FromObject(options.ModelName, model);
+            FluidPDFTemplateModel managedModel = FluidPDFTemplateModel.FromObject(model, options.ModelName);
             return await RenderTemplateAsync([managedModel], template, options).ConfigureAwait(false);
         }
 
         public async ValueTask<string> RenderTemplateAsync(string template, string jsonModel, FluidPDFTemplateRenderOptions options)
         {
-            FluidPDFTemplateModel managedModel = FluidPDFTemplateModel.FromJsonString(options.ModelName, jsonModel);
+            FluidPDFTemplateModel managedModel = FluidPDFTemplateModel.FromJsonString(jsonModel, options.ModelName);
             return await RenderTemplateAsync([managedModel], template, options).ConfigureAwait(false);
         }
 

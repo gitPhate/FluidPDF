@@ -78,8 +78,8 @@ namespace FluidPDF.Tests.Mothers
 
         internal static FluidPDFTemplateModel[] TwoModelArray()
         {
-            FluidPDFTemplateModel person = FluidPDFTemplateModel.FromObject("Person", new { Name = "Dave" });
-            FluidPDFTemplateModel greeting = FluidPDFTemplateModel.FromPlainValue("Greeting", "Hello");
+            FluidPDFTemplateModel person = FluidPDFTemplateModel.FromObject(new { Name = "Dave" }, "Person");
+            FluidPDFTemplateModel greeting = FluidPDFTemplateModel.FromPlainValue("Hello", "Greeting");
             return [person, greeting];
         }
 

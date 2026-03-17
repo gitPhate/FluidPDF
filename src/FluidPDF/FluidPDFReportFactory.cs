@@ -44,8 +44,7 @@ namespace FluidPDF
         /// The implementation of PuppeteerSharp generates the PDF file as a byte array, the stream method is just a wrapper.
         /// That's why the main method here returns a byte array
         /// </summary>
-        public async Task<byte[]> CompileReportAsync<T>(string template, T model, bool toBeCompressed = false, CultureInfo? cultureInfo = null)
-            where T : notnull
+        public async Task<byte[]> CompileReportAsync(string template, FluidPDFTemplateModel model, bool toBeCompressed = false, CultureInfo? cultureInfo = null)
         {
             FluidPDFTemplateRenderOptions options = new()
             {
@@ -55,7 +54,7 @@ namespace FluidPDF
             string reportContent;
             try
             {
-                reportContent = await _templateEngine.RenderTemplateAsync(template, model, options).ConfigureAwait(false);
+                reportContent = await _templateEngine.RenderTemplateAsync(template, [model], options).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -85,8 +84,7 @@ namespace FluidPDF
             }
         }
 
-        public async Task CompileReportAsync<T>(string template, T model, Stream destinationStream, bool toBeCompressed = false, CultureInfo? cultureInfo = null)
-            where T : notnull
+        public async Task CompileReportAsync(string template, FluidPDFTemplateModel model, Stream destinationStream, bool toBeCompressed = false, CultureInfo? cultureInfo = null)
         {
             byte[] data = await CompileReportAsync(template, model, toBeCompressed, cultureInfo).ConfigureAwait(false);
             await AsyncFile.WriteStreamAsync(destinationStream, data).ConfigureAwait(false);
