@@ -71,8 +71,7 @@ dotnet test src/FluidPDF.sln --filter "ClassName=FluidPDF.Tests.FluidTemplateEng
 dotnet test src/FluidPDF.sln --filter "Name=RenderWithObject_ReturnsRenderedTemplate"
 ```
 
-Test classes: `FluidPDFBuilderConfigTests`, `FluidPDFBuilderMarginTests`, `FluidPDFBuilderOptionsTests`,
-`FluidPDFBuilderScribanExtensionsTests`, `FluidPDFReportFactoryTests`, `FluidPDFTemplateModelTests`,
+Test classes: `FluidPDFBuilderTests`, `FluidPDFReportFactoryTests`, `FluidPDFTemplateModelTests`,
 `FluidTemplateEngineTests`, `ScribanTemplateEngineTests`, `RazorTemplateEngineTests`,
 `InternalExtensionMethodsTests`, `ExpandoObjectConverterTests`.
 
@@ -174,11 +173,6 @@ src/
   ```csharp
   public bool IsObject => Type == FluidPDFTemplateModelType.Object;
   private bool IsFluidModelType(FluidPDFTemplateModelType value) => Type == value;
-  ```
-- **Fluent builder `With*` methods** may use the comma operator to mutate and return `this`:
-  ```csharp
-  public IFluidPDFBuilder WithTemplateEngine(IFluidPDFTemplateEngine templateEngine) =>
-      (_templateEngine = templateEngine.GetNonNullOrThrow(nameof(templateEngine))), this;
   ```
 - **Object initializers:** single-line when short; multi-line with trailing comma when longer:
   ```csharp
