@@ -24,7 +24,7 @@ namespace FluidPDF.Tests.Mothers
         internal static string SimpleDataTableTemplate() => "<ul>" + Environment.NewLine
 + "{% for item in Model.Rows %}" + Environment.NewLine
 + "<li>{{ item.Name }}</li>" + Environment.NewLine
-+ "{% endfor %}"  + Environment.NewLine
++ "{% endfor %}" + Environment.NewLine
 + "</ul>";
 
         internal static string SimpleDataTableExpectedOutput() => $"<ul>{Environment.NewLine}<li>Eve</li>{Environment.NewLine}<li>Sarah</li>{Environment.NewLine}</ul>";

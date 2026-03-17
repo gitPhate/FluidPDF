@@ -2,7 +2,6 @@ using FluidPDF.Support.PuppeteerSharp;
 using FluidPDF.Tests.Mothers;
 using NSubstitute;
 using PuppeteerSharp;
-using PuppeteerSharp.Media;
 
 namespace FluidPDF.Tests.Mocks
 {

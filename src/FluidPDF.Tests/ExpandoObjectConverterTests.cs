@@ -414,7 +414,8 @@ namespace FluidPDF.Tests
             JsonSerializerOptions options = new();
 
             // Act & Assert
-            Action act = () => {
+            Action act = () =>
+            {
                 Utf8JsonReader testReader = new(Encoding.UTF8.GetBytes("{}"));
                 testReader.Read(); // StartObject
                 testReader.Read(); // EndObject
