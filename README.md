@@ -4,25 +4,6 @@ A .NET class library for generating PDFs from HTML templates. Write your report 
 bind it to a data model, and get a PDF back — with full support for Liquid, Scriban, and Razor
 template engines.
 
----
-
-## Table of Contents
-
-- [Description](#description)
-- [Packages](#packages)
-- [Installation](#installation)
-- [Quick Start](#quick-start)
-- [Usage](#usage)
-  - [Fluent Builder API](#fluent-builder-api)
-  - [Direct Factory API](#direct-factory-api)
-  - [Template Engines](#template-engines)
-  - [Model Types](#model-types)
-  - [PDF Options](#pdf-options)
-- [Running the Tests](#running-the-tests)
-- [License](#license)
-
----
-
 ## Description
 
 FluidPDF renders an HTML template against a data model using a template engine of your choice, then
@@ -37,37 +18,6 @@ optional compression step via PDFsharp can further reduce output file size.
   supported as template models.
 - A simple fluent builder lets you configure and generate a PDF in a single chain of calls.
 - Full `netstandard2.0`, `net9.0`, and `net10.0` targeting.
-
----
-
-## Packages
-
-| Package | NuGet | Description |
-|---|---|---|
-| `FluidPDF` | [![NuGet](https://img.shields.io/nuget/v/FluidPDF)](https://www.nuget.org/packages/FluidPDF) | Core library — Liquid template engine + PDF generation |
-| `FluidPDF.Scriban` | [![NuGet](https://img.shields.io/nuget/v/FluidPDF.Scriban)](https://www.nuget.org/packages/FluidPDF.Scriban) | Scriban template engine adapter |
-| `FluidPDF.Razor` | [![NuGet](https://img.shields.io/nuget/v/FluidPDF.Razor)](https://www.nuget.org/packages/FluidPDF.Razor) | Razor (RazorEngineCore) template engine adapter |
-
----
-
-## Installation
-
-Install the core package (includes the Liquid engine):
-
-```bash
-dotnet add package FluidPDF
-```
-
-Optionally add an adapter for a different template engine:
-
-```bash
-dotnet add package FluidPDF.Scriban
-dotnet add package FluidPDF.Razor
-```
-
-> **Chromium:** On first use without an external Chrome executable, PuppeteerSharp downloads a
-> compatible Chromium build automatically. You can also point FluidPDF to an existing Chrome/
-> Chromium installation via `WithExternalChromeProcess()` to skip the download.
 
 ---
 
@@ -281,28 +231,3 @@ set of options:
 | `Landscape` | `bool` | `false` | Landscape orientation |
 | `MarginOptions` | `MarginOptions` | 0.4 in all sides | Page margins |
 | `Scale` | `decimal` | `1M` | Page scale (0.1 – 2.0) |
-
----
-
-## Running the Tests
-
-```bash
-# Run all tests
-dotnet test src/FluidPDF.sln
-
-# Run a specific test class
-dotnet test src/FluidPDF.sln --filter "ClassName=FluidPDF.Tests.FluidTemplateEngineTests"
-
-# Run a single test by name
-dotnet test src/FluidPDF.sln --filter "Name=RenderWithObject_ReturnsRenderedTemplate"
-```
-
-The test project targets `net8.0` and uses xUnit v3, FluentAssertions, and NSubstitute.
-Integration tests that print a real PDF are guarded by a `ChromiumRetrieverMock` so no Chromium
-download is required to run the suite.
-
----
-
-## License
-
-Distributed under the [MIT License](LICENSE). See `LICENSE` for full details.
