@@ -31,8 +31,10 @@ using FluidPDF.Builder;
 string template = "<html><body><h1>Hello, {{ Model.Name }}!</h1></body></html>";
 var model = new { Name = "World" };
 
-byte[] pdf = await FluidPDFBuilder
-    .NewWithModel(model)
+byte[] pdf =
+  await FluidPDF
+    .NewReport()
+    .WithObjectModel(model)
     .WithTemplate(template)
     .BuildAsync();
 
@@ -45,14 +47,16 @@ await File.WriteAllBytesAsync("output.pdf", pdf);
 
 ### Fluent Builder API
 
-`FluidPDFBuilder` is the recommended entry point. Chain `With*()` methods to configure every
+`FluidPDF.NewReport()` is the recommended entry point. Chain `With*()` methods to configure every
 aspect of the PDF, then call `BuildAsync()`.
 
 ```csharp
 using FluidPDF.Builder;
 
-byte[] pdf = await FluidPDFBuilder
-    .NewWithModel(myModel)
+byte[] pdf =
+  await FluidPDF
+    .NewReport()
+    .WithObjectModel(myModel)
     .WithTemplateFile("templates/invoice.html")   // load template from a file
     .WithA4Format()                               // default; also A2, A3, A5, A6
     .WithLandscapeOrientation()
@@ -66,26 +70,38 @@ byte[] pdf = await FluidPDFBuilder
 Write directly to a stream instead of returning a byte array:
 
 ```csharp
-await FluidPDFBuilder
-    .NewWithModel(myModel)
-    .WithTemplate(templateString)
-    .BuildAsync(outputStream);
+await FluidPDF
+  .NewReport()
+  .WithObjectModel(myModel)
+  .WithTemplate(templateString)
+  .BuildAsync(outputStream);
 ```
 
 Use an existing Chrome/Chromium executable to avoid the automatic download:
 
 ```csharp
-await FluidPDFBuilder
-    .NewWithModel(myModel)
-    .WithExternalChromeProcess(@"C:\Program Files\Google\Chrome\Application\chrome.exe")
-    .WithTemplate(templateString)
-    .BuildAsync();
+await FluidPDF
+  .NewReport()
+  .WithObjectModel(myModel)
+  .WithExternalChromeProcess(@"C:\Program Files\Google\Chrome\Application\chrome.exe")
+  .WithTemplate(templateString)
+  .BuildAsync();
 ```
 
 #### Builder method reference
 
 | Method | Description |
 |---|---|
+| `WithObjectModel(obj)` | C# object as the template model (name defaults to `"Model"`) |
+| `WithObjectModel(obj, modelName)` | C# object with a custom model name |
+| `WithJsonStringModel(json)` | JSON string as the template model |
+| `WithJsonStringModel(json, modelName)` | JSON string with a custom model name |
+| `WithDictionaryModel(dict)` | `IDictionary<string, object>` as the template model |
+| `WithDictionaryModel(dict, modelName)` | Dictionary with a custom model name |
+| `WithDataTableModel(table)` | `DataTable` as the template model |
+| `WithDataTableModel(table, modelName)` | `DataTable` with a custom model name |
+| `WithDataRowModel(row)` | `DataRow` as the template model |
+| `WithDataRowModel(row, modelName)` | `DataRow` with a custom model name |
 | `WithTemplate(string)` | Inline template string |
 | `WithTemplateFile(string)` | Path to an HTML template file |
 | `WithTemplateEngine(IFluidPDFTemplateEngine)` | Swap the default Liquid engine |
@@ -129,9 +145,10 @@ FluidPDFReportOptions pdfOptions = new()
 
 FluidPDFReportFactory factory = new(engine, chromiumOptions, pdfOptions);
 
-byte[] pdf = await factory.CompileReportAsync(templateString, myModel);
+FluidPDFTemplateModel model = FluidPDFTemplateModel.FromObject(myModel);
+byte[] pdf = await factory.CompileReportAsync(templateString, model);
 // or:
-await factory.CompileReportAsync(templateString, myModel, destinationStream);
+await factory.CompileReportAsync(templateString, model, destinationStream);
 ```
 
 Both `CompileReportAsync` overloads accept an optional `toBeCompressed` flag and a `CultureInfo`.
@@ -168,11 +185,12 @@ template engine via `WithTemplateEngine()`.
 using FluidPDF.Builder;
 using FluidPDF.Scriban;
 
-byte[] pdf = await FluidPDFBuilder
-    .NewWithModel(myModel)
-    .WithTemplateEngine(new ScribanTemplateEngine())
-    .WithTemplate(scribanTemplate)
-    .BuildAsync();
+byte[] pdf = await FluidPDF
+  .NewReport()
+  .WithObjectModel(myModel)
+  .WithTemplateEngine(new ScribanTemplateEngine())
+  .WithTemplate(scribanTemplate)
+  .BuildAsync();
 ```
 
 Scriban template example:
@@ -187,11 +205,12 @@ Scriban template example:
 using FluidPDF.Builder;
 using FluidPDF.Razor;
 
-byte[] pdf = await FluidPDFBuilder
-    .NewWithModel(myModel)
-    .WithTemplateEngine(new RazorTemplateEngine())
-    .WithTemplate(razorTemplate)
-    .BuildAsync();
+byte[] pdf = await FluidPDF
+  .NewReport()
+  .WithObjectModel(myModel)
+  .WithTemplateEngine(new RazorTemplateEngine())
+  .WithTemplate(razorTemplate)
+  .BuildAsync();
 ```
 
 Razor template example (model is passed as `dynamic`):
@@ -204,16 +223,20 @@ Razor template example (model is passed as `dynamic`):
 
 ### Model Types
 
-When using `FluidPDFReportFactory` directly, wrap your data in a `FluidPDFTemplateModel`:
+When using `FluidPDFReportFactory` directly, wrap your data in a `FluidPDFTemplateModel`.
+The data argument comes first; `modelName` is optional and defaults to `"Model"`
+(`FluidPDFTemplateModel.DefaultName`).
 
 | Factory method | Source type |
 |---|---|
-| `FluidPDFTemplateModel.FromObject("Model", obj)` | Any C# object |
-| `FluidPDFTemplateModel.FromJsonString("Model", json)` | JSON string |
-| `FluidPDFTemplateModel.FromDictionary("Model", dict)` | `IDictionary<string, object>` |
-| `FluidPDFTemplateModel.FromDataTable("Model", table)` | `System.Data.DataTable` |
-| `FluidPDFTemplateModel.FromDataRow("Model", row)` | `System.Data.DataRow` |
-| `FluidPDFTemplateModel.FromPlainValue("Model", value)` | Primitive / scalar value |
+| `FluidPDFTemplateModel.FromObject(obj)` | Any C# object |
+| `FluidPDFTemplateModel.FromObject(obj, modelName)` | Any C# object with a custom name |
+| `FluidPDFTemplateModel.FromJsonString(json)` | JSON string |
+| `FluidPDFTemplateModel.FromJsonString(json, modelName)` | JSON string with a custom name |
+| `FluidPDFTemplateModel.FromDictionary(dict)` | `IDictionary<string, object>` |
+| `FluidPDFTemplateModel.FromDataTable(table)` | `System.Data.DataTable` |
+| `FluidPDFTemplateModel.FromDataRow(row)` | `System.Data.DataRow` |
+| `FluidPDFTemplateModel.FromPlainValue(value)` | Primitive / scalar value |
 
 Multiple models can be passed as an array to `RenderTemplateAsync(string, FluidPDFTemplateModel[], ...)`,
 each accessible in the template by its assigned name.

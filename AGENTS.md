@@ -11,7 +11,7 @@ adapter packages add Scriban and Razor template engine support.
 - **Library:** `src/FluidPDF/` (targets `netstandard2.0;net9.0;net10.0`, C# 14 via PolySharp 1.15.0)
 - **Scriban adapter:** `src/FluidPDF.Scriban/` (targets `netstandard2.0` only)
 - **Razor adapter:** `src/FluidPDF.Razor/` (targets `netstandard2.0;net9.0;net10.0`)
-- **Tests:** `src/FluidPDF.Tests/` (targets `net8.0`, xUnit v3 + FluentAssertions + NSubstitute)
+- **Tests:** `src/FluidPDF.Tests/` (targets `net10.0`, xUnit v3 + FluentAssertions + NSubstitute)
 
 ### Key Dependencies
 
@@ -105,11 +105,12 @@ await factory.CompileReportAsync(template, model, destinationStream);
   implementation; can be replaced for testing
 
 ### 2. `FluidPDFBuilder` (fluent builder)
-Static entry point; configured via `With*()` chain; delegates to `FluidPDFReportFactory` internally.
+Static entry point `FluidPDF.NewReport()` (in namespace `FluidPDF.Builder`); configured via
+`With*()` chain; delegates to `FluidPDFReportFactory` internally.
 
 ```csharp
-byte[] pdf = await FluidPDFBuilder.NewWithModel(model)
-    .WithStandaloneChromium()
+byte[] pdf = await FluidPDF.NewReport()
+    .WithObjectModel(myModel)
     .WithTemplate(templateString)
     .BuildAsync();
 ```
@@ -119,9 +120,15 @@ byte[] pdf = await FluidPDFBuilder.NewWithModel(model)
 - **`ScribanTemplateEngine`** (`FluidPDF.Scriban`) — renders Scriban templates; implements same interface
 - **`RazorTemplateEngine`** (`FluidPDF.Razor`) — renders Razor templates; implements same interface
 - **`FluidPDFTemplateModel`** — discriminated-union sealed class; factory methods `FromDataRow`,
-  `FromDataTable`, `FromDictionary`, `FromJsonString`, `FromObject`, `FromPlainValue`
+  `FromDataTable`, `FromDictionary`, `FromJsonString`, `FromObject`, `FromPlainValue`; data
+  argument is first, `modelName` is an optional trailing parameter defaulting to `"Model"`
+  (constant `FluidPDFTemplateModel.DefaultName`)
 - **`IFluidPDFTemplateEngine`** — interface with `RenderTemplateAsync` overloads returning
-  `ValueTask<string>`; accepts `(string template, FluidPDFTemplateModel model, FluidPDFTemplateRenderOptions?)`
+  `ValueTask<string>`; accepts `(string template, object model, ...)`,
+  `(string template, IDictionary<string,object> model, ...)`,
+  `(string template, string jsonModel, ...)`,
+  `(string template, DataTable model, ...)`, and
+  `(string template, FluidPDFTemplateModel[] models, ...)`
 - **`PDFCompressHelper`** (`Support/PDF/`) — re-encodes a PDF via PDFsharp to compress it
 - **`ChromiumRetriever`** (`Support/PuppeteerSharp/`) — downloads or locates Chromium, launches
   a headless browser; implements `IChromiumRetriever`
@@ -148,7 +155,7 @@ src/
 │   │   ├── PDF/              PDFCompressHelper.cs
 │   │   └── PuppeteerSharp/   ChromiumRetriever.cs (+ IChromiumRetriever, ChromiumRetrieverOptions)
 │   ├── Templating/           FluidPDFTemplateModel.cs, FluidPDFTemplateRenderException.cs,
-│   │                         IFluidPDFTemplateRenderOptions.cs (contains IFluidPDFTemplateEngine
+│   │                         IFluidPDFTemplateEngine.cs (contains IFluidPDFTemplateEngine
 │   │                         and FluidPDFTemplateRenderOptions)
 │   └── FluidPDFReportFactory.cs  (main public factory + FluidPDFReportOptions)
 ├── FluidPDF.Scriban/
@@ -205,7 +212,7 @@ src/
 | Parameters and local variables | `camelCase` | `modelName`, `cultureInfo` |
 | Properties and methods | `PascalCase` | `CompileReportAsync()`, `RenderedContent` |
 | Async methods | Suffix `Async` | `CompileReportAsync()`, `RetrieveBrowserInstanceAsync()` |
-| Static factory methods | `NewXxx()` or `FromXxx()` | `NewWithModel()`, `FromObject()` |
+| Static factory methods | `NewXxx()` or `FromXxx()` | `NewReport()`, `FromObject()` |
 | Interface names | `I` prefix | `IFluidPDFBuilder`, `IChromiumRetriever` |
 | Files | Match primary class name exactly | `FluidPDFBuilder.cs`, `ChromiumRetriever.cs` |
 | Directories | `PascalCase` | `Builder/`, `Support/IO/`, `Support/PDF/` |
