@@ -4,13 +4,11 @@ A .NET class library for generating PDFs from HTML templates. Write your report 
 bind it to a data model, and get a PDF back — with full support for Liquid, Scriban, and Razor
 template engines.
 
-## Description
-
 FluidPDF renders an HTML template against a data model using a template engine of your choice, then
-prints the resulting HTML to a PDF through a headless Chromium browser (PuppeteerSharp). An
-optional compression step via PDFsharp can further reduce output file size.
+prints the resulting HTML to a PDF through a headless Chromium browser. An
+optional compression step can further reduce output file size.
 
-**Why FluidPDF?**
+**Capabilities**
 
 - Use familiar web technologies (HTML + CSS) to design documents — no proprietary report DSL.
 - Three template engine options out of the box: **Liquid** (default), **Scriban**, or **Razor**.
@@ -19,7 +17,12 @@ optional compression step via PDFsharp can further reduce output file size.
 - A simple fluent builder lets you configure and generate a PDF in a single chain of calls.
 - Full `netstandard2.0`, `net9.0`, and `net10.0` targeting.
 
----
+**Dependencies**
+- [PuppeteerSharp](https://github.com/hardkoded/puppeteer-sharp) for PDF rendering through the Chromium APIs
+- [PDFsharp](https://github.com/empira/PDFsharp) for optional PDF compressing (reducing size)
+- [Fluid](https://github.com/sebastienros/fluid) is the default templating engine
+- [Scriban](https://github.com/scriban/scriban) is an optional templating engine available in the dedicated package _FluidPDF.Scriban_
+- [RazorEngineCore](https://github.com/adoconnection/RazorEngineCore) is an optional templating engine available in the dedicated package _FluidPDF.Razor_
 
 ## Quick Start
 
@@ -40,8 +43,6 @@ byte[] pdf =
 
 await File.WriteAllBytesAsync("output.pdf", pdf);
 ```
-
----
 
 ## Usage
 
@@ -118,7 +119,6 @@ await FluidPDF
 | `BuildAsync()` | Generate and return `byte[]` |
 | `BuildAsync(Stream)` | Generate and write to a stream |
 
----
 
 ### Direct Factory API
 
@@ -153,13 +153,12 @@ await factory.CompileReportAsync(templateString, model, destinationStream);
 
 Both `CompileReportAsync` overloads accept an optional `toBeCompressed` flag and a `CultureInfo`.
 
----
 
 ### Template Engines
 
 #### Liquid (default — `FluidPDF` package)
 
-Uses the [Fluid](https://github.com/sebastienros/fluid) library, which implements the Liquid
+Uses the Fluid library, which implements the Liquid
 template syntax.
 
 ```html
@@ -175,20 +174,17 @@ template syntax.
 </html>
 ```
 
-The default model variable name is `Model`. Pass a custom name through
-`FluidPDFTemplateRenderOptions.ModelName` when using the factory directly, or when injecting a
-template engine via `WithTemplateEngine()`.
-
 #### Scriban (`FluidPDF.Scriban` package)
 
 ```csharp
 using FluidPDF.Builder;
 using FluidPDF.Scriban;
 
-byte[] pdf = await FluidPDF
+byte[] pdf =
+await FluidPDF
   .NewReport()
   .WithObjectModel(myModel)
-  .WithTemplateEngine(new ScribanTemplateEngine())
+  .WithScribanTemplateEngine()
   .WithTemplate(scribanTemplate)
   .BuildAsync();
 ```
@@ -205,10 +201,11 @@ Scriban template example:
 using FluidPDF.Builder;
 using FluidPDF.Razor;
 
-byte[] pdf = await FluidPDF
+byte[] pdf =
+await FluidPDF
   .NewReport()
   .WithObjectModel(myModel)
-  .WithTemplateEngine(new RazorTemplateEngine())
+  .WithRazorTemplateEngine()
   .WithTemplate(razorTemplate)
   .BuildAsync();
 ```
@@ -219,7 +216,6 @@ Razor template example (model is passed as `dynamic`):
 <h1>@Model.Title</h1>
 ```
 
----
 
 ### Model Types
 
@@ -229,10 +225,8 @@ The data argument comes first; `modelName` is optional and defaults to `"Model"`
 
 | Factory method | Source type |
 |---|---|
-| `FluidPDFTemplateModel.FromObject(obj)` | Any C# object |
-| `FluidPDFTemplateModel.FromObject(obj, modelName)` | Any C# object with a custom name |
-| `FluidPDFTemplateModel.FromJsonString(json)` | JSON string |
-| `FluidPDFTemplateModel.FromJsonString(json, modelName)` | JSON string with a custom name |
+| `FluidPDFTemplateModel.FromObject(obj)` | Any C# object, optional custom name |
+| `FluidPDFTemplateModel.FromJsonString(json)` | JSON string with a custom name |
 | `FluidPDFTemplateModel.FromDictionary(dict)` | `IDictionary<string, object>` |
 | `FluidPDFTemplateModel.FromDataTable(table)` | `System.Data.DataTable` |
 | `FluidPDFTemplateModel.FromDataRow(row)` | `System.Data.DataRow` |
@@ -241,7 +235,6 @@ The data argument comes first; `modelName` is optional and defaults to `"Model"`
 Multiple models can be passed as an array to `RenderTemplateAsync(string, FluidPDFTemplateModel[], ...)`,
 each accessible in the template by its assigned name.
 
----
 
 ### PDF Options
 
@@ -254,3 +247,8 @@ set of options:
 | `Landscape` | `bool` | `false` | Landscape orientation |
 | `MarginOptions` | `MarginOptions` | 0.4 in all sides | Page margins |
 | `Scale` | `decimal` | `1M` | Page scale (0.1 – 2.0) |
+
+## History
+This library is born after my frustration with existing reporting tools, especially SSRS which was widely used in my company. I had recently discovered _PuppeteerSharp_ and an idea came to my mind - what if I can create PDF reports from HTML?<br/>
+The core idea of this library has remained the same: make reports quick and easy.<br/>
+FluidPDF v2.x and lower are the production versions before going open source, they are not released in this repo.
