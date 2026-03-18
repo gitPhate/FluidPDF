@@ -5,14 +5,24 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Dynamic;
+using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace FluidPDF.Razor
 {
-    public sealed class RazorTemplateEngine : IFluidPDFTemplateEngine
+    public sealed class RazorTemplateEngine(RazorCompiledTemplateCacheOptions? cacheOptions = null) : IFluidPDFTemplateEngine
     {
+        private static readonly JsonSerializerOptions _jsonOptions = new()
+        {
+            Converters = { new ExpandoObjectConverter() }
+        };
+
+        private readonly RazorCompiledTemplateCacheOptions? _cacheOptions = cacheOptions;
+
         public async ValueTask<string> RenderTemplateAsync(string template, DataTable model, FluidPDFTemplateRenderOptions options)
         {
             FluidPDFTemplateModel managedModel = FluidPDFTemplateModel.FromDataTable(model, options.ModelName);
@@ -40,26 +50,68 @@ namespace FluidPDF.Razor
         public ValueTask<string> RenderTemplateAsync(string template, FluidPDFTemplateModel[] models, FluidPDFTemplateRenderOptions options) =>
             RenderCoreAsync(template, models);
 
-        private static async ValueTask<string> RenderCoreAsync(string template, FluidPDFTemplateModel[] models)
+        private async ValueTask<string> RenderCoreAsync(string template, FluidPDFTemplateModel[] models)
         {
             if (models.Length == 0)
             {
                 throw new ArgumentException("At least one model must be provided.", nameof(models));
             }
 
-            object? modelValue = BuildModelValue(models);
+            IRazorEngineCompiledTemplate compiled = await GetOrCompileAsync(template).ConfigureAwait(false);
 
-            RazorEngine razorEngine = new();
-            IRazorEngineCompiledTemplate compiled =
-                await razorEngine
-                    .CompileAsync(template)
-                    .ConfigureAwait(false);
+            object? modelValue = BuildModelValue(models);
 
             string result = await compiled
                 .RunAsync(modelValue)
                 .ConfigureAwait(false);
 
             return result;
+        }
+
+        private async ValueTask<IRazorEngineCompiledTemplate> GetOrCompileAsync(string template)
+        {
+            if (_cacheOptions is null)
+            {
+                return
+                    await new RazorEngine()
+                    .CompileAsync(template)
+                    .ConfigureAwait(false);
+            }
+
+            string cacheFilePath = GetCacheFilePath(template);
+
+            if (File.Exists(cacheFilePath))
+            {
+                return RazorEngineCompiledTemplate.LoadFromFile(cacheFilePath);
+            }
+
+            IRazorEngineCompiledTemplate compiled =
+                await new RazorEngine()
+                    .CompileAsync(template)
+                    .ConfigureAwait(false);
+
+            Directory.CreateDirectory(_cacheOptions.CachePath);
+            compiled.SaveToFile(cacheFilePath);
+
+            return compiled;
+        }
+
+        private string GetCacheFilePath(string template)
+        {
+            string key = ComputeCacheKey(template);
+            return Path.Combine(_cacheOptions!.CachePath, key);
+        }
+
+        private static string ComputeCacheKey(string template)
+        {
+#if NETSTANDARD2_0
+            using SHA256 sha256 = SHA256.Create();
+            byte[] hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(template));
+            return BitConverter.ToString(hash).Replace("-", string.Empty) + ".dll";
+#else
+            byte[] hash = SHA256.HashData(Encoding.UTF8.GetBytes(template));
+            return Convert.ToHexString(hash) + ".dll";
+#endif
         }
 
         private static object? BuildModelValue(FluidPDFTemplateModel[] models)
@@ -152,10 +204,5 @@ namespace FluidPDF.Razor
             expandoDict[nameof(DataTable.Rows)] = rows;
             return expando;
         }
-
-        private static readonly JsonSerializerOptions _jsonOptions = new()
-        {
-            Converters = { new ExpandoObjectConverter() }
-        };
     }
 }
