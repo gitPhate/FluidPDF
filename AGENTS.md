@@ -18,15 +18,19 @@ adapter packages add Scriban and Razor template engine support.
 | Project | Package | Version |
 |---|---|---|
 | FluidPDF | Fluid.Core | 2.31.0 |
-| FluidPDF | PuppeteerSharp | 21.1.1 |
+| FluidPDF | PuppeteerSharp | 24.39.0 |
 | FluidPDF | PDFsharp | 6.2.4 |
-| FluidPDF | Microsoft.Bcl.AsyncInterfaces | 10.0.3 |
-| FluidPDF | PolySharp *(analyzer only)* | 1.15.0 |
-| FluidPDF.Scriban | Scriban | 6.5.5 |
+| FluidPDF | Microsoft.Bcl.AsyncInterfaces | 10.0.5 *(netstandard2.0 only)* |
+| FluidPDF | PolySharp *(analyzer only)* | 1.15.0 *(netstandard2.0 only)* |
+| FluidPDF.Scriban | Scriban | 6.5.7 |
 | FluidPDF.Razor | RazorEngineCore | 2026.1.1 |
 | FluidPDF.Tests | xunit.v3 | 3.2.2 |
+| FluidPDF.Tests | xunit.runner.visualstudio | 3.1.5 |
+| FluidPDF.Tests | Microsoft.NET.Test.Sdk | 18.3.0 |
 | FluidPDF.Tests | FluentAssertions | 8.8.0 |
+| FluidPDF.Tests | FluentAssertions.Analyzers | 0.34.1 |
 | FluidPDF.Tests | NSubstitute | 5.3.0 |
+| FluidPDF.Tests | NSubstitute.Analyzers.CSharp | 1.0.17 |
 
 ---
 
@@ -73,7 +77,8 @@ dotnet test src/FluidPDF.sln --filter "Name=RenderWithObject_ReturnsRenderedTemp
 
 Test classes: `FluidPDFBuilderTests`, `FluidPDFReportFactoryTests`, `FluidPDFTemplateModelTests`,
 `FluidTemplateEngineTests`, `ScribanTemplateEngineTests`, `RazorTemplateEngineTests`,
-`InternalExtensionMethodsTests`, `ExpandoObjectConverterTests`.
+`InternalExtensionMethodsTests`, `ExpandoObjectConverterTests`. `TemplateEngineTests` is an
+abstract base class with shared `[Fact]` tests that the three engine test classes inherit.
 
 ---
 
@@ -146,7 +151,8 @@ byte[] pdf = await FluidPDF.NewReport()
 src/
 ├── FluidPDF/
 │   ├── Builder/              FluidPDFBuilder.cs, IFluidPDFBuilder.cs
-│   ├── Exceptions/           FluidPDFBuilderConfigException.cs
+│   ├── Exceptions/           Exceptions.cs (FluidPDFBuilderConfigException,
+│   │                         FluidPDFTemplateRenderException)
 │   ├── Fluid/                FluidTemplateEngine.cs
 │   ├── Support/
 │   │   ├── InternalExtensionMethods.cs
@@ -154,15 +160,20 @@ src/
 │   │   ├── Json/             ExpandoObjectConverter.cs
 │   │   ├── PDF/              PDFCompressHelper.cs
 │   │   └── PuppeteerSharp/   ChromiumRetriever.cs (+ IChromiumRetriever, ChromiumRetrieverOptions)
-│   ├── Templating/           FluidPDFTemplateModel.cs, FluidPDFTemplateRenderException.cs,
+│   ├── Templating/           FluidPDFTemplateModel.cs,
 │   │                         IFluidPDFTemplateEngine.cs (contains IFluidPDFTemplateEngine
 │   │                         and FluidPDFTemplateRenderOptions)
 │   └── FluidPDFReportFactory.cs  (main public factory + FluidPDFReportOptions)
 ├── FluidPDF.Scriban/
+│   ├── HTMLEncodedTemplateContext.cs
+│   ├── FluidPDFBuilderScribanExtensions.cs
 │   └── ScribanTemplateEngine.cs
 ├── FluidPDF.Razor/
-│   ├── RazorTemplateEngine.cs
-│   └── FluidPDFBuilderRazorExtensions.cs
+│   ├── FluidPDFBuilderRazorExtensions.cs
+│   ├── FluidPDFRazorCompiledTemplate.cs
+│   ├── HTMLEncodedTemplate.cs
+│   ├── RazorCompiledTemplateCacheOptions.cs
+│   └── RazorTemplateEngine.cs
 └── FluidPDF.Tests/
     ├── Mocks/                ChromiumRetrieverMock.cs
     └── Mothers/              PDFDocumentMother.cs, TemplateModelMother.cs
@@ -240,6 +251,8 @@ src/
 - Prefer **collection expressions** (`[...]`) over `new List<T>()` or array initializers
 - Use **switch expressions** for exhaustive enum/type dispatch; use `ArgumentOutOfRangeException`
   as the default arm (never `NotImplementedException`)
+- Use **`private static readonly`** for expensive-to-create objects shared across instances
+  (e.g. `FluidParser`, `TemplateOptions` in `FluidTemplateEngine`)
 - Use `#if NETSTANDARD2_0` / `#else` for TFM-conditional APIs:
   ```csharp
   #if NETSTANDARD2_0
