@@ -18,70 +18,45 @@ namespace FluidPDF.Fluid
 {
     public sealed class FluidTemplateEngine : IFluidPDFTemplateEngine
     {
-        private const string _modelName = "Model";
-
         private static readonly FluidParser _parser = new();
         private static readonly TemplateOptions _templateOptions = NewTemplateOptions();
-        //TODO: support EncodeHtml into render options
-        public ValueTask<string> RenderTemplateAsync(string template, DataTable model, FluidPDFTemplateRenderOptions options) =>
-            RenderTemplateAsync
-            (
-                [FluidPDFTemplateModel.FromDataTable(model, options.ModelName)],
-                template,
-                true,
-                options.CultureInfo,
-                null
-            );
 
-        public ValueTask<string> RenderTemplateAsync(string template, IDictionary<string, object> model, FluidPDFTemplateRenderOptions options) =>
-            RenderTemplateAsync
-            (
-                [FluidPDFTemplateModel.FromDictionary(model, options.ModelName)],
-                template,
-                true,
-                options.CultureInfo,
-                null
-            );
+        public async ValueTask<string> RenderTemplateAsync(string template, DataTable model, FluidPDFTemplateRenderOptions options)
+        {
+            FluidPDFTemplateModel fluidPDFModel = FluidPDFTemplateModel.FromDataTable(model, options.ModelName);
+            return await RenderTemplateAsync([fluidPDFModel], template, options).ConfigureAwait(false);
+        }
+
+        public async ValueTask<string> RenderTemplateAsync(string template, IDictionary<string, object> model, FluidPDFTemplateRenderOptions options)
+        {
+            FluidPDFTemplateModel fluidPDFModel = FluidPDFTemplateModel.FromDictionary(model, options.ModelName);
+            return await RenderTemplateAsync([fluidPDFModel], template, options).ConfigureAwait(false);
+        }
 
         public ValueTask<string> RenderTemplateAsync(string template, FluidPDFTemplateModel[] models, FluidPDFTemplateRenderOptions options) =>
-            RenderTemplateAsync
-            (
-                models,
-                template,
-                true,
-                options.CultureInfo,
-                null
-            );
+            RenderTemplateAsync(models, template, options);
 
-        public ValueTask<string> RenderTemplateAsync(string template, object model, FluidPDFTemplateRenderOptions options) =>
-            RenderTemplateAsync
-            (
-                [FluidPDFTemplateModel.FromObject(model, options.ModelName)],
-                template,
-                true,
-                options.CultureInfo,
-                null
-            );
+        public async ValueTask<string> RenderTemplateAsync(string template, object model, FluidPDFTemplateRenderOptions options)
+        {
+            FluidPDFTemplateModel fluidPDFModel = FluidPDFTemplateModel.FromObject(model, options.ModelName);
+            return await RenderTemplateAsync([fluidPDFModel], template, options).ConfigureAwait(false);
+        }
 
-        public ValueTask<string> RenderTemplateAsync(string template, string jsonModel, FluidPDFTemplateRenderOptions options) =>
-            RenderTemplateAsync
-            (
-                [FluidPDFTemplateModel.FromJsonString(jsonModel, options.ModelName)],
-                template,
-                true,
-                options.CultureInfo,
-                null
-            );
+        public async ValueTask<string> RenderTemplateAsync(string template, string jsonModel, FluidPDFTemplateRenderOptions options)
+        {
+            FluidPDFTemplateModel fluidPDFModel = FluidPDFTemplateModel.FromJsonString(jsonModel, options.ModelName);
+            return await RenderTemplateAsync([fluidPDFModel], template, options).ConfigureAwait(false);
+        }
 
-        private static async ValueTask<string> RenderTemplateAsync(FluidPDFTemplateModel[] models, string template, bool encodeHtml = false, CultureInfo? cultureInfo = null, TimeZoneInfo? timeZone = null)
+        private static async ValueTask<string> RenderTemplateAsync(FluidPDFTemplateModel[] models, string template, FluidPDFTemplateRenderOptions options)
         {
             if (_parser.TryParse(template, out IFluidTemplate? fluidTemplate, out string? error))
             {
-                TemplateContext context = NewTemplateContext(models, cultureInfo, timeZone);
+                TemplateContext context = NewTemplateContext(models, options.CultureInfo, null);
 
                 using StringWriter writer = new();
 
-                TextEncoder encoder = encodeHtml ? HtmlEncoder.Default : NullEncoder.Default;
+                TextEncoder encoder = options.EncodeHtml ? HtmlEncoder.Default : NullEncoder.Default;
 
                 await fluidTemplate
                     .RenderAsync(writer, encoder, context)

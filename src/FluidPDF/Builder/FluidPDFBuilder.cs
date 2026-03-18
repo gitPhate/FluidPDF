@@ -11,6 +11,7 @@ using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 
 namespace FluidPDF.Builder
@@ -34,6 +35,7 @@ namespace FluidPDF.Builder
         private string? _templateFilePath;
         private string? _template;
         private bool _toBeCompressed;
+        private bool _htmlEncode;
         private IFluidPDFTemplateEngine _templateEngine;
 
         internal FluidPDFBuilder(IChromiumRetriever? chromiumRetriever = null)
@@ -45,6 +47,7 @@ namespace FluidPDF.Builder
             _scale = 1; //100%
             _cultureInfo = null;
             _toBeCompressed = false;
+            _htmlEncode = false;
             _templateEngine = new FluidTemplateEngine();
             _chromiumRetriever = chromiumRetriever;
         }
@@ -94,6 +97,12 @@ namespace FluidPDF.Builder
         public IFluidPDFBuilder WithLandscapeOrientation()
         {
             _landscape = true;
+            return this;
+        }
+
+        public IFluidPDFBuilder WithHtmlEncode()
+        {
+            _htmlEncode = true;
             return this;
         }
 
@@ -187,7 +196,7 @@ namespace FluidPDF.Builder
 
             string template = await GetTemplateAsync().ConfigureAwait(false);
             FluidPDFReportFactory factory = NewFluidPDFReportFactory();
-            return await factory.CompileReportAsync(template, _model!, _toBeCompressed, _cultureInfo).ConfigureAwait(false);
+            return await factory.CompileReportAsync(template, _model!, _toBeCompressed, _cultureInfo, _htmlEncode).ConfigureAwait(false);
         }
 
         public async Task BuildAsync(Stream stream)
@@ -196,7 +205,7 @@ namespace FluidPDF.Builder
 
             string template = await GetTemplateAsync().ConfigureAwait(false);
             FluidPDFReportFactory factory = NewFluidPDFReportFactory();
-            await factory.CompileReportAsync(template, _model!, stream, _toBeCompressed, _cultureInfo).ConfigureAwait(false);
+            await factory.CompileReportAsync(template, _model!, stream, _toBeCompressed, _cultureInfo, _htmlEncode).ConfigureAwait(false);
         }
 
         private FluidPDFReportFactory NewFluidPDFReportFactory()

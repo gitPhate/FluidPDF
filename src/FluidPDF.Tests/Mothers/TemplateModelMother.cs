@@ -19,6 +19,8 @@ namespace FluidPDF.Tests.Mothers
 
         internal const string HtmlEncodedExpectedOutput = "<p>&lt;script&gt;</p>";
 
+        internal const string HtmlSpecialCharsRawExpectedOutput = "<p><script></p>";
+
         internal const string InvalidTemplate = "{% if %}";
 
         internal static string SimpleDataTableTemplate() => "<ul>" + Environment.NewLine
@@ -44,8 +46,6 @@ namespace FluidPDF.Tests.Mothers
 </ul>
 """;
 
-        internal const string ScribanHtmlSpecialCharsExpectedOutput = "<p><script></p>";
-
         // --- Razor-specific fixtures (template syntax differs from Fluid/Scriban) ---
 
         internal const string RazorSimpleTemplate = "<p>@Model.Name is @Model.Age</p>";
@@ -53,8 +53,6 @@ namespace FluidPDF.Tests.Mothers
         internal const string RazorTwoModelTemplate = "<p>@Model.Greeting, @Model.Person.Name</p>";
 
         internal const string RazorHtmlSpecialCharsTemplate = "<p>@Model.Value</p>";
-
-        internal const string RazorHtmlSpecialCharsExpectedOutput = "<p><script></p>";
 
         internal static string RazorDataTableTemplate() =>
             "<ul>" + Environment.NewLine

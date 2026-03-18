@@ -2,8 +2,10 @@ using FluentAssertions;
 using FluidPDF.Builder;
 using FluidPDF.Exceptions;
 using FluidPDF.Support.PuppeteerSharp;
+using FluidPDF.Templating;
 using FluidPDF.Tests.Mocks;
 using FluidPDF.Tests.Mothers;
+using NSubstitute;
 using PuppeteerSharp;
 using PuppeteerSharp.Media;
 
@@ -192,7 +194,7 @@ namespace FluidPDF.Tests
         public void WithTemplateFile_ShouldThrowFileNotFoundException_WhenFilePathDoesNotExist()
         {
             // Arrange
-            IFluidPDFBuilder builder = FluidPDF.Builder.FluidPDF.NewReport().WithObjectModel(TemplateModelMother.SimpleObject());
+            IFluidPDFBuilder builder = Builder.FluidPDF.NewReport().WithObjectModel(TemplateModelMother.SimpleObject());
 
             // Act
             Action act = () => builder.WithTemplateFile("C:\\nonexistent\\path\\template.html");
@@ -205,13 +207,133 @@ namespace FluidPDF.Tests
         public void WithExternalChromeProcess_ShouldThrowArgumentNullException_WhenNullIsPassedAsPath()
         {
             // Arrange
-            IFluidPDFBuilder builder = FluidPDF.Builder.FluidPDF.NewReport().WithObjectModel(TemplateModelMother.SimpleObject());
+            IFluidPDFBuilder builder = Builder.FluidPDF.NewReport().WithObjectModel(TemplateModelMother.SimpleObject());
 
             // Act
             Action act = () => builder.WithExternalChromeProcess(null!);
 
             // Assert
             act.Should().Throw<ArgumentNullException>();
+        }
+
+        [Fact]
+        public async Task BuildAsync_ShouldPassEncodeHtmlFalseToTemplateEngine_ByDefault()
+        {
+            // Arrange
+            IChromiumRetriever retriever = ChromiumRetrieverMock.CreateWithSinglePagePdf(out _, out _);
+
+            FluidPDFTemplateRenderOptions? capturedOptions = null;
+            IFluidPDFTemplateEngine engine = Substitute.For<IFluidPDFTemplateEngine>();
+            engine
+                .RenderTemplateAsync(Arg.Any<string>(), Arg.Any<FluidPDFTemplateModel[]>(), Arg.Any<FluidPDFTemplateRenderOptions>())
+                .Returns(callInfo =>
+                {
+                    capturedOptions = callInfo.Arg<FluidPDFTemplateRenderOptions>();
+                    return new ValueTask<string>("<p>Alice is 30</p>");
+                });
+
+            FluidPDFBuilder builder = new(retriever);
+            builder.WithObjectModel(TemplateModelMother.SimpleObject());
+            builder.WithTemplate(TemplateModelMother.SimpleTemplate);
+            builder.WithTemplateEngine(engine);
+
+            // Act
+            await builder.BuildAsync();
+
+            // Assert
+            capturedOptions.Should().NotBeNull();
+            capturedOptions!.EncodeHtml.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task BuildAsync_ShouldPassEncodeHtmlTrueToTemplateEngine_WhenWithHtmlEncodeIsCalled()
+        {
+            // Arrange
+            IChromiumRetriever retriever = ChromiumRetrieverMock.CreateWithSinglePagePdf(out _, out _);
+
+            FluidPDFTemplateRenderOptions? capturedOptions = null;
+            IFluidPDFTemplateEngine engine = Substitute.For<IFluidPDFTemplateEngine>();
+            engine
+                .RenderTemplateAsync(Arg.Any<string>(), Arg.Any<FluidPDFTemplateModel[]>(), Arg.Any<FluidPDFTemplateRenderOptions>())
+                .Returns(callInfo =>
+                {
+                    capturedOptions = callInfo.Arg<FluidPDFTemplateRenderOptions>();
+                    return new ValueTask<string>("<p>Alice is 30</p>");
+                });
+
+            FluidPDFBuilder builder = new(retriever);
+            builder.WithObjectModel(TemplateModelMother.SimpleObject());
+            builder.WithTemplate(TemplateModelMother.SimpleTemplate);
+            builder.WithTemplateEngine(engine);
+            builder.WithHtmlEncode();
+
+            // Act
+            await builder.BuildAsync();
+
+            // Assert
+            capturedOptions.Should().NotBeNull();
+            capturedOptions!.EncodeHtml.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task BuildAsync_StreamOverload_ShouldPassEncodeHtmlFalseToTemplateEngine_ByDefault()
+        {
+            // Arrange
+            IChromiumRetriever retriever = ChromiumRetrieverMock.CreateWithSinglePagePdf(out _, out _);
+
+            FluidPDFTemplateRenderOptions? capturedOptions = null;
+            IFluidPDFTemplateEngine engine = Substitute.For<IFluidPDFTemplateEngine>();
+            engine
+                .RenderTemplateAsync(Arg.Any<string>(), Arg.Any<FluidPDFTemplateModel[]>(), Arg.Any<FluidPDFTemplateRenderOptions>())
+                .Returns(callInfo =>
+                {
+                    capturedOptions = callInfo.Arg<FluidPDFTemplateRenderOptions>();
+                    return new ValueTask<string>("<p>Alice is 30</p>");
+                });
+
+            FluidPDFBuilder builder = new(retriever);
+            builder.WithObjectModel(TemplateModelMother.SimpleObject());
+            builder.WithTemplate(TemplateModelMother.SimpleTemplate);
+            builder.WithTemplateEngine(engine);
+
+            // Act
+            using MemoryStream stream = new();
+            await builder.BuildAsync(stream);
+
+            // Assert
+            capturedOptions.Should().NotBeNull();
+            capturedOptions!.EncodeHtml.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task BuildAsync_StreamOverload_ShouldPassEncodeHtmlTrueToTemplateEngine_WhenWithHtmlEncodeIsCalled()
+        {
+            // Arrange
+            IChromiumRetriever retriever = ChromiumRetrieverMock.CreateWithSinglePagePdf(out _, out _);
+
+            FluidPDFTemplateRenderOptions? capturedOptions = null;
+            IFluidPDFTemplateEngine engine = Substitute.For<IFluidPDFTemplateEngine>();
+            engine
+                .RenderTemplateAsync(Arg.Any<string>(), Arg.Any<FluidPDFTemplateModel[]>(), Arg.Any<FluidPDFTemplateRenderOptions>())
+                .Returns(callInfo =>
+                {
+                    capturedOptions = callInfo.Arg<FluidPDFTemplateRenderOptions>();
+                    return new ValueTask<string>("<p>Alice is 30</p>");
+                });
+
+            FluidPDFBuilder builder = new(retriever);
+            builder.WithObjectModel(TemplateModelMother.SimpleObject());
+            builder.WithTemplate(TemplateModelMother.SimpleTemplate);
+            builder.WithTemplateEngine(engine);
+            builder.WithHtmlEncode();
+
+            // Act
+            using MemoryStream stream = new();
+            await builder.BuildAsync(stream);
+
+            // Assert
+            capturedOptions.Should().NotBeNull();
+            capturedOptions!.EncodeHtml.Should().BeTrue();
         }
     }
 }

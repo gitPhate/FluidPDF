@@ -16,6 +16,7 @@ namespace FluidPDF.Builder
         IFluidPDFBuilder WithTemplateEngine(IFluidPDFTemplateEngine templateEngine);
         IFluidPDFBuilder WithExternalChromeProcess(string chromeExePath);
         IFluidPDFBuilder WithLandscapeOrientation();
+        IFluidPDFBuilder WithHtmlEncode();
         IFluidPDFBuilder WithA2Format();
         IFluidPDFBuilder WithA3Format();
         IFluidPDFBuilder WithA5Format();

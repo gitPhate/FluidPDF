@@ -56,11 +56,21 @@ namespace FluidPDF.Scriban
                 }
             }
 
-            TemplateContext context =
-                new()
+            TemplateContext context;
+            if (options.EncodeHtml)
+            {
+                context = new HTMLEncodedTemplateContext()
                 {
                     MemberRenamer = x => x.Name
                 };
+            }
+            else
+            {
+                context = new()
+                {
+                    MemberRenamer = x => x.Name
+                };
+            }
 
             if (options.CultureInfo is not null)
             {

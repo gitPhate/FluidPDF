@@ -9,7 +9,6 @@ namespace FluidPDF.Tests
     {
         protected abstract IFluidPDFTemplateEngine CreateEngine();
         protected abstract string DataTableTemplate { get; }
-        protected abstract string HtmlSpecialCharsExpectedOutput { get; }
 
         protected virtual string SimpleTemplate => TemplateModelMother.SimpleTemplate;
         protected virtual string TwoModelTemplate => TemplateModelMother.TwoModelTemplate;
@@ -91,18 +90,35 @@ namespace FluidPDF.Tests
         }
 
         [Fact]
-        public async Task RenderTemplateAsync_ShouldRenderHtmlSpecialCharsAccordingToEngine_WhenObjectModelIsProvided()
+        public async Task RenderTemplateAsync_ShouldEncodeHtmlSpecialChars_WhenEncodeHtmlIsTrue()
         {
             // Arrange
             object model = TemplateModelMother.HtmlSpecialCharsObject();
             string template = HtmlSpecialCharsTemplate;
             IFluidPDFTemplateEngine templateEngine = CreateEngine();
+            FluidPDFTemplateRenderOptions options = new() { EncodeHtml = true };
 
             // Act
-            string result = await templateEngine.RenderTemplateAsync(template, model, new());
+            string result = await templateEngine.RenderTemplateAsync(template, model, options);
 
             // Assert
-            result.Should().Be(HtmlSpecialCharsExpectedOutput);
+            result.Should().Be(TemplateModelMother.HtmlEncodedExpectedOutput);
+        }
+
+        [Fact]
+        public async Task RenderTemplateAsync_ShouldNotEncodeHtmlSpecialChars_WhenEncodeHtmlIsFalse()
+        {
+            // Arrange
+            object model = TemplateModelMother.HtmlSpecialCharsObject();
+            string template = HtmlSpecialCharsTemplate;
+            IFluidPDFTemplateEngine templateEngine = CreateEngine();
+            FluidPDFTemplateRenderOptions options = new() { EncodeHtml = false };
+
+            // Act
+            string result = await templateEngine.RenderTemplateAsync(template, model, options);
+
+            // Assert
+            result.Should().Be(TemplateModelMother.HtmlSpecialCharsRawExpectedOutput);
         }
 
         [Fact]

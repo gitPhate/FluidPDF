@@ -18,5 +18,6 @@ namespace FluidPDF.Templating
     {
         public string ModelName { get; init; } = "Model";
         public CultureInfo? CultureInfo { get; init; }
+        public bool EncodeHtml { get; init; }
     }
 }

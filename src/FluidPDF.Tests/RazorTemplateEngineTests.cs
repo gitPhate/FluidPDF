@@ -16,7 +16,6 @@ namespace FluidPDF.Tests
         protected override string TwoModelTemplate => TemplateModelMother.RazorTwoModelTemplate;
         protected override string HtmlSpecialCharsTemplate => TemplateModelMother.RazorHtmlSpecialCharsTemplate;
         protected override string DataTableTemplate => TemplateModelMother.RazorDataTableTemplate();
-        protected override string HtmlSpecialCharsExpectedOutput => TemplateModelMother.RazorHtmlSpecialCharsExpectedOutput;
 
         public void Dispose()
         {

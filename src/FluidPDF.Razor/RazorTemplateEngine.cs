@@ -47,69 +47,101 @@ namespace FluidPDF.Razor
             return await RenderTemplateAsync(template, [managedModel], options).ConfigureAwait(false);
         }
 
-        public ValueTask<string> RenderTemplateAsync(string template, FluidPDFTemplateModel[] models, FluidPDFTemplateRenderOptions options) =>
-            RenderCoreAsync(template, models);
-
-        private async ValueTask<string> RenderCoreAsync(string template, FluidPDFTemplateModel[] models)
+        public async ValueTask<string> RenderTemplateAsync(string template, FluidPDFTemplateModel[] models, FluidPDFTemplateRenderOptions options)
         {
             if (models.Length == 0)
             {
                 throw new ArgumentException("At least one model must be provided.", nameof(models));
             }
 
-            IRazorEngineCompiledTemplate compiled = await GetOrCompileAsync(template).ConfigureAwait(false);
+            IFluidPDFRazorCompiledTemplate compiled = await GetOrCompileAsync(template, options.EncodeHtml).ConfigureAwait(false);
 
             object? modelValue = BuildModelValue(models);
 
-            string result = await compiled
-                .RunAsync(modelValue)
-                .ConfigureAwait(false);
+            string result = await compiled.RunAsync(modelValue).ConfigureAwait(false);
 
             return result;
         }
 
-        private async ValueTask<IRazorEngineCompiledTemplate> GetOrCompileAsync(string template)
+        private async Task<IFluidPDFRazorCompiledTemplate> GetOrCompileAsync(string template, bool encodeHtml)
         {
             if (_cacheOptions is null)
             {
-                return
-                    await new RazorEngine()
-                    .CompileAsync(template)
-                    .ConfigureAwait(false);
+                return await CompileAsync(template, encodeHtml).ConfigureAwait(false);
             }
 
-            string cacheFilePath = GetCacheFilePath(template);
+            string cacheFilePath = GetCacheFilePath(template, encodeHtml);
 
             if (File.Exists(cacheFilePath))
             {
-                return RazorEngineCompiledTemplate.LoadFromFile(cacheFilePath);
-            }
-
-            IRazorEngineCompiledTemplate compiled =
-                await new RazorEngine()
-                    .CompileAsync(template)
+                RazorEngineCompiledTemplate cached =
+                    await RazorEngineCompiledTemplate
+                    .LoadFromFileAsync(cacheFilePath)
                     .ConfigureAwait(false);
 
-            Directory.CreateDirectory(_cacheOptions.CachePath);
-            compiled.SaveToFile(cacheFilePath);
+                return new FluidPDFRazorCachedCompiledTemplate(cached);
+            }
+
+            IFluidPDFRazorCompiledTemplate compiled = await CompileAsync(template, encodeHtml).ConfigureAwait(false);
+
+            await SaveToFileAtomicAsync(compiled, cacheFilePath).ConfigureAwait(false);
 
             return compiled;
         }
 
-        private string GetCacheFilePath(string template)
+        private static async Task<IFluidPDFRazorCompiledTemplate> CompileAsync(string template, bool encodeHtml)
         {
-            string key = ComputeCacheKey(template);
+            if (encodeHtml)
+            {
+                IRazorEngineCompiledTemplate<HTMLEncodedTemplate> compiled = await new RazorEngine()
+                .CompileAsync<HTMLEncodedTemplate>(template)
+                .ConfigureAwait(false);
+
+                return new FluidPDFRazorHTMLEncodedCompiledTemplate(compiled);
+            }
+            else
+            {
+                IRazorEngineCompiledTemplate compiledTemplate =
+                    await new RazorEngine()
+                    .CompileAsync(template)
+                    .ConfigureAwait(false);
+
+                return new FluidPDFRazorCompiledTemplate(compiledTemplate);
+            }
+        }
+
+        private async Task SaveToFileAtomicAsync(IFluidPDFRazorCompiledTemplate compiledTemplate, string targetPath)
+        {
+            Directory.CreateDirectory(_cacheOptions!.CachePath);
+            string tempPath = targetPath + ".tmp";
+            await compiledTemplate.SaveToFileAsync(tempPath).ConfigureAwait(false);
+
+#if NETSTANDARD2_0
+            if (File.Exists(targetPath))
+            {
+                File.Delete(targetPath);
+            }
+            File.Move(tempPath, targetPath);
+#else
+            File.Move(tempPath, targetPath, overwrite: true);
+#endif
+        }
+
+        private string GetCacheFilePath(string template, bool encodeHtml)
+        {
+            string key = ComputeCacheKey(template, encodeHtml);
             return Path.Combine(_cacheOptions!.CachePath, key);
         }
 
-        private static string ComputeCacheKey(string template)
+        private static string ComputeCacheKey(string template, bool encodeHtml)
         {
+            string input = template + (encodeHtml ? ":encode" : ":plain");
 #if NETSTANDARD2_0
             using SHA256 sha256 = SHA256.Create();
-            byte[] hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(template));
+            byte[] hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
             return BitConverter.ToString(hash).Replace("-", string.Empty) + ".dll";
 #else
-            byte[] hash = SHA256.HashData(Encoding.UTF8.GetBytes(template));
+            byte[] hash = SHA256.HashData(Encoding.UTF8.GetBytes(input));
             return Convert.ToHexString(hash) + ".dll";
 #endif
         }
