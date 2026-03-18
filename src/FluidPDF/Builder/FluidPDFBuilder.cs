@@ -237,7 +237,7 @@ namespace FluidPDF.Builder
             }
 
             string template =
-                await AsyncFile
+                await FileHelper
                     .ReadAllTextAsync(_templateFilePath!)
                     .ConfigureAwait(false);
 

@@ -88,7 +88,7 @@ namespace FluidPDF
         public async Task CompileReportAsync(string template, FluidPDFTemplateModel model, Stream destinationStream, bool toBeCompressed = false, CultureInfo? cultureInfo = null, bool encodeHtml = false)
         {
             byte[] data = await CompileReportAsync(template, model, toBeCompressed, cultureInfo, encodeHtml).ConfigureAwait(false);
-            await AsyncFile.WriteStreamAsync(destinationStream, data).ConfigureAwait(false);
+            await FileHelper.WriteStreamAsync(destinationStream, data).ConfigureAwait(false);
         }
     }
 

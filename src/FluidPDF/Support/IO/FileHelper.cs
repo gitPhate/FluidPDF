@@ -1,12 +1,13 @@
 ﻿using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace FluidPDF.Support.IO
 {
-    internal static class AsyncFile
+    internal static class FileHelper
     {
-        public static async Task<string> ReadAllTextAsync(string path, Encoding? encoding = null)
+        internal static async Task<string> ReadAllTextAsync(string path, Encoding? encoding = null)
         {
 #if NETSTANDARD2_0
             const int _streamWriterDefaultBufferSize = 4096;
@@ -17,12 +18,25 @@ namespace FluidPDF.Support.IO
 #endif
         }
 
-        public static async Task WriteStreamAsync(Stream destinationStream, byte[] data)
+        internal static async Task WriteStreamAsync(Stream destinationStream, byte[] data)
         {
 #if NETSTANDARD2_0
             await destinationStream.WriteAsync(data, 0, data.Length).ConfigureAwait(false);
 #else
             await destinationStream.WriteAsync(data).ConfigureAwait(false);
+#endif
+        }
+
+        internal static void Move(string sourceFileName, string destFileName)
+        {
+#if NETSTANDARD2_0
+            if (File.Exists(destFileName))
+            {
+                File.Delete(destFileName);
+            }
+            File.Move(sourceFileName, destFileName);
+#else
+            File.Move(sourceFileName, destFileName, overwrite: true);
 #endif
         }
     }

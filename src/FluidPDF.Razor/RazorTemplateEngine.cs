@@ -1,3 +1,5 @@
+using FluidPDF.Support.Hashing;
+using FluidPDF.Support.IO;
 using FluidPDF.Support.Json;
 using FluidPDF.Templating;
 using RazorEngineCore;
@@ -7,8 +9,6 @@ using System.Data;
 using System.Dynamic;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -140,16 +140,7 @@ namespace FluidPDF.Razor
             Directory.CreateDirectory(_cacheOptions!.CachePath);
             string tempPath = targetPath + ".tmp";
             await compiledTemplate.SaveToFileAsync(tempPath).ConfigureAwait(false);
-
-#if NETSTANDARD2_0
-            if (File.Exists(targetPath))
-            {
-                File.Delete(targetPath);
-            }
-            File.Move(tempPath, targetPath);
-#else
-            File.Move(tempPath, targetPath, overwrite: true);
-#endif
+            FileHelper.Move(tempPath, targetPath);
         }
 
         private string GetCacheFilePath(string template, bool encodeHtml)
@@ -158,18 +149,8 @@ namespace FluidPDF.Razor
             return Path.Combine(_cacheOptions!.CachePath, key);
         }
 
-        private static string ComputeCacheKey(string template, bool encodeHtml)
-        {
-            string input = template + (encodeHtml ? ":encode" : ":plain");
-#if NETSTANDARD2_0
-            using SHA256 sha256 = SHA256.Create();
-            byte[] hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
-            return BitConverter.ToString(hash).Replace("-", string.Empty) + ".dll";
-#else
-            byte[] hash = SHA256.HashData(Encoding.UTF8.GetBytes(input));
-            return Convert.ToHexString(hash) + ".dll";
-#endif
-        }
+        private static string ComputeCacheKey(string template, bool encodeHtml) =>
+            HashHelper.HashSHA256(template + (encodeHtml? ":encode" : ":plain"));
 
         private static object? BuildModelValue(FluidPDFTemplateModel[] models)
         {
