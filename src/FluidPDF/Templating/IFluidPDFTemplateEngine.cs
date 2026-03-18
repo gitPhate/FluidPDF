@@ -7,16 +7,15 @@ namespace FluidPDF.Templating
 {
     public interface IFluidPDFTemplateEngine
     {
-        ValueTask<string> RenderTemplateAsync(string template, DataTable model, FluidPDFTemplateRenderOptions options);
-        ValueTask<string> RenderTemplateAsync(string template, IDictionary<string, object> model, FluidPDFTemplateRenderOptions options);
-        ValueTask<string> RenderTemplateAsync(string template, string jsonModel, FluidPDFTemplateRenderOptions options);
-        ValueTask<string> RenderTemplateAsync(string template, object model, FluidPDFTemplateRenderOptions options);
-        ValueTask<string> RenderTemplateAsync(string template, FluidPDFTemplateModel[] models, FluidPDFTemplateRenderOptions options);
+        ValueTask<string> RenderTemplateAsync(string template, DataTable model, FluidPDFTemplateRenderOptions options, string modelName = FluidPDFTemplateModel.DefaultName);
+        ValueTask<string> RenderTemplateAsync(string template, IDictionary<string, object> model, FluidPDFTemplateRenderOptions options, string modelName = FluidPDFTemplateModel.DefaultName);
+        ValueTask<string> RenderTemplateAsync(string template, string jsonModel, FluidPDFTemplateRenderOptions options, string modelName = FluidPDFTemplateModel.DefaultName);
+        ValueTask<string> RenderTemplateAsync(string template, object model, FluidPDFTemplateRenderOptions options, string modelName = FluidPDFTemplateModel.DefaultName);
+        ValueTask<string> RenderTemplateAsync(string template, FluidPDFTemplateModel[] models, FluidPDFTemplateRenderOptions options, string modelName = FluidPDFTemplateModel.DefaultName);
     }
 
     public record FluidPDFTemplateRenderOptions
     {
-        public string ModelName { get; init; } = "Model";
         public CultureInfo? CultureInfo { get; init; }
         public bool EncodeHtml { get; init; }
     }

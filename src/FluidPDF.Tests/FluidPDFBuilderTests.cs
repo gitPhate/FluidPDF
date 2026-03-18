@@ -225,7 +225,7 @@ namespace FluidPDF.Tests
             FluidPDFTemplateRenderOptions? capturedOptions = null;
             IFluidPDFTemplateEngine engine = Substitute.For<IFluidPDFTemplateEngine>();
             engine
-                .RenderTemplateAsync(Arg.Any<string>(), Arg.Any<FluidPDFTemplateModel[]>(), Arg.Any<FluidPDFTemplateRenderOptions>())
+                .RenderTemplateAsync(Arg.Any<string>(), Arg.Any<FluidPDFTemplateModel[]>(), Arg.Any<FluidPDFTemplateRenderOptions>(), Arg.Any<string>())
                 .Returns(callInfo =>
                 {
                     capturedOptions = callInfo.Arg<FluidPDFTemplateRenderOptions>();
@@ -254,7 +254,7 @@ namespace FluidPDF.Tests
             FluidPDFTemplateRenderOptions? capturedOptions = null;
             IFluidPDFTemplateEngine engine = Substitute.For<IFluidPDFTemplateEngine>();
             engine
-                .RenderTemplateAsync(Arg.Any<string>(), Arg.Any<FluidPDFTemplateModel[]>(), Arg.Any<FluidPDFTemplateRenderOptions>())
+                .RenderTemplateAsync(Arg.Any<string>(), Arg.Any<FluidPDFTemplateModel[]>(), Arg.Any<FluidPDFTemplateRenderOptions>(), Arg.Any<string>())
                 .Returns(callInfo =>
                 {
                     capturedOptions = callInfo.Arg<FluidPDFTemplateRenderOptions>();
@@ -284,7 +284,7 @@ namespace FluidPDF.Tests
             FluidPDFTemplateRenderOptions? capturedOptions = null;
             IFluidPDFTemplateEngine engine = Substitute.For<IFluidPDFTemplateEngine>();
             engine
-                .RenderTemplateAsync(Arg.Any<string>(), Arg.Any<FluidPDFTemplateModel[]>(), Arg.Any<FluidPDFTemplateRenderOptions>())
+                .RenderTemplateAsync(Arg.Any<string>(), Arg.Any<FluidPDFTemplateModel[]>(), Arg.Any<FluidPDFTemplateRenderOptions>(), Arg.Any<string>())
                 .Returns(callInfo =>
                 {
                     capturedOptions = callInfo.Arg<FluidPDFTemplateRenderOptions>();
@@ -314,7 +314,7 @@ namespace FluidPDF.Tests
             FluidPDFTemplateRenderOptions? capturedOptions = null;
             IFluidPDFTemplateEngine engine = Substitute.For<IFluidPDFTemplateEngine>();
             engine
-                .RenderTemplateAsync(Arg.Any<string>(), Arg.Any<FluidPDFTemplateModel[]>(), Arg.Any<FluidPDFTemplateRenderOptions>())
+                .RenderTemplateAsync(Arg.Any<string>(), Arg.Any<FluidPDFTemplateModel[]>(), Arg.Any<FluidPDFTemplateRenderOptions>(), Arg.Any<string>())
                 .Returns(callInfo =>
                 {
                     capturedOptions = callInfo.Arg<FluidPDFTemplateRenderOptions>();

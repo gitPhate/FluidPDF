@@ -21,30 +21,30 @@ namespace FluidPDF.Fluid
         private static readonly FluidParser _parser = new();
         private static readonly TemplateOptions _templateOptions = NewTemplateOptions();
 
-        public async ValueTask<string> RenderTemplateAsync(string template, DataTable model, FluidPDFTemplateRenderOptions options)
+        public async ValueTask<string> RenderTemplateAsync(string template, DataTable model, FluidPDFTemplateRenderOptions options, string modelName = FluidPDFTemplateModel.DefaultName)
         {
-            FluidPDFTemplateModel fluidPDFModel = FluidPDFTemplateModel.FromDataTable(model, options.ModelName);
+            FluidPDFTemplateModel fluidPDFModel = FluidPDFTemplateModel.FromDataTable(model, modelName);
             return await RenderTemplateAsync([fluidPDFModel], template, options).ConfigureAwait(false);
         }
 
-        public async ValueTask<string> RenderTemplateAsync(string template, IDictionary<string, object> model, FluidPDFTemplateRenderOptions options)
+        public async ValueTask<string> RenderTemplateAsync(string template, IDictionary<string, object> model, FluidPDFTemplateRenderOptions options, string modelName = FluidPDFTemplateModel.DefaultName)
         {
-            FluidPDFTemplateModel fluidPDFModel = FluidPDFTemplateModel.FromDictionary(model, options.ModelName);
+            FluidPDFTemplateModel fluidPDFModel = FluidPDFTemplateModel.FromDictionary(model, modelName);
             return await RenderTemplateAsync([fluidPDFModel], template, options).ConfigureAwait(false);
         }
 
-        public ValueTask<string> RenderTemplateAsync(string template, FluidPDFTemplateModel[] models, FluidPDFTemplateRenderOptions options) =>
+        public ValueTask<string> RenderTemplateAsync(string template, FluidPDFTemplateModel[] models, FluidPDFTemplateRenderOptions options, string modelName = FluidPDFTemplateModel.DefaultName) =>
             RenderTemplateAsync(models, template, options);
 
-        public async ValueTask<string> RenderTemplateAsync(string template, object model, FluidPDFTemplateRenderOptions options)
+        public async ValueTask<string> RenderTemplateAsync(string template, object model, FluidPDFTemplateRenderOptions options, string modelName = FluidPDFTemplateModel.DefaultName)
         {
-            FluidPDFTemplateModel fluidPDFModel = FluidPDFTemplateModel.FromObject(model, options.ModelName);
+            FluidPDFTemplateModel fluidPDFModel = FluidPDFTemplateModel.FromObject(model, modelName);
             return await RenderTemplateAsync([fluidPDFModel], template, options).ConfigureAwait(false);
         }
 
-        public async ValueTask<string> RenderTemplateAsync(string template, string jsonModel, FluidPDFTemplateRenderOptions options)
+        public async ValueTask<string> RenderTemplateAsync(string template, string jsonModel, FluidPDFTemplateRenderOptions options, string modelName = FluidPDFTemplateModel.DefaultName)
         {
-            FluidPDFTemplateModel fluidPDFModel = FluidPDFTemplateModel.FromJsonString(jsonModel, options.ModelName);
+            FluidPDFTemplateModel fluidPDFModel = FluidPDFTemplateModel.FromJsonString(jsonModel, modelName);
             return await RenderTemplateAsync([fluidPDFModel], template, options).ConfigureAwait(false);
         }
 

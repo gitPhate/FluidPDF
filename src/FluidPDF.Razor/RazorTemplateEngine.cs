@@ -23,32 +23,57 @@ namespace FluidPDF.Razor
 
         private readonly RazorCompiledTemplateCacheOptions? _cacheOptions = cacheOptions;
 
-        public async ValueTask<string> RenderTemplateAsync(string template, DataTable model, FluidPDFTemplateRenderOptions options)
+        public async ValueTask<string> RenderTemplateAsync(string template, DataTable model, FluidPDFTemplateRenderOptions options, string modelName = FluidPDFTemplateModel.DefaultName)
         {
-            FluidPDFTemplateModel managedModel = FluidPDFTemplateModel.FromDataTable(model, options.ModelName);
+            if (modelName != FluidPDFTemplateModel.DefaultName)
+            {
+                throw new NotSupportedException($"Razor template engine only supports model name '{FluidPDFTemplateModel.DefaultName}'.");
+            }
+
+            FluidPDFTemplateModel managedModel = FluidPDFTemplateModel.FromDataTable(model, modelName);
             return await RenderTemplateAsync(template, [managedModel], options).ConfigureAwait(false);
         }
 
-        public async ValueTask<string> RenderTemplateAsync(string template, IDictionary<string, object> model, FluidPDFTemplateRenderOptions options)
+        public async ValueTask<string> RenderTemplateAsync(string template, IDictionary<string, object> model, FluidPDFTemplateRenderOptions options, string modelName = FluidPDFTemplateModel.DefaultName)
         {
-            FluidPDFTemplateModel managedModel = FluidPDFTemplateModel.FromDictionary(model, options.ModelName);
+            if (modelName != FluidPDFTemplateModel.DefaultName)
+            {
+                throw new NotSupportedException($"Razor template engine only supports model name '{FluidPDFTemplateModel.DefaultName}'.");
+            }
+
+            FluidPDFTemplateModel managedModel = FluidPDFTemplateModel.FromDictionary(model, modelName);
             return await RenderTemplateAsync(template, [managedModel], options).ConfigureAwait(false);
         }
 
-        public async ValueTask<string> RenderTemplateAsync(string template, string jsonModel, FluidPDFTemplateRenderOptions options)
+        public async ValueTask<string> RenderTemplateAsync(string template, string jsonModel, FluidPDFTemplateRenderOptions options, string modelName = FluidPDFTemplateModel.DefaultName)
         {
-            FluidPDFTemplateModel managedModel = FluidPDFTemplateModel.FromJsonString(jsonModel, options.ModelName);
+            if (modelName != FluidPDFTemplateModel.DefaultName)
+            {
+                throw new NotSupportedException($"Razor template engine only supports model name '{FluidPDFTemplateModel.DefaultName}'.");
+            }
+
+            FluidPDFTemplateModel managedModel = FluidPDFTemplateModel.FromJsonString(jsonModel, modelName);
             return await RenderTemplateAsync(template, [managedModel], options).ConfigureAwait(false);
         }
 
-        public async ValueTask<string> RenderTemplateAsync(string template, object model, FluidPDFTemplateRenderOptions options)
+        public async ValueTask<string> RenderTemplateAsync(string template, object model, FluidPDFTemplateRenderOptions options, string modelName = FluidPDFTemplateModel.DefaultName)
         {
-            FluidPDFTemplateModel managedModel = FluidPDFTemplateModel.FromObject(model, options.ModelName);
+            if (modelName != FluidPDFTemplateModel.DefaultName)
+            {
+                throw new NotSupportedException($"Razor template engine only supports model name '{FluidPDFTemplateModel.DefaultName}'.");
+            }
+
+            FluidPDFTemplateModel managedModel = FluidPDFTemplateModel.FromObject(model, modelName);
             return await RenderTemplateAsync(template, [managedModel], options).ConfigureAwait(false);
         }
 
-        public async ValueTask<string> RenderTemplateAsync(string template, FluidPDFTemplateModel[] models, FluidPDFTemplateRenderOptions options)
+        public async ValueTask<string> RenderTemplateAsync(string template, FluidPDFTemplateModel[] models, FluidPDFTemplateRenderOptions options, string modelName = FluidPDFTemplateModel.DefaultName)
         {
+            if (modelName != FluidPDFTemplateModel.DefaultName)
+            {
+                throw new NotSupportedException($"Razor template engine only supports model name '{FluidPDFTemplateModel.DefaultName}'.");
+            }
+
             if (models.Length == 0)
             {
                 throw new ArgumentException("At least one model must be provided.", nameof(models));

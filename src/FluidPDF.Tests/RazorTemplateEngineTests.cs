@@ -3,6 +3,8 @@ using FluidPDF.Razor;
 using FluidPDF.Templating;
 using FluidPDF.Tests.Mothers;
 using RazorEngineCore;
+using System.Collections.Generic;
+using System.Data;
 
 namespace FluidPDF.Tests
 {
@@ -40,6 +42,87 @@ namespace FluidPDF.Tests
 
             // Assert
             await act.Should().ThrowAsync<RazorEngineCompilationException>();
+        }
+
+        // --- Model name restriction: non-default model name throws NotSupportedException ---
+
+        [Fact]
+        public async Task RenderTemplateAsync_WithObjectModel_ShouldThrowNotSupportedException_WhenModelNameIsNotDefault()
+        {
+            // Arrange
+            object model = TemplateModelMother.SimpleObject();
+            RazorTemplateEngine templateEngine = new();
+
+            // Act
+            Func<Task> act = async () =>
+                await templateEngine.RenderTemplateAsync(TemplateModelMother.RazorSimpleTemplate, model, new(), "CustomName");
+
+            // Assert
+            await act.Should().ThrowAsync<NotSupportedException>()
+                .WithMessage($"*'{FluidPDFTemplateModel.DefaultName}'*");
+        }
+
+        [Fact]
+        public async Task RenderTemplateAsync_WithDictionaryModel_ShouldThrowNotSupportedException_WhenModelNameIsNotDefault()
+        {
+            // Arrange
+            Dictionary<string, object> model = TemplateModelMother.SimpleDictionary();
+            RazorTemplateEngine templateEngine = new();
+
+            // Act
+            Func<Task> act = async () =>
+                await templateEngine.RenderTemplateAsync(TemplateModelMother.RazorSimpleTemplate, model, new(), "CustomName");
+
+            // Assert
+            await act.Should().ThrowAsync<NotSupportedException>()
+                .WithMessage($"*'{FluidPDFTemplateModel.DefaultName}'*");
+        }
+
+        [Fact]
+        public async Task RenderTemplateAsync_WithJsonStringModel_ShouldThrowNotSupportedException_WhenModelNameIsNotDefault()
+        {
+            // Arrange
+            RazorTemplateEngine templateEngine = new();
+
+            // Act
+            Func<Task> act = async () =>
+                await templateEngine.RenderTemplateAsync(TemplateModelMother.RazorSimpleTemplate, TemplateModelMother.SimpleJsonString, new(), "CustomName");
+
+            // Assert
+            await act.Should().ThrowAsync<NotSupportedException>()
+                .WithMessage($"*'{FluidPDFTemplateModel.DefaultName}'*");
+        }
+
+        [Fact]
+        public async Task RenderTemplateAsync_WithDataTableModel_ShouldThrowNotSupportedException_WhenModelNameIsNotDefault()
+        {
+            // Arrange
+            DataTable model = TemplateModelMother.SimpleDataTable();
+            RazorTemplateEngine templateEngine = new();
+
+            // Act
+            Func<Task> act = async () =>
+                await templateEngine.RenderTemplateAsync(TemplateModelMother.RazorDataTableTemplate(), model, new(), "CustomName");
+
+            // Assert
+            await act.Should().ThrowAsync<NotSupportedException>()
+                .WithMessage($"*'{FluidPDFTemplateModel.DefaultName}'*");
+        }
+
+        [Fact]
+        public async Task RenderTemplateAsync_WithFluidPDFTemplateModelArray_ShouldThrowNotSupportedException_WhenModelNameIsNotDefault()
+        {
+            // Arrange
+            FluidPDFTemplateModel[] models = TemplateModelMother.TwoModelArray();
+            RazorTemplateEngine templateEngine = new();
+
+            // Act
+            Func<Task> act = async () =>
+                await templateEngine.RenderTemplateAsync(TemplateModelMother.RazorTwoModelTemplate, models, new(), "CustomName");
+
+            // Assert
+            await act.Should().ThrowAsync<NotSupportedException>()
+                .WithMessage($"*'{FluidPDFTemplateModel.DefaultName}'*");
         }
 
         // --- Disk cache: cache miss compiles and saves the file ---

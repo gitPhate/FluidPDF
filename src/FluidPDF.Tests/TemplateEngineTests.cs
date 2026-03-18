@@ -125,7 +125,7 @@ namespace FluidPDF.Tests
         public async Task RenderTemplateAsync_ShouldThrowFluidPDFTemplateRenderException_WhenMultipleModelsShareTheSameKey()
         {
             // Arrange
-            // Both models are registered under options.ModelName ("Model") — the second Add call
+            // Both models are registered under the default model name ("Model") — the second Add call
             // raises ArgumentException because ScriptObject does not allow duplicate keys.
             FluidPDFTemplateModel m1 = FluidPDFTemplateModel.FromObject(new { Name = "Dave" });
             FluidPDFTemplateModel m2 = FluidPDFTemplateModel.FromObject(new { Name = "Eve" });
@@ -136,9 +136,8 @@ namespace FluidPDF.Tests
                 await templateEngine.RenderTemplateAsync("<p>{{ Model.Name }}</p>", [m1, m2], new());
 
             // Assert
-            // This documents the known bug: the engine always uses options.ModelName as the key
-            // for every model in the array rather than each model's own Name property.
-            // This is a limitation of scriban but it has been ported to the Fluid engine as well
+            // This documents the known behavior: when two models share the same Name, the engine
+            // raises an error because the same key cannot be registered twice.
             await act.Should().ThrowAsync<ArgumentException>().WithMessage("*already been added*");
         }
     }
