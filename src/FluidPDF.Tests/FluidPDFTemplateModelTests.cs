@@ -18,7 +18,7 @@ namespace FluidPDF.Tests
             // Assert
             model.Type.Should().Be(FluidPDFTemplateModelType.Object);
             model.IsObject.Should().BeTrue();
-            model.Name.Should().Be(FluidPDFTemplateModel.DefaultName);
+            model.Name.Should().Be(ModelNames.DefaultModelName);
         }
 
         [Fact]

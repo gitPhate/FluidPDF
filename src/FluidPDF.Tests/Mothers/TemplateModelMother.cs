@@ -17,6 +17,8 @@ namespace FluidPDF.Tests.Mothers
 
         internal const string HtmlSpecialCharsTemplate = "<p>{{ Model.Value }}</p>";
 
+        internal const string LocalizationTemplate = "<p>{{ Resx.label_title }}: {{ Model.Title }}</p>";
+
         internal const string HtmlEncodedExpectedOutput = "<p>&lt;script&gt;</p>";
 
         internal const string HtmlSpecialCharsRawExpectedOutput = "<p><script></p>";
@@ -54,6 +56,8 @@ namespace FluidPDF.Tests.Mothers
 
         internal const string RazorHtmlSpecialCharsTemplate = "<p>@Model.Value</p>";
 
+        internal const string RazorLocalizationTemplate = "<p>@Resx.label_title: @Model.Title</p>";
+
         internal static string RazorDataTableTemplate() =>
             "<ul>" + Environment.NewLine
             + "@foreach (var item in Model.Rows) {" + Environment.NewLine
@@ -82,6 +86,21 @@ namespace FluidPDF.Tests.Mothers
         }
 
         internal static object HtmlSpecialCharsObject() => new { Value = "<script>" };
+
+        internal static object LocalizedObject() => new { Title = "Invoice-001" };
+
+        internal static FluidPDFTemplateModel[] LocalizationModelArray()
+        {
+            FluidPDFTemplateModel model = FluidPDFTemplateModel.FromObject(LocalizedObject());
+            FluidPDFTemplateModel resx = FluidPDFTemplateModel.FromDictionary(
+                new Dictionary<string, object>
+                {
+                    ["label_title"] = "Invoice"
+                },
+                ModelNames.ResxModelName);
+
+            return [model, resx];
+        }
 
         internal static DataTable SimpleDataTable()
         {

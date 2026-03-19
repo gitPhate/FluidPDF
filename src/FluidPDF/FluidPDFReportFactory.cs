@@ -4,11 +4,14 @@ using FluidPDF.Support.IO;
 using FluidPDF.Support.PDF;
 using FluidPDF.Support.PuppeteerSharp;
 using FluidPDF.Templating;
+using FluidPDF.Templating.Localization;
 using PuppeteerSharp;
 using PuppeteerSharp.Media;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace FluidPDF
@@ -18,16 +21,18 @@ namespace FluidPDF
         private readonly IFluidPDFTemplateEngine _templateEngine;
         private readonly IChromiumRetriever _chromiumRetriever;
         private readonly PdfOptions _pdfOptions;
+        private readonly ILocalizationProvider? _localizationProvider;
 
-        public FluidPDFReportFactory(IFluidPDFTemplateEngine templateEngine, ChromiumRetrieverOptions chromiumRetrieverOptions, FluidPDFReportOptions fluidPdfReportOptions)
-            : this(templateEngine, new ChromiumRetriever(chromiumRetrieverOptions), fluidPdfReportOptions)
+        public FluidPDFReportFactory(IFluidPDFTemplateEngine templateEngine, ChromiumRetrieverOptions chromiumRetrieverOptions, FluidPDFReportOptions fluidPdfReportOptions, ILocalizationProvider? localizationProvider = null)
+            : this(templateEngine, new ChromiumRetriever(chromiumRetrieverOptions), fluidPdfReportOptions, localizationProvider)
         {
         }
 
-        internal FluidPDFReportFactory(IFluidPDFTemplateEngine templateEngine, IChromiumRetriever chromiumRetriever, FluidPDFReportOptions fluidPdfReportOptions)
+        internal FluidPDFReportFactory(IFluidPDFTemplateEngine templateEngine, IChromiumRetriever chromiumRetriever, FluidPDFReportOptions fluidPdfReportOptions, ILocalizationProvider? localizationProvider = null)
         {
             _templateEngine = templateEngine;
             _chromiumRetriever = chromiumRetriever ?? throw new ArgumentNullException(nameof(chromiumRetriever));
+            _localizationProvider = localizationProvider;
 
             _pdfOptions = new PdfOptions()
             {
@@ -46,16 +51,24 @@ namespace FluidPDF
         /// </summary>
         public async Task<byte[]> CompileReportAsync(string template, FluidPDFTemplateModel model, bool toBeCompressed = false, CultureInfo? cultureInfo = null, bool encodeHtml = false)
         {
+            if (_localizationProvider is null && cultureInfo is not null)
+            {
+                throw new FluidPDFMissingLocalizationProviderException("Culture was provided, but no localization provider was configured.");
+            }
+
             FluidPDFTemplateRenderOptions options = new()
             {
                 CultureInfo = cultureInfo,
                 EncodeHtml = encodeHtml
             };
 
+            FluidPDFTemplateModel? resxModel = BuildResxModel(cultureInfo);
+
             string reportContent;
             try
             {
-                reportContent = await _templateEngine.RenderTemplateAsync(template, [model], options).ConfigureAwait(false);
+                FluidPDFTemplateModel[] models = resxModel is not null ? [model, resxModel] : [model];
+                reportContent = await _templateEngine.RenderTemplateAsync(template, models, options).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -89,6 +102,22 @@ namespace FluidPDF
         {
             byte[] data = await CompileReportAsync(template, model, toBeCompressed, cultureInfo, encodeHtml).ConfigureAwait(false);
             await FileHelper.WriteStreamAsync(destinationStream, data).ConfigureAwait(false);
+        }
+
+        private FluidPDFTemplateModel? BuildResxModel(CultureInfo? cultureInfo)
+        {
+            if (_localizationProvider is null)
+            {
+                return null;
+            }
+
+            Dictionary<string, string> localizedStrings = LocalizationResolver.ResolveStrings(_localizationProvider, cultureInfo);
+            Dictionary<string, object> resxData = localizedStrings.ToDictionary(
+                item => item.Key,
+                item => (object)item.Value,
+                StringComparer.Ordinal);
+
+            return FluidPDFTemplateModel.FromDictionary(resxData, ModelNames.ResxModelName);
         }
     }
 

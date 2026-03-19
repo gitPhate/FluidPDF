@@ -1,0 +1,47 @@
+using FluidPDF.Exceptions;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Text.RegularExpressions;
+
+namespace FluidPDF.Templating.Localization
+{
+    internal static class LocalizationResolver
+    {
+        private static readonly CultureInfo _enUsCulture = new("en-US");
+
+        private static readonly Regex HtmlTagRegex = new Regex("<\\s*/?\\s*[a-zA-Z][^>]*>", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+        public static Dictionary<string, string> ResolveStrings(ILocalizationProvider provider, CultureInfo? requestedCulture)
+        {
+            CultureInfo cultureToUse = requestedCulture ?? _enUsCulture;
+
+            Dictionary<string, string> strings = provider.GetStrings(cultureToUse);
+            if (strings.Count == 0 && !string.Equals(cultureToUse.Name, _enUsCulture.Name, StringComparison.OrdinalIgnoreCase))
+            {
+                strings = provider.GetStrings(_enUsCulture);
+            }
+
+            if (strings.Count == 0)
+            {
+                throw new FluidPDFLocalizationException($"No localization strings were found for culture '{cultureToUse.Name}', and no 'en-US' fallback was available.");
+            }
+
+            ValidateNoHtml(strings);
+
+            return strings;
+        }
+
+        private static void ValidateNoHtml(Dictionary<string, string> strings)
+        {
+            foreach (KeyValuePair<string, string> pair in strings)
+            {
+                string value = pair.Value ?? string.Empty;
+                if (HtmlTagRegex.IsMatch(value))
+                {
+                    throw new FluidPDFLocalizationException($"Localization value for key '{pair.Key}' contains HTML markup, which is not allowed.");
+                }
+            }
+        }
+    }
+}

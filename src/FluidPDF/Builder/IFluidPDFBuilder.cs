@@ -1,6 +1,8 @@
 ﻿using FluidPDF.Templating;
+using FluidPDF.Templating.Localization;
 using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -8,11 +10,11 @@ namespace FluidPDF.Builder
 {
     public interface IFluidPDFBuilder
     {
-        IFluidPDFBuilder WithDataRowModel(DataRow dataRow, string modelName = FluidPDFTemplateModel.DefaultName);
-        IFluidPDFBuilder WithDataTableModel(DataTable dataTable, string modelName = FluidPDFTemplateModel.DefaultName);
-        IFluidPDFBuilder WithDictionaryModel(IDictionary<string, object> dictionary, string modelName = FluidPDFTemplateModel.DefaultName);
-        IFluidPDFBuilder WithJsonStringModel(string jsonString, string modelName = FluidPDFTemplateModel.DefaultName);
-        IFluidPDFBuilder WithObjectModel(object obj, string modelName = FluidPDFTemplateModel.DefaultName);
+        IFluidPDFBuilder WithDataRowModel(DataRow dataRow, string modelName = ModelNames.DefaultModelName);
+        IFluidPDFBuilder WithDataTableModel(DataTable dataTable, string modelName = ModelNames.DefaultModelName);
+        IFluidPDFBuilder WithDictionaryModel(IDictionary<string, object> dictionary, string modelName = ModelNames.DefaultModelName);
+        IFluidPDFBuilder WithJsonStringModel(string jsonString, string modelName = ModelNames.DefaultModelName);
+        IFluidPDFBuilder WithObjectModel(object obj, string modelName = ModelNames.DefaultModelName);
         IFluidPDFBuilder WithTemplateEngine(IFluidPDFTemplateEngine templateEngine);
         IFluidPDFBuilder WithExternalChromeProcess(string chromeExePath);
         IFluidPDFBuilder WithLandscapeOrientation();
@@ -26,6 +28,8 @@ namespace FluidPDF.Builder
         IFluidPDFBuilder WithInchMargin(decimal margin);
         IFluidPDFBuilder WithInchMargin(decimal bottom, decimal left, decimal right, decimal top);
         IFluidPDFBuilder WithScalePercentage(int scale);
+        IFluidPDFBuilder WithLocalization(ILocalizationProvider provider);
+        IFluidPDFBuilder WithCulture(CultureInfo culture);
         IFluidPDFBuilder WithCulture(string cultureCode);
         IFluidPDFBuilder WithTemplate(string template);
         IFluidPDFBuilder WithTemplateFile(string filePath);

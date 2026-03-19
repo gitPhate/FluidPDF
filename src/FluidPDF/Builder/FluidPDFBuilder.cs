@@ -4,6 +4,7 @@ using FluidPDF.Support;
 using FluidPDF.Support.IO;
 using FluidPDF.Support.PuppeteerSharp;
 using FluidPDF.Templating;
+using FluidPDF.Templating.Localization;
 using PuppeteerSharp.Media;
 using System;
 using System.Collections.Generic;
@@ -11,7 +12,6 @@ using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Text;
-using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 
 namespace FluidPDF.Builder
@@ -32,6 +32,7 @@ namespace FluidPDF.Builder
         private MarginOptions _marginOptions;
         private int _scale;
         private CultureInfo? _cultureInfo;
+        private ILocalizationProvider? _localizationProvider;
         private string? _templateFilePath;
         private string? _template;
         private bool _toBeCompressed;
@@ -46,37 +47,38 @@ namespace FluidPDF.Builder
             _marginOptions = new MarginOptions { Bottom = "0.4 in", Left = "0.4 in", Right = "0.4 in", Top = "0.4 in" };
             _scale = 1; //100%
             _cultureInfo = null;
+            _localizationProvider = null;
             _toBeCompressed = false;
             _htmlEncode = false;
             _templateEngine = new FluidTemplateEngine();
             _chromiumRetriever = chromiumRetriever;
         }
 
-        public IFluidPDFBuilder WithDataRowModel(DataRow dataRow, string modelName = FluidPDFTemplateModel.DefaultName)
+        public IFluidPDFBuilder WithDataRowModel(DataRow dataRow, string modelName = ModelNames.DefaultModelName)
         {
             _model = FluidPDFTemplateModel.FromDataRow(dataRow, modelName);
             return this;
         }
 
-        public IFluidPDFBuilder WithDataTableModel(DataTable dataTable, string modelName = FluidPDFTemplateModel.DefaultName)
+        public IFluidPDFBuilder WithDataTableModel(DataTable dataTable, string modelName = ModelNames.DefaultModelName)
         {
             _model = FluidPDFTemplateModel.FromDataTable(dataTable, modelName);
             return this;
         }
 
-        public IFluidPDFBuilder WithDictionaryModel(IDictionary<string, object> dictionary, string modelName = FluidPDFTemplateModel.DefaultName)
+        public IFluidPDFBuilder WithDictionaryModel(IDictionary<string, object> dictionary, string modelName = ModelNames.DefaultModelName)
         {
             _model = FluidPDFTemplateModel.FromDictionary(dictionary, modelName);
             return this;
         }
 
-        public IFluidPDFBuilder WithJsonStringModel(string jsonString, string modelName = FluidPDFTemplateModel.DefaultName)
+        public IFluidPDFBuilder WithJsonStringModel(string jsonString, string modelName = ModelNames.DefaultModelName)
         {
             _model = FluidPDFTemplateModel.FromJsonString(jsonString, modelName);
             return this;
         }
 
-        public IFluidPDFBuilder WithObjectModel(object obj, string modelName = FluidPDFTemplateModel.DefaultName)
+        public IFluidPDFBuilder WithObjectModel(object obj, string modelName = ModelNames.DefaultModelName)
         {
             _model = FluidPDFTemplateModel.FromObject(obj, modelName);
             return this;
@@ -161,10 +163,21 @@ namespace FluidPDF.Builder
             return this;
         }
 
+        public IFluidPDFBuilder WithLocalization(ILocalizationProvider provider)
+        {
+            _localizationProvider = provider.GetNonNullOrThrow(nameof(provider));
+            return this;
+        }
+
+        public IFluidPDFBuilder WithCulture(CultureInfo culture)
+        {
+            _cultureInfo = culture.GetNonNullOrThrow(nameof(culture));
+            return this;
+        }
+
         public IFluidPDFBuilder WithCulture(string cultureCode)
         {
-            _cultureInfo = new CultureInfo(cultureCode);
-            return this;
+            return WithCulture(new CultureInfo(cultureCode));
         }
 
         public IFluidPDFBuilder WithTemplate(string template)
@@ -212,10 +225,10 @@ namespace FluidPDF.Builder
         {
             if (_chromiumRetriever is not null)
             {
-                return new(_templateEngine, _chromiumRetriever, NewFluidPDFReportOptions());
+                return new(_templateEngine, _chromiumRetriever, NewFluidPDFReportOptions(), _localizationProvider);
             }
 
-            return new(_templateEngine, NewChromiumRetrieverOptions(), NewFluidPDFReportOptions());
+            return new(_templateEngine, NewChromiumRetrieverOptions(), NewFluidPDFReportOptions(), _localizationProvider);
         }
 
         private ChromiumRetrieverOptions NewChromiumRetrieverOptions() => new(_chromeExePath);

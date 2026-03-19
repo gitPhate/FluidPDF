@@ -13,4 +13,12 @@ namespace FluidPDF.Exceptions
     public sealed class FluidTemplateRenderException(string message) : Exception(message)
     {
     }
+
+    public sealed class FluidPDFLocalizationException(string message) : Exception(message)
+    {
+    }
+
+    public sealed class FluidPDFMissingLocalizationProviderException(string message) : Exception(message)
+    {
+    }
 }

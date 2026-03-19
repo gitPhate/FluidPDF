@@ -10,6 +10,7 @@ namespace FluidPDF.Tests
     {
         protected override IFluidPDFTemplateEngine CreateEngine() => new FluidTemplateEngine();
         protected override string DataTableTemplate => TemplateModelMother.SimpleDataTableTemplate();
+        protected override string LocalizationTemplate => TemplateModelMother.LocalizationTemplate;
 
         // --- Engine-specific: invalid template throws domain exception ---
 

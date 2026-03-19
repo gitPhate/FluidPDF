@@ -13,6 +13,7 @@ namespace FluidPDF.Tests
         protected virtual string SimpleTemplate => TemplateModelMother.SimpleTemplate;
         protected virtual string TwoModelTemplate => TemplateModelMother.TwoModelTemplate;
         protected virtual string HtmlSpecialCharsTemplate => TemplateModelMother.HtmlSpecialCharsTemplate;
+        protected abstract string LocalizationTemplate { get; }
 
         [Fact]
         public async Task RenderTemplateAsync_ShouldRenderObjectValue_WhenObjectModelIsProvided()
@@ -139,6 +140,20 @@ namespace FluidPDF.Tests
             // This documents the known behavior: when two models share the same Name, the engine
             // raises an error because the same key cannot be registered twice.
             await act.Should().ThrowAsync<ArgumentException>().WithMessage("*already been added*");
+        }
+
+        [Fact]
+        public async Task RenderTemplateAsync_ShouldRenderLocalizationModel_WhenResxModelIsProvided()
+        {
+            // Arrange
+            FluidPDFTemplateModel[] models = TemplateModelMother.LocalizationModelArray();
+            IFluidPDFTemplateEngine templateEngine = CreateEngine();
+
+            // Act
+            string result = await templateEngine.RenderTemplateAsync(LocalizationTemplate, models, new());
+
+            // Assert
+            result.Should().Be("<p>Invoice: Invoice-001</p>");
         }
     }
 }

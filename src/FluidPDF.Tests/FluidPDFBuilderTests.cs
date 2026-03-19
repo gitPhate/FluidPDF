@@ -3,11 +3,13 @@ using FluidPDF.Builder;
 using FluidPDF.Exceptions;
 using FluidPDF.Support.PuppeteerSharp;
 using FluidPDF.Templating;
+using FluidPDF.Templating.Localization;
 using FluidPDF.Tests.Mocks;
 using FluidPDF.Tests.Mothers;
 using NSubstitute;
 using PuppeteerSharp;
 using PuppeteerSharp.Media;
+using System.Globalization;
 
 namespace FluidPDF.Tests
 {
@@ -334,6 +336,60 @@ namespace FluidPDF.Tests
             // Assert
             capturedOptions.Should().NotBeNull();
             capturedOptions!.EncodeHtml.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task BuildAsync_ShouldPassCultureToTemplateEngine_WhenWithCultureCultureInfoIsCalled()
+        {
+            // Arrange
+            IChromiumRetriever retriever = ChromiumRetrieverMock.CreateWithSinglePagePdf(out _, out _);
+
+            FluidPDFTemplateRenderOptions? capturedOptions = null;
+            IFluidPDFTemplateEngine engine = Substitute.For<IFluidPDFTemplateEngine>();
+            engine
+                .RenderTemplateAsync(Arg.Any<string>(), Arg.Any<FluidPDFTemplateModel[]>(), Arg.Any<FluidPDFTemplateRenderOptions>(), Arg.Any<string>())
+                .Returns(callInfo =>
+                {
+                    capturedOptions = callInfo.Arg<FluidPDFTemplateRenderOptions>();
+                    return new ValueTask<string>("<p>Alice is 30</p>");
+                });
+
+            DictionaryLocalizationProvider provider = new(
+                new Dictionary<string, Dictionary<string, string>>
+                {
+                    ["en-US"] = new()
+                    {
+                        ["label_title"] = "Invoice"
+                    }
+                });
+
+            FluidPDFBuilder builder = new(retriever);
+            builder.WithObjectModel(TemplateModelMother.SimpleObject());
+            builder.WithTemplate(TemplateModelMother.SimpleTemplate);
+            builder.WithTemplateEngine(engine);
+            builder.WithLocalization(provider);
+            builder.WithCulture(new CultureInfo("it-IT"));
+
+            // Act
+            await builder.BuildAsync();
+
+            // Assert
+            capturedOptions.Should().NotBeNull();
+            capturedOptions!.CultureInfo.Should().NotBeNull();
+            capturedOptions.CultureInfo!.Name.Should().Be("it-IT");
+        }
+
+        [Fact]
+        public void WithLocalization_ShouldThrowArgumentNullException_WhenProviderIsNull()
+        {
+            // Arrange
+            IFluidPDFBuilder builder = Builder.FluidPDF.NewReport().WithObjectModel(TemplateModelMother.SimpleObject());
+
+            // Act
+            Action act = () => builder.WithLocalization(null!);
+
+            // Assert
+            act.Should().Throw<ArgumentNullException>();
         }
     }
 }

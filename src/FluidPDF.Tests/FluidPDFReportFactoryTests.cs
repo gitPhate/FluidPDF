@@ -1,11 +1,14 @@
 using FluentAssertions;
+using FluidPDF.Exceptions;
 using FluidPDF.Fluid;
 using FluidPDF.Support.PuppeteerSharp;
 using FluidPDF.Templating;
+using FluidPDF.Templating.Localization;
 using FluidPDF.Tests.Mocks;
 using FluidPDF.Tests.Mothers;
 using NSubstitute;
 using PuppeteerSharp;
+using System.Globalization;
 
 namespace FluidPDF.Tests
 {
@@ -82,6 +85,75 @@ namespace FluidPDF.Tests
             await act.Should().ThrowAsync<Exception>();
             await page.Received(1).CloseAsync();
             await browser.Received(1).CloseAsync();
+        }
+
+        [Fact]
+        public async Task CompileReportAsync_ShouldThrowFluidPDFMissingLocalizationProviderException_WhenCultureIsProvidedWithoutProvider()
+        {
+            // Arrange
+            IChromiumRetriever retriever = ChromiumRetrieverMock.CreateWithSinglePagePdf(out _, out _);
+            FluidTemplateEngine templateEngine = new();
+            FluidPDFReportFactory factory = new(templateEngine, retriever, new FluidPDFReportOptions());
+            FluidPDFTemplateModel model = FluidPDFTemplateModel.FromObject(TemplateModelMother.SimpleObject());
+
+            // Act
+            Func<Task> act = async () =>
+                await factory.CompileReportAsync(TemplateModelMother.SimpleTemplate, model, cultureInfo: new CultureInfo("it-IT"));
+
+            // Assert
+            await act.Should().ThrowAsync<FluidPDFMissingLocalizationProviderException>();
+        }
+
+        [Fact]
+        public async Task CompileReportAsync_ShouldFallbackToEnUsLocalization_WhenRequestedCultureIsMissing()
+        {
+            // Arrange
+            IChromiumRetriever retriever = ChromiumRetrieverMock.CreateWithSinglePagePdf(out _, out _);
+            FluidTemplateEngine templateEngine = new();
+            DictionaryLocalizationProvider provider = new(
+                new Dictionary<string, Dictionary<string, string>>
+                {
+                    ["en-US"] = new()
+                    {
+                        ["label_title"] = "Invoice"
+                    }
+                });
+
+            FluidPDFReportFactory factory = new(templateEngine, retriever, new FluidPDFReportOptions(), provider);
+            FluidPDFTemplateModel model = FluidPDFTemplateModel.FromObject(new { Title = "Invoice-001" });
+
+            // Act
+            byte[] result = await factory.CompileReportAsync("<p>{{ Resx.label_title }}: {{ Model.Title }}</p>", model, cultureInfo: new CultureInfo("it-IT"));
+
+            // Assert
+            result.Should().NotBeNullOrEmpty();
+            PDFDocumentMother.IsValidPDF(result).Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task CompileReportAsync_ShouldThrowFluidPDFLocalizationException_WhenLocalizationContainsHtml()
+        {
+            // Arrange
+            IChromiumRetriever retriever = ChromiumRetrieverMock.CreateWithSinglePagePdf(out _, out _);
+            FluidTemplateEngine templateEngine = new();
+            DictionaryLocalizationProvider provider = new(
+                new Dictionary<string, Dictionary<string, string>>
+                {
+                    ["en-US"] = new()
+                    {
+                        ["label_title"] = "<b>Invoice</b>"
+                    }
+                });
+
+            FluidPDFReportFactory factory = new(templateEngine, retriever, new FluidPDFReportOptions(), provider);
+            FluidPDFTemplateModel model = FluidPDFTemplateModel.FromObject(TemplateModelMother.SimpleObject());
+
+            // Act
+            Func<Task> act = async () =>
+                await factory.CompileReportAsync(TemplateModelMother.SimpleTemplate, model);
+
+            // Assert
+            await act.Should().ThrowAsync<FluidPDFLocalizationException>();
         }
     }
 }

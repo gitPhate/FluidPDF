@@ -12,7 +12,7 @@ namespace FluidPDF.Scriban
 {
     public sealed class ScribanTemplateEngine : IFluidPDFTemplateEngine
     {
-        public async ValueTask<string> RenderTemplateAsync(string template, DataTable model, FluidPDFTemplateRenderOptions options, string modelName = FluidPDFTemplateModel.DefaultName)
+        public async ValueTask<string> RenderTemplateAsync(string template, DataTable model, FluidPDFTemplateRenderOptions options, string modelName = ModelNames.DefaultModelName)
         {
             if (RuntimeInformation.FrameworkDescription?.StartsWith(".NET Framework", StringComparison.OrdinalIgnoreCase) == true)
             {
@@ -22,7 +22,7 @@ namespace FluidPDF.Scriban
             return await RenderTemplateAsync([managedModel], template, options).ConfigureAwait(false);
         }
 
-        public async ValueTask<string> RenderTemplateAsync(string template, IDictionary<string, object> model, FluidPDFTemplateRenderOptions options, string modelName = FluidPDFTemplateModel.DefaultName)
+        public async ValueTask<string> RenderTemplateAsync(string template, IDictionary<string, object> model, FluidPDFTemplateRenderOptions options, string modelName = ModelNames.DefaultModelName)
         {
             if (RuntimeInformation.FrameworkDescription?.StartsWith(".NET Framework", StringComparison.OrdinalIgnoreCase) == true)
             {
@@ -32,7 +32,7 @@ namespace FluidPDF.Scriban
             return await RenderTemplateAsync([managedModel], template, options).ConfigureAwait(false);
         }
 
-        public async ValueTask<string> RenderTemplateAsync(string template, object model, FluidPDFTemplateRenderOptions options, string modelName = FluidPDFTemplateModel.DefaultName)
+        public async ValueTask<string> RenderTemplateAsync(string template, object model, FluidPDFTemplateRenderOptions options, string modelName = ModelNames.DefaultModelName)
         {
             if (RuntimeInformation.FrameworkDescription?.StartsWith(".NET Framework", StringComparison.OrdinalIgnoreCase) == true)
             {
@@ -42,7 +42,7 @@ namespace FluidPDF.Scriban
             return await RenderTemplateAsync([managedModel], template, options).ConfigureAwait(false);
         }
 
-        public async ValueTask<string> RenderTemplateAsync(string template, string jsonModel, FluidPDFTemplateRenderOptions options, string modelName = FluidPDFTemplateModel.DefaultName)
+        public async ValueTask<string> RenderTemplateAsync(string template, string jsonModel, FluidPDFTemplateRenderOptions options, string modelName = ModelNames.DefaultModelName)
         {
             if (RuntimeInformation.FrameworkDescription?.StartsWith(".NET Framework", StringComparison.OrdinalIgnoreCase) == true)
             {
@@ -52,7 +52,7 @@ namespace FluidPDF.Scriban
             return await RenderTemplateAsync([managedModel], template, options).ConfigureAwait(false);
         }
 
-        public ValueTask<string> RenderTemplateAsync(string template, FluidPDFTemplateModel[] models, FluidPDFTemplateRenderOptions options, string modelName = FluidPDFTemplateModel.DefaultName)
+        public ValueTask<string> RenderTemplateAsync(string template, FluidPDFTemplateModel[] models, FluidPDFTemplateRenderOptions options, string modelName = ModelNames.DefaultModelName)
         {
             if (RuntimeInformation.FrameworkDescription?.StartsWith(".NET Framework", StringComparison.OrdinalIgnoreCase) == true)
             {

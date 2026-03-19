@@ -18,6 +18,7 @@ namespace FluidPDF.Tests
         protected override string TwoModelTemplate => TemplateModelMother.RazorTwoModelTemplate;
         protected override string HtmlSpecialCharsTemplate => TemplateModelMother.RazorHtmlSpecialCharsTemplate;
         protected override string DataTableTemplate => TemplateModelMother.RazorDataTableTemplate();
+        protected override string LocalizationTemplate => TemplateModelMother.RazorLocalizationTemplate;
 
         public void Dispose()
         {
@@ -59,7 +60,7 @@ namespace FluidPDF.Tests
 
             // Assert
             await act.Should().ThrowAsync<NotSupportedException>()
-                .WithMessage($"*'{FluidPDFTemplateModel.DefaultName}'*");
+                .WithMessage($"*'{ModelNames.DefaultModelName}'*");
         }
 
         [Fact]
@@ -75,7 +76,7 @@ namespace FluidPDF.Tests
 
             // Assert
             await act.Should().ThrowAsync<NotSupportedException>()
-                .WithMessage($"*'{FluidPDFTemplateModel.DefaultName}'*");
+                .WithMessage($"*'{ModelNames.DefaultModelName}'*");
         }
 
         [Fact]
@@ -90,7 +91,7 @@ namespace FluidPDF.Tests
 
             // Assert
             await act.Should().ThrowAsync<NotSupportedException>()
-                .WithMessage($"*'{FluidPDFTemplateModel.DefaultName}'*");
+                .WithMessage($"*'{ModelNames.DefaultModelName}'*");
         }
 
         [Fact]
@@ -106,7 +107,7 @@ namespace FluidPDF.Tests
 
             // Assert
             await act.Should().ThrowAsync<NotSupportedException>()
-                .WithMessage($"*'{FluidPDFTemplateModel.DefaultName}'*");
+                .WithMessage($"*'{ModelNames.DefaultModelName}'*");
         }
 
         [Fact]
@@ -122,7 +123,7 @@ namespace FluidPDF.Tests
 
             // Assert
             await act.Should().ThrowAsync<NotSupportedException>()
-                .WithMessage($"*'{FluidPDFTemplateModel.DefaultName}'*");
+                .WithMessage($"*'{ModelNames.DefaultModelName}'*");
         }
 
         // --- Disk cache: cache miss compiles and saves the file ---
@@ -208,6 +209,26 @@ namespace FluidPDF.Tests
             // Assert
             string[] files = Directory.GetFiles(_cacheDir, "*.dll");
             files.Should().HaveCount(2);
+        }
+
+        [Fact]
+        public async Task RenderTemplateAsync_WithCacheOptions_ShouldReuseSingleCacheFile_WhenEncodeHtmlChanges()
+        {
+            // Arrange
+            object model = TemplateModelMother.HtmlSpecialCharsObject();
+            RazorCompiledTemplateCacheOptions cacheOptions = new(_cacheDir);
+            RazorTemplateEngine templateEngine = new(cacheOptions);
+
+            // Act
+            string encoded = await templateEngine.RenderTemplateAsync(TemplateModelMother.RazorHtmlSpecialCharsTemplate, model, new() { EncodeHtml = true });
+            string raw = await templateEngine.RenderTemplateAsync(TemplateModelMother.RazorHtmlSpecialCharsTemplate, model, new() { EncodeHtml = false });
+
+            // Assert
+            encoded.Should().Be(TemplateModelMother.HtmlEncodedExpectedOutput);
+            raw.Should().Be(TemplateModelMother.HtmlSpecialCharsRawExpectedOutput);
+
+            string[] files = Directory.GetFiles(_cacheDir, "*.dll");
+            files.Should().ContainSingle();
         }
     }
 }
