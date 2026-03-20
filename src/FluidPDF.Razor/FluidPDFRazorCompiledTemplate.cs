@@ -9,8 +9,8 @@ namespace FluidPDF.Razor
     internal interface IFluidPDFRazorCompiledTemplate
     {
         void EnableDebugging(string debuggingOutputDirectory = null);
-        string Run(object model = null, dynamic resx = null, bool encodeHtml = false);
-        Task<string> RunAsync(object model = null, dynamic resx = null, bool encodeHtml = false);
+        string Run(RazorRuntimeModel model, bool encodeHtml = false);
+        Task<string> RunAsync(RazorRuntimeModel model, bool encodeHtml = false);
         void SaveToFile(string fileName);
         Task SaveToFileAsync(string fileName);
         void SaveToStream(Stream stream);
@@ -21,19 +21,19 @@ namespace FluidPDF.Razor
     {
         public void EnableDebugging(string debuggingOutputDirectory = null) => obj.EnableDebugging(debuggingOutputDirectory);
 
-        public string Run(object model = null, dynamic resx = null, bool encodeHtml = false) =>
+        public string Run(RazorRuntimeModel model, bool encodeHtml = false) =>
             obj.Run(instance =>
             {
-                instance.Model = FluidPDFRazorRuntimeModel.EnrichModel(model, resx, encodeHtml);
-                instance.Resx = resx;
+                instance.Model = model.DefaultModelBuild;
+                instance.Resx = model.ResxModelBuild;
                 instance.EncodeHtml = encodeHtml;
             });
 
-        public Task<string> RunAsync(object model = null, dynamic resx = null, bool encodeHtml = false) =>
+        public Task<string> RunAsync(RazorRuntimeModel model, bool encodeHtml = false) =>
             obj.RunAsync(instance =>
             {
-                instance.Model = FluidPDFRazorRuntimeModel.EnrichModel(model, resx, encodeHtml);
-                instance.Resx = resx;
+                instance.Model = model.DefaultModelBuild;
+                instance.Resx = model.ResxModelBuild;
                 instance.EncodeHtml = encodeHtml;
             });
 
@@ -50,11 +50,11 @@ namespace FluidPDF.Razor
     {
         public void EnableDebugging(string debuggingOutputDirectory = null) => obj.EnableDebugging(debuggingOutputDirectory);
 
-        public string Run(object model = null, dynamic resx = null, bool encodeHtml = false) =>
-            obj.Run(FluidPDFRazorRuntimeModel.EnrichModel(model, resx, encodeHtml));
+        public string Run(RazorRuntimeModel model, bool encodeHtml = false) =>
+            obj.Run(model.UnifiedModelBuild);
 
-        public Task<string> RunAsync(object model = null, dynamic resx = null, bool encodeHtml = false) =>
-            obj.RunAsync(FluidPDFRazorRuntimeModel.EnrichModel(model, resx, encodeHtml));
+        public Task<string> RunAsync(RazorRuntimeModel model = null, bool encodeHtml = false) =>
+            obj.RunAsync(model.UnifiedModelBuild);
 
         public void SaveToFile(string fileName) => obj.SaveToFile(fileName);
 

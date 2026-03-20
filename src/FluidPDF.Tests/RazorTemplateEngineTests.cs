@@ -3,7 +3,6 @@ using FluidPDF.Razor;
 using FluidPDF.Templating;
 using FluidPDF.Tests.Mothers;
 using RazorEngineCore;
-using System.Collections.Generic;
 using System.Data;
 
 namespace FluidPDF.Tests
