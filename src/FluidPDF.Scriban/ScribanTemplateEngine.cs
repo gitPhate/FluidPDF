@@ -4,7 +4,6 @@ using Scriban.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -14,51 +13,30 @@ namespace FluidPDF.Scriban
     {
         public async ValueTask<string> RenderTemplateAsync(string template, DataTable model, FluidPDFTemplateRenderOptions options, string modelName = ModelNames.DefaultModelName)
         {
-            if (RuntimeInformation.FrameworkDescription?.StartsWith(".NET Framework", StringComparison.OrdinalIgnoreCase) == true)
-            {
-                throw new NotSupportedException("Scriban template engine is not supported on .NET Framework due to a known runtime bug.");
-            }
             FluidPDFTemplateModel managedModel = FluidPDFTemplateModel.FromDataTable(model, modelName);
             return await RenderTemplateAsync([managedModel], template, options).ConfigureAwait(false);
         }
 
         public async ValueTask<string> RenderTemplateAsync(string template, IDictionary<string, object> model, FluidPDFTemplateRenderOptions options, string modelName = ModelNames.DefaultModelName)
         {
-            if (RuntimeInformation.FrameworkDescription?.StartsWith(".NET Framework", StringComparison.OrdinalIgnoreCase) == true)
-            {
-                throw new NotSupportedException("Scriban template engine is not supported on .NET Framework due to a known runtime bug.");
-            }
             FluidPDFTemplateModel managedModel = FluidPDFTemplateModel.FromDictionary(model, modelName);
             return await RenderTemplateAsync([managedModel], template, options).ConfigureAwait(false);
         }
 
         public async ValueTask<string> RenderTemplateAsync(string template, object model, FluidPDFTemplateRenderOptions options, string modelName = ModelNames.DefaultModelName)
         {
-            if (RuntimeInformation.FrameworkDescription?.StartsWith(".NET Framework", StringComparison.OrdinalIgnoreCase) == true)
-            {
-                throw new NotSupportedException("Scriban template engine is not supported on .NET Framework due to a known runtime bug.");
-            }
             FluidPDFTemplateModel managedModel = FluidPDFTemplateModel.FromObject(model, modelName);
             return await RenderTemplateAsync([managedModel], template, options).ConfigureAwait(false);
         }
 
         public async ValueTask<string> RenderTemplateAsync(string template, string jsonModel, FluidPDFTemplateRenderOptions options, string modelName = ModelNames.DefaultModelName)
         {
-            if (RuntimeInformation.FrameworkDescription?.StartsWith(".NET Framework", StringComparison.OrdinalIgnoreCase) == true)
-            {
-                throw new NotSupportedException("Scriban template engine is not supported on .NET Framework due to a known runtime bug.");
-            }
             FluidPDFTemplateModel managedModel = FluidPDFTemplateModel.FromJsonString(jsonModel, modelName);
             return await RenderTemplateAsync([managedModel], template, options).ConfigureAwait(false);
         }
 
         public ValueTask<string> RenderTemplateAsync(string template, FluidPDFTemplateModel[] models, FluidPDFTemplateRenderOptions options, string modelName = ModelNames.DefaultModelName)
         {
-            if (RuntimeInformation.FrameworkDescription?.StartsWith(".NET Framework", StringComparison.OrdinalIgnoreCase) == true)
-            {
-                throw new NotSupportedException("Scriban template engine is not supported on .NET Framework due to a known runtime bug.");
-            }
-
             return RenderTemplateAsync(models, template, options);
         }
 

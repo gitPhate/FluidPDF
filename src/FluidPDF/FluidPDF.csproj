@@ -16,7 +16,7 @@
 
   <ItemGroup>
     <PackageReference Include="Fluid.Core" Version="2.31.0" />
-    <PackageReference Include="PuppeteerSharp" Version="24.39.0" />
+    <PackageReference Include="PuppeteerSharp" Version="24.39.1" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="10.0.5" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
     <PackageReference Include="PDFsharp" Version="6.2.4" />
     <PackageReference Include="PolySharp" Version="1.15.0" Condition="'$(TargetFramework)' == 'netstandard2.0'">
