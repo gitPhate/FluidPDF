@@ -1,9 +1,10 @@
 using FluidPDF.Exceptions;
+using FluidPDF.Support.IO;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace FluidPDF.Templating.Localization
 {
@@ -11,14 +12,14 @@ namespace FluidPDF.Templating.Localization
     {
         private readonly string _basePath = basePath ?? throw new ArgumentNullException(nameof(basePath));
 
-        public Dictionary<string, string> GetStrings(CultureInfo culture)
+        public async ValueTask<Dictionary<string, string>> GetResourcesAsync(CultureInfo culture)
         {
             if (string.IsNullOrWhiteSpace(_basePath) || !Directory.Exists(_basePath))
             {
                 throw new FluidPDFMissingLocalizationProviderException($"Localization directory '{_basePath}' does not exist.");
             }
 
-            string cultureName = culture?.Name ?? "en-US";
+            string cultureName = culture.Name;
             string filePath = Path.Combine(_basePath, $"{cultureName}.json");
 
             if (!File.Exists(filePath))
@@ -26,14 +27,9 @@ namespace FluidPDF.Templating.Localization
                 return [];
             }
 
-            string json = File.ReadAllText(filePath);
-            Dictionary<string, string>? strings = JsonSerializer.Deserialize<Dictionary<string, string>>(json);
-            if (strings is null)
-            {
-                throw new FluidPDFMissingLocalizationProviderException($"Localization file '{filePath}' is invalid.");
-            }
-
-            return strings;
+            string json = await FileHelper.ReadAllTextAsync(filePath).ConfigureAwait(false);
+            JsonLocalizationProvider jsonProvider = new(json);
+            return await jsonProvider.GetResourcesAsync(culture).ConfigureAwait(false);
         }
     }
 }

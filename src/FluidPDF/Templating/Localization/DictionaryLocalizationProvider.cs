@@ -2,6 +2,7 @@ using FluidPDF.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Threading.Tasks;
 
 namespace FluidPDF.Templating.Localization
 {
@@ -9,7 +10,7 @@ namespace FluidPDF.Templating.Localization
     {
         private readonly Dictionary<string, Dictionary<string, string>> _localizations = localizations ?? throw new ArgumentNullException(nameof(localizations));
 
-        public Dictionary<string, string> GetStrings(CultureInfo culture)
+        public ValueTask<Dictionary<string, string>> GetResourcesAsync(CultureInfo culture)
         {
             if (_localizations.Count == 0)
             {
@@ -24,10 +25,10 @@ namespace FluidPDF.Templating.Localization
             string cultureName = culture?.Name ?? "en-US";
             if (_localizations.TryGetValue(cultureName, out Dictionary<string, string>? values))
             {
-                return values;
+                return new ValueTask<Dictionary<string, string>>(values);
             }
 
-            return [];
+            return new ValueTask<Dictionary<string, string>>([]);
         }
     }
 }

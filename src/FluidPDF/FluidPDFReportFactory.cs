@@ -62,7 +62,7 @@ namespace FluidPDF
                 EncodeHtml = encodeHtml
             };
 
-            FluidPDFTemplateModel? resxModel = BuildResxModel(cultureInfo);
+            FluidPDFTemplateModel? resxModel = await BuildResxModelAsync(cultureInfo).ConfigureAwait(false);
 
             string reportContent;
             try
@@ -104,14 +104,14 @@ namespace FluidPDF
             await FileHelper.WriteStreamAsync(destinationStream, data).ConfigureAwait(false);
         }
 
-        private FluidPDFTemplateModel? BuildResxModel(CultureInfo? cultureInfo)
+        private async ValueTask<FluidPDFTemplateModel?> BuildResxModelAsync(CultureInfo? cultureInfo)
         {
             if (_localizationProvider is null)
             {
                 return null;
             }
 
-            Dictionary<string, string> localizedStrings = LocalizationResolver.ResolveStrings(_localizationProvider, cultureInfo);
+            Dictionary<string, string> localizedStrings = await LocalizationResolver.ResolveResourcesAsync(_localizationProvider, cultureInfo).ConfigureAwait(false);
             Dictionary<string, object> resxData = localizedStrings.ToDictionary(
                 item => item.Key,
                 item => (object)item.Value,

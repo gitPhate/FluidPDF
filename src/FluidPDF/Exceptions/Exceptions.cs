@@ -18,7 +18,10 @@ namespace FluidPDF.Exceptions
     {
     }
 
-    public sealed class FluidPDFMissingLocalizationProviderException(string message) : Exception(message)
+    public sealed class FluidPDFMissingLocalizationProviderException(string? message, Exception? innerException) : Exception(message, innerException)
     {
+        public FluidPDFMissingLocalizationProviderException(string message) : this(message, null)
+        {
+        }
     }
 }

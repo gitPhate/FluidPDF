@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace FluidPDF.Templating.Localization
 {
@@ -12,14 +13,14 @@ namespace FluidPDF.Templating.Localization
 
         private static readonly Regex HtmlTagRegex = new Regex("<\\s*/?\\s*[a-zA-Z][^>]*>", RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
-        public static Dictionary<string, string> ResolveStrings(ILocalizationProvider provider, CultureInfo? requestedCulture)
+        public static async ValueTask<Dictionary<string, string>> ResolveResourcesAsync(ILocalizationProvider provider, CultureInfo? requestedCulture)
         {
             CultureInfo cultureToUse = requestedCulture ?? _enUsCulture;
 
-            Dictionary<string, string> strings = provider.GetStrings(cultureToUse);
+            Dictionary<string, string> strings = await provider.GetResourcesAsync(cultureToUse).ConfigureAwait(false);
             if (strings.Count == 0 && !string.Equals(cultureToUse.Name, _enUsCulture.Name, StringComparison.OrdinalIgnoreCase))
             {
-                strings = provider.GetStrings(_enUsCulture);
+                strings = await provider.GetResourcesAsync(_enUsCulture).ConfigureAwait(false);
             }
 
             if (strings.Count == 0)
