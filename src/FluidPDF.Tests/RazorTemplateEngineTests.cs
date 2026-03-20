@@ -229,5 +229,53 @@ namespace FluidPDF.Tests
             string[] files = Directory.GetFiles(_cacheDir, "*.dll");
             files.Should().ContainSingle();
         }
+
+        [Fact]
+        public async Task RenderTemplateAsync_ShouldBypassEncoding_WhenValueIsWrappedWithRawAndEncodeHtmlIsTrue()
+        {
+            // Arrange
+            object model = TemplateModelMother.HtmlSpecialCharsObject();
+            string template = "<p>@Raw(Model.Value)</p>";
+            RazorTemplateEngine templateEngine = new();
+            FluidPDFTemplateRenderOptions options = new() { EncodeHtml = true };
+
+            // Act
+            string result = await templateEngine.RenderTemplateAsync(template, model, options);
+
+            // Assert
+            result.Should().Be(TemplateModelMother.HtmlSpecialCharsRawExpectedOutput);
+        }
+
+        [Fact]
+        public async Task RenderTemplateAsync_ShouldEncodeString_WhenEncodeHtmlIsTrue()
+        {
+            // Arrange
+            object model = TemplateModelMother.HtmlSpecialCharsObject();
+            string template = TemplateModelMother.RazorHtmlSpecialCharsTemplate;
+            RazorTemplateEngine templateEngine = new();
+            FluidPDFTemplateRenderOptions options = new() { EncodeHtml = true };
+
+            // Act
+            string result = await templateEngine.RenderTemplateAsync(template, model, options);
+
+            // Assert
+            result.Should().Be(TemplateModelMother.HtmlEncodedExpectedOutput);
+        }
+
+        [Fact]
+        public async Task RenderTemplateAsync_ShouldNotEncodeString_WhenEncodeHtmlIsFalse()
+        {
+            // Arrange
+            object model = TemplateModelMother.HtmlSpecialCharsObject();
+            string template = TemplateModelMother.RazorHtmlSpecialCharsTemplate;
+            RazorTemplateEngine templateEngine = new();
+            FluidPDFTemplateRenderOptions options = new() { EncodeHtml = false };
+
+            // Act
+            string result = await templateEngine.RenderTemplateAsync(template, model, options);
+
+            // Assert
+            result.Should().Be(TemplateModelMother.HtmlSpecialCharsRawExpectedOutput);
+        }
     }
 }
