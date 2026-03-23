@@ -20,12 +20,12 @@ namespace FluidPDF.Tests
             // Arrange
             IChromiumRetriever retriever = ChromiumRetrieverMock.CreateWithSinglePagePdf(out _, out _);
             FluidTemplateEngine templateEngine = new();
-            FluidPDFReportFactory factory = new(templateEngine, retriever, new FluidPDFReportOptions());
+            FluidPDFReportFactory factory = new(templateEngine, retriever);
             string template = TemplateModelMother.SimpleTemplate;
             FluidPDFTemplateModel model = FluidPDFTemplateModel.FromObject(TemplateModelMother.SimpleObject());
 
             // Act
-            byte[] result = await factory.CompileReportAsync(template, model);
+            byte[] result = await factory.CompileReportAsync(template, model, new FluidPDFReportOptions());
 
             // Assert
             result.Should().NotBeNullOrEmpty();
@@ -38,13 +38,13 @@ namespace FluidPDF.Tests
             // Arrange
             IChromiumRetriever retriever = ChromiumRetrieverMock.CreateWithSinglePagePdf(out _, out _);
             FluidTemplateEngine templateEngine = new();
-            FluidPDFReportFactory factory = new(templateEngine, retriever, new FluidPDFReportOptions());
+            FluidPDFReportFactory factory = new(templateEngine, retriever);
             string template = TemplateModelMother.SimpleTemplate;
             FluidPDFTemplateModel model = FluidPDFTemplateModel.FromObject(TemplateModelMother.SimpleObject());
             using MemoryStream stream = new();
 
             // Act
-            await factory.CompileReportAsync(template, model, stream);
+            await factory.CompileReportAsync(template, model, stream, new FluidPDFReportOptions());
 
             // Assert
             stream.Length.Should().BeGreaterThan(0);
@@ -57,11 +57,11 @@ namespace FluidPDF.Tests
             // Arrange
             IChromiumRetriever retriever = ChromiumRetrieverMock.CreateWithSinglePagePdf(out IBrowser browser, out IPage page);
             FluidTemplateEngine templateEngine = new();
-            FluidPDFReportFactory factory = new(templateEngine, retriever, new FluidPDFReportOptions());
+            FluidPDFReportFactory factory = new(templateEngine, retriever);
             FluidPDFTemplateModel model = FluidPDFTemplateModel.FromObject(TemplateModelMother.SimpleObject());
 
             // Act
-            await factory.CompileReportAsync(TemplateModelMother.SimpleTemplate, model);
+            await factory.CompileReportAsync(TemplateModelMother.SimpleTemplate, model, new FluidPDFReportOptions());
 
             // Assert
             await page.Received(1).CloseAsync();
@@ -74,12 +74,12 @@ namespace FluidPDF.Tests
             // Arrange
             IChromiumRetriever retriever = ChromiumRetrieverMock.CreateWithPageThatThrowsOnSetContent(out IBrowser browser, out IPage page);
             FluidTemplateEngine templateEngine = new();
-            FluidPDFReportFactory factory = new(templateEngine, retriever, new FluidPDFReportOptions());
+            FluidPDFReportFactory factory = new(templateEngine, retriever);
             FluidPDFTemplateModel model = FluidPDFTemplateModel.FromObject(TemplateModelMother.SimpleObject());
 
             // Act
             Func<Task> act = async () =>
-                await factory.CompileReportAsync(TemplateModelMother.SimpleTemplate, model);
+                await factory.CompileReportAsync(TemplateModelMother.SimpleTemplate, model, new FluidPDFReportOptions());
 
             // Assert
             await act.Should().ThrowAsync<Exception>();
@@ -93,12 +93,15 @@ namespace FluidPDF.Tests
             // Arrange
             IChromiumRetriever retriever = ChromiumRetrieverMock.CreateWithSinglePagePdf(out _, out _);
             FluidTemplateEngine templateEngine = new();
-            FluidPDFReportFactory factory = new(templateEngine, retriever, new FluidPDFReportOptions());
+            FluidPDFReportFactory factory = new(templateEngine, retriever);
             FluidPDFTemplateModel model = FluidPDFTemplateModel.FromObject(TemplateModelMother.SimpleObject());
 
             // Act
             Func<Task> act = async () =>
-                await factory.CompileReportAsync(TemplateModelMother.SimpleTemplate, model, cultureInfo: new CultureInfo("it-IT"));
+                await factory.CompileReportAsync(
+                    TemplateModelMother.SimpleTemplate,
+                    model,
+                    new FluidPDFReportOptions { CultureInfo = new CultureInfo("it-IT") });
 
             // Assert
             await act.Should().ThrowAsync<FluidPDFMissingLocalizationProviderException>();
@@ -119,11 +122,14 @@ namespace FluidPDF.Tests
                     }
                 });
 
-            FluidPDFReportFactory factory = new(templateEngine, retriever, new FluidPDFReportOptions(), provider);
+            FluidPDFReportFactory factory = new(templateEngine, retriever, provider);
             FluidPDFTemplateModel model = FluidPDFTemplateModel.FromObject(new { Title = "Invoice-001" });
 
             // Act
-            byte[] result = await factory.CompileReportAsync("<p>{{ Resx.label_title }}: {{ Model.Title }}</p>", model, cultureInfo: new CultureInfo("it-IT"));
+            byte[] result = await factory.CompileReportAsync(
+                "<p>{{ Resx.label_title }}: {{ Model.Title }}</p>",
+                model,
+                new FluidPDFReportOptions { CultureInfo = new CultureInfo("it-IT") });
 
             // Assert
             result.Should().NotBeNullOrEmpty();
@@ -145,12 +151,12 @@ namespace FluidPDF.Tests
                     }
                 });
 
-            FluidPDFReportFactory factory = new(templateEngine, retriever, new FluidPDFReportOptions(), provider);
+            FluidPDFReportFactory factory = new(templateEngine, retriever, provider);
             FluidPDFTemplateModel model = FluidPDFTemplateModel.FromObject(TemplateModelMother.SimpleObject());
 
             // Act
             Func<Task> act = async () =>
-                await factory.CompileReportAsync(TemplateModelMother.SimpleTemplate, model);
+                await factory.CompileReportAsync(TemplateModelMother.SimpleTemplate, model, new FluidPDFReportOptions());
 
             // Assert
             await act.Should().ThrowAsync<FluidPDFLocalizationException>();

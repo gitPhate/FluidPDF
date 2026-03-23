@@ -20,63 +20,64 @@ namespace FluidPDF
     {
         private readonly IFluidPDFTemplateEngine _templateEngine;
         private readonly IChromiumRetriever _chromiumRetriever;
-        private readonly PdfOptions _pdfOptions;
         private readonly ILocalizationProvider? _localizationProvider;
 
-        public FluidPDFReportFactory(IFluidPDFTemplateEngine templateEngine, ChromiumRetrieverOptions chromiumRetrieverOptions, FluidPDFReportOptions fluidPdfReportOptions, ILocalizationProvider? localizationProvider = null)
-            : this(templateEngine, new ChromiumRetriever(chromiumRetrieverOptions), fluidPdfReportOptions, localizationProvider)
+        public FluidPDFReportFactory(IFluidPDFTemplateEngine templateEngine, ChromiumRetrieverOptions chromiumRetrieverOptions, ILocalizationProvider? localizationProvider = null)
+            : this(templateEngine, new ChromiumRetriever(chromiumRetrieverOptions), localizationProvider)
         {
         }
 
-        internal FluidPDFReportFactory(IFluidPDFTemplateEngine templateEngine, IChromiumRetriever chromiumRetriever, FluidPDFReportOptions fluidPdfReportOptions, ILocalizationProvider? localizationProvider = null)
+        internal FluidPDFReportFactory(IFluidPDFTemplateEngine templateEngine, IChromiumRetriever chromiumRetriever, ILocalizationProvider? localizationProvider = null)
         {
             _templateEngine = templateEngine;
             _chromiumRetriever = chromiumRetriever ?? throw new ArgumentNullException(nameof(chromiumRetriever));
             _localizationProvider = localizationProvider;
-
-            _pdfOptions = new PdfOptions()
-            {
-                PreferCSSPageSize = true,
-                PrintBackground = true,
-                Format = fluidPdfReportOptions.GetNonNullOrThrow(nameof(fluidPdfReportOptions)).Format,
-                Landscape = fluidPdfReportOptions.Landscape,
-                MarginOptions = fluidPdfReportOptions.MarginOptions,
-                Scale = fluidPdfReportOptions.Scale
-            };
         }
 
         /// <summary>
         /// The implementation of PuppeteerSharp generates the PDF file as a byte array, the stream method is just a wrapper.
         /// That's why the main method here returns a byte array
         /// </summary>
-        public Task<byte[]> CompileReportAsync(string template, FluidPDFTemplateModel model, bool toBeCompressed = false, CultureInfo? cultureInfo = null, bool encodeHtml = false)
-            => CompileReportAsync(template, [model], toBeCompressed, cultureInfo, encodeHtml);
+        public Task<byte[]> CompileReportAsync(string template, FluidPDFTemplateModel model, FluidPDFReportOptions reportOptions)
+            => CompileReportAsync(template, [model], reportOptions);
 
-        public async Task<byte[]> CompileReportAsync(string template, FluidPDFTemplateModel[] models, bool toBeCompressed = false, CultureInfo? cultureInfo = null, bool encodeHtml = false)
+        public async Task<byte[]> CompileReportAsync(string template, FluidPDFTemplateModel[] models, FluidPDFReportOptions reportOptions)
         {
-            if (_localizationProvider is null && cultureInfo is not null)
+            reportOptions.GetNonNullOrThrow(nameof(reportOptions));
+
+            if (_localizationProvider is null && reportOptions.CultureInfo is not null)
             {
                 throw new FluidPDFMissingLocalizationProviderException("Culture was provided, but no localization provider was configured.");
             }
 
-            FluidPDFTemplateRenderOptions options = new()
+            FluidPDFTemplateRenderOptions renderOptions = new()
             {
-                CultureInfo = cultureInfo,
-                EncodeHtml = encodeHtml
+                CultureInfo = reportOptions.CultureInfo,
+                EncodeHtml = reportOptions.EncodeHtml
             };
 
-            FluidPDFTemplateModel? resxModel = await BuildResxModelAsync(cultureInfo).ConfigureAwait(false);
+            FluidPDFTemplateModel? resxModel = await BuildResxModelAsync(reportOptions.CultureInfo).ConfigureAwait(false);
 
             string reportContent;
             try
             {
                 FluidPDFTemplateModel[] combined = resxModel is not null ? [.. models, resxModel] : models;
-                reportContent = await _templateEngine.RenderTemplateAsync(template, combined, options).ConfigureAwait(false);
+                reportContent = await _templateEngine.RenderTemplateAsync(template, combined, renderOptions).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
                 throw new FluidPDFTemplateRenderException("An error occurred in rendering the template", ex);
             }
+
+            PdfOptions pdfOptions = new()
+            {
+                PreferCSSPageSize = true,
+                PrintBackground = true,
+                Format = reportOptions.Format,
+                Landscape = reportOptions.Landscape,
+                MarginOptions = reportOptions.MarginOptions,
+                Scale = reportOptions.Scale
+            };
 
             using IBrowser browser = await _chromiumRetriever.LaunchBrowserAsync().ConfigureAwait(false);
             using IPage page = await browser.NewPageAsync().ConfigureAwait(false);
@@ -85,9 +86,9 @@ namespace FluidPDF
             {
                 await page.SetContentAsync(reportContent).ConfigureAwait(false);
 
-                byte[] data = await page.PdfDataAsync(_pdfOptions).ConfigureAwait(false);
+                byte[] data = await page.PdfDataAsync(pdfOptions).ConfigureAwait(false);
 
-                if (toBeCompressed)
+                if (reportOptions.ToBeCompressed)
                 {
                     data = await PDFCompressHelper.CompressPDFAsync(data).ConfigureAwait(false);
                 }
@@ -101,12 +102,12 @@ namespace FluidPDF
             }
         }
 
-        public Task CompileReportAsync(string template, FluidPDFTemplateModel model, Stream destinationStream, bool toBeCompressed = false, CultureInfo? cultureInfo = null, bool encodeHtml = false)
-            => CompileReportAsync(template, [model], destinationStream, toBeCompressed, cultureInfo, encodeHtml);
+        public Task CompileReportAsync(string template, FluidPDFTemplateModel model, Stream destinationStream, FluidPDFReportOptions reportOptions)
+            => CompileReportAsync(template, [model], destinationStream, reportOptions);
 
-        public async Task CompileReportAsync(string template, FluidPDFTemplateModel[] models, Stream destinationStream, bool toBeCompressed = false, CultureInfo? cultureInfo = null, bool encodeHtml = false)
+        public async Task CompileReportAsync(string template, FluidPDFTemplateModel[] models, Stream destinationStream, FluidPDFReportOptions reportOptions)
         {
-            byte[] data = await CompileReportAsync(template, models, toBeCompressed, cultureInfo, encodeHtml).ConfigureAwait(false);
+            byte[] data = await CompileReportAsync(template, models, reportOptions).ConfigureAwait(false);
             await FileHelper.WriteStreamAsync(destinationStream, data).ConfigureAwait(false);
         }
 
@@ -133,5 +134,8 @@ namespace FluidPDF
         public bool Landscape { get; set; }
         public MarginOptions MarginOptions { get; set; } = new MarginOptions { Bottom = "0.4 in", Left = "0.4 in", Right = "0.4 in", Top = "0.4 in" };
         public decimal Scale { get; set; } = 1M;
+        public bool ToBeCompressed { get; set; }
+        public CultureInfo? CultureInfo { get; set; }
+        public bool EncodeHtml { get; set; }
     }
 }

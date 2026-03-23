@@ -221,7 +221,7 @@ namespace FluidPDF.Builder
 
             string template = await GetTemplateAsync().ConfigureAwait(false);
             FluidPDFReportFactory factory = NewFluidPDFReportFactory();
-            return await factory.CompileReportAsync(template, _models, _toBeCompressed, _cultureInfo, _htmlEncode).ConfigureAwait(false);
+            return await factory.CompileReportAsync(template, _models, NewFluidPDFReportOptions()).ConfigureAwait(false);
         }
 
         public async Task BuildAsync(Stream stream)
@@ -230,17 +230,17 @@ namespace FluidPDF.Builder
 
             string template = await GetTemplateAsync().ConfigureAwait(false);
             FluidPDFReportFactory factory = NewFluidPDFReportFactory();
-            await factory.CompileReportAsync(template, _models, stream, _toBeCompressed, _cultureInfo, _htmlEncode).ConfigureAwait(false);
+            await factory.CompileReportAsync(template, _models, stream, NewFluidPDFReportOptions()).ConfigureAwait(false);
         }
 
         private FluidPDFReportFactory NewFluidPDFReportFactory()
         {
             if (_chromiumRetriever is not null)
             {
-                return new(_templateEngine, _chromiumRetriever, NewFluidPDFReportOptions(), _localizationProvider);
+                return new(_templateEngine, _chromiumRetriever, _localizationProvider);
             }
 
-            return new(_templateEngine, NewChromiumRetrieverOptions(), NewFluidPDFReportOptions(), _localizationProvider);
+            return new(_templateEngine, NewChromiumRetrieverOptions(), _localizationProvider);
         }
 
         private ChromiumRetrieverOptions NewChromiumRetrieverOptions() => new(_chromeExePath);
@@ -251,7 +251,10 @@ namespace FluidPDF.Builder
                 Format = _paperFormat,
                 Landscape = _landscape,
                 MarginOptions = _marginOptions,
-                Scale = Math.Min(Math.Max(_scale / 100M, 0.1M), 2) //between 0.1 and 2
+                Scale = Math.Min(Math.Max(_scale / 100M, 0.1M), 2), //between 0.1 and 2
+                ToBeCompressed = _toBeCompressed,
+                CultureInfo = _cultureInfo,
+                EncodeHtml = _htmlEncode,
             };
 
         private async ValueTask<string> GetTemplateAsync()
