@@ -223,7 +223,7 @@ Razor template example (model is passed as `dynamic`):
 ```
 
 
-## Model Types
+### Model Types
 Models are the data available inside the template. They can be passed in different formats:
 - DataTable: a generic data table, useful for dynamic data possibly returned from a query
 - DataRow:  a generic data row, added because required to make the `DataTable` model type work
