@@ -15,6 +15,8 @@ namespace FluidPDF.Builder
         IFluidPDFBuilder WithDictionaryModel(IDictionary<string, object> dictionary, string modelName = ModelNames.DefaultModelName);
         IFluidPDFBuilder WithJsonStringModel(string jsonString, string modelName = ModelNames.DefaultModelName);
         IFluidPDFBuilder WithObjectModel(object obj, string modelName = ModelNames.DefaultModelName);
+        IFluidPDFBuilder WithModel(FluidPDFTemplateModel model);
+        IFluidPDFBuilder WithModels(FluidPDFTemplateModel[] models);
         IFluidPDFBuilder WithTemplateEngine(IFluidPDFTemplateEngine templateEngine);
         IFluidPDFBuilder WithExternalChromeProcess(string chromeExePath);
         IFluidPDFBuilder WithLandscapeOrientation();

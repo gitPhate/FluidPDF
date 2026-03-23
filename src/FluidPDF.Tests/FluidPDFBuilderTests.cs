@@ -391,5 +391,117 @@ namespace FluidPDF.Tests
             // Assert
             act.Should().Throw<ArgumentNullException>();
         }
+
+        [Fact]
+        public async Task BuildAsync_ShouldThrowFluidPDFBuilderConfigException_WhenNoModelIsSet()
+        {
+            // Arrange
+            IFluidPDFBuilder builder = Builder.FluidPDF.NewReport().WithTemplate(TemplateModelMother.SimpleTemplate);
+
+            // Act
+            Func<Task> act = builder.BuildAsync;
+
+            // Assert
+            await act.Should().ThrowAsync<FluidPDFBuilderConfigException>();
+        }
+
+        [Fact]
+        public async Task BuildAsync_ShouldThrowFluidPDFBuilderConfigException_WhenWithModelsIsCalledWithEmptyArray()
+        {
+            // Arrange
+            IFluidPDFBuilder builder = Builder.FluidPDF.NewReport().WithTemplate(TemplateModelMother.SimpleTemplate);
+            builder.WithModels([]);
+
+            // Act
+            Func<Task> act = builder.BuildAsync;
+
+            // Assert
+            await act.Should().ThrowAsync<FluidPDFBuilderConfigException>();
+        }
+
+        [Fact]
+        public void WithModel_ShouldThrowArgumentNullException_WhenNullIsPassed()
+        {
+            // Arrange
+            IFluidPDFBuilder builder = Builder.FluidPDF.NewReport();
+
+            // Act
+            Action act = () => builder.WithModel(null!);
+
+            // Assert
+            act.Should().Throw<ArgumentNullException>();
+        }
+
+        [Fact]
+        public void WithModels_ShouldThrowArgumentNullException_WhenNullIsPassed()
+        {
+            // Arrange
+            IFluidPDFBuilder builder = Builder.FluidPDF.NewReport();
+
+            // Act
+            Action act = () => builder.WithModels(null!);
+
+            // Assert
+            act.Should().Throw<ArgumentNullException>();
+        }
+
+        [Fact]
+        public async Task BuildAsync_ShouldPassModelsToTemplateEngine_WhenWithModelsIsCalled()
+        {
+            // Arrange
+            IChromiumRetriever retriever = ChromiumRetrieverMock.CreateWithSinglePagePdf(out _, out _);
+
+            FluidPDFTemplateModel[]? capturedModels = null;
+            IFluidPDFTemplateEngine engine = Substitute.For<IFluidPDFTemplateEngine>();
+            engine
+                .RenderTemplateAsync(Arg.Any<string>(), Arg.Any<FluidPDFTemplateModel[]>(), Arg.Any<FluidPDFTemplateRenderOptions>(), Arg.Any<string>())
+                .Returns(callInfo =>
+                {
+                    capturedModels = callInfo.Arg<FluidPDFTemplateModel[]>();
+                    return new ValueTask<string>(TemplateModelMother.TwoModelExpectedOutput);
+                });
+
+            FluidPDFBuilder builder = new(retriever);
+            builder.WithModels(TemplateModelMother.TwoModelArray());
+            builder.WithTemplate(TemplateModelMother.TwoModelTemplate);
+            builder.WithTemplateEngine(engine);
+
+            // Act
+            await builder.BuildAsync();
+
+            // Assert
+            capturedModels.Should().NotBeNull();
+            capturedModels!.Length.Should().Be(2);
+        }
+
+        [Fact]
+        public async Task BuildAsync_ShouldPassSingleModelToTemplateEngine_WhenWithModelIsCalled()
+        {
+            // Arrange
+            IChromiumRetriever retriever = ChromiumRetrieverMock.CreateWithSinglePagePdf(out _, out _);
+
+            FluidPDFTemplateModel[]? capturedModels = null;
+            IFluidPDFTemplateEngine engine = Substitute.For<IFluidPDFTemplateEngine>();
+            engine
+                .RenderTemplateAsync(Arg.Any<string>(), Arg.Any<FluidPDFTemplateModel[]>(), Arg.Any<FluidPDFTemplateRenderOptions>(), Arg.Any<string>())
+                .Returns(callInfo =>
+                {
+                    capturedModels = callInfo.Arg<FluidPDFTemplateModel[]>();
+                    return new ValueTask<string>(TemplateModelMother.SimpleObjectExpectedOutput);
+                });
+
+            FluidPDFBuilder builder = new(retriever);
+            builder.WithModel(FluidPDFTemplateModel.FromObject(TemplateModelMother.SimpleObject()));
+            builder.WithTemplate(TemplateModelMother.SimpleTemplate);
+            builder.WithTemplateEngine(engine);
+
+            // Act
+            await builder.BuildAsync();
+
+            // Assert
+            capturedModels.Should().NotBeNull();
+            capturedModels!.Length.Should().Be(1);
+            capturedModels[0].IsObject.Should().BeTrue();
+        }
     }
 }

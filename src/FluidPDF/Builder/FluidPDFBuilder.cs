@@ -25,7 +25,7 @@ namespace FluidPDF.Builder
     {
         private readonly IChromiumRetriever? _chromiumRetriever;
 
-        private FluidPDFTemplateModel? _model;
+        private FluidPDFTemplateModel[] _models;
         private string? _chromeExePath;
         private bool _landscape;
         private PaperFormat _paperFormat;
@@ -41,7 +41,7 @@ namespace FluidPDF.Builder
 
         internal FluidPDFBuilder(IChromiumRetriever? chromiumRetriever = null)
         {
-            _model = null;
+            _models = [];
             _paperFormat = PaperFormat.A4;
             _landscape = false;
             _marginOptions = new MarginOptions { Bottom = "0.4 in", Left = "0.4 in", Right = "0.4 in", Top = "0.4 in" };
@@ -56,31 +56,43 @@ namespace FluidPDF.Builder
 
         public IFluidPDFBuilder WithDataRowModel(DataRow dataRow, string modelName = ModelNames.DefaultModelName)
         {
-            _model = FluidPDFTemplateModel.FromDataRow(dataRow, modelName);
+            _models = [FluidPDFTemplateModel.FromDataRow(dataRow, modelName)];
             return this;
         }
 
         public IFluidPDFBuilder WithDataTableModel(DataTable dataTable, string modelName = ModelNames.DefaultModelName)
         {
-            _model = FluidPDFTemplateModel.FromDataTable(dataTable, modelName);
+            _models = [FluidPDFTemplateModel.FromDataTable(dataTable, modelName)];
             return this;
         }
 
         public IFluidPDFBuilder WithDictionaryModel(IDictionary<string, object> dictionary, string modelName = ModelNames.DefaultModelName)
         {
-            _model = FluidPDFTemplateModel.FromDictionary(dictionary, modelName);
+            _models = [FluidPDFTemplateModel.FromDictionary(dictionary, modelName)];
             return this;
         }
 
         public IFluidPDFBuilder WithJsonStringModel(string jsonString, string modelName = ModelNames.DefaultModelName)
         {
-            _model = FluidPDFTemplateModel.FromJsonString(jsonString, modelName);
+            _models = [FluidPDFTemplateModel.FromJsonString(jsonString, modelName)];
             return this;
         }
 
         public IFluidPDFBuilder WithObjectModel(object obj, string modelName = ModelNames.DefaultModelName)
         {
-            _model = FluidPDFTemplateModel.FromObject(obj, modelName);
+            _models = [FluidPDFTemplateModel.FromObject(obj, modelName)];
+            return this;
+        }
+
+        public IFluidPDFBuilder WithModel(FluidPDFTemplateModel model)
+        {
+            _models = [model.GetNonNullOrThrow(nameof(model))];
+            return this;
+        }
+
+        public IFluidPDFBuilder WithModels(FluidPDFTemplateModel[] models)
+        {
+            _models = models.GetNonNullOrThrow(nameof(models));
             return this;
         }
 
@@ -209,7 +221,7 @@ namespace FluidPDF.Builder
 
             string template = await GetTemplateAsync().ConfigureAwait(false);
             FluidPDFReportFactory factory = NewFluidPDFReportFactory();
-            return await factory.CompileReportAsync(template, _model!, _toBeCompressed, _cultureInfo, _htmlEncode).ConfigureAwait(false);
+            return await factory.CompileReportAsync(template, _models, _toBeCompressed, _cultureInfo, _htmlEncode).ConfigureAwait(false);
         }
 
         public async Task BuildAsync(Stream stream)
@@ -218,7 +230,7 @@ namespace FluidPDF.Builder
 
             string template = await GetTemplateAsync().ConfigureAwait(false);
             FluidPDFReportFactory factory = NewFluidPDFReportFactory();
-            await factory.CompileReportAsync(template, _model!, stream, _toBeCompressed, _cultureInfo, _htmlEncode).ConfigureAwait(false);
+            await factory.CompileReportAsync(template, _models, stream, _toBeCompressed, _cultureInfo, _htmlEncode).ConfigureAwait(false);
         }
 
         private FluidPDFReportFactory NewFluidPDFReportFactory()
@@ -266,9 +278,9 @@ namespace FluidPDF.Builder
                 builder.AppendLine("The template is missing (file or string)");
             }
 
-            if (_model is null)
+            if (_models is null || _models.Length == 0)
             {
-                builder.AppendLine("The model is missing");
+                builder.AppendLine("One or more models are missing");
             }
 
             if (_scale < 0.1M || _scale > 2.0M)
@@ -278,7 +290,7 @@ namespace FluidPDF.Builder
 
             if (builder.Length > 0)
             {
-                throw new FluidPDFBuilderConfigException($"One or more info are missing or wrong:{Environment.NewLine}{builder.ToString()}");
+                throw new FluidPDFBuilderConfigException($"One or more info are missing or wrong:{Environment.NewLine}{builder}");
             }
         }
     }

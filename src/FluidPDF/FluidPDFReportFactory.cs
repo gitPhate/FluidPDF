@@ -49,7 +49,10 @@ namespace FluidPDF
         /// The implementation of PuppeteerSharp generates the PDF file as a byte array, the stream method is just a wrapper.
         /// That's why the main method here returns a byte array
         /// </summary>
-        public async Task<byte[]> CompileReportAsync(string template, FluidPDFTemplateModel model, bool toBeCompressed = false, CultureInfo? cultureInfo = null, bool encodeHtml = false)
+        public Task<byte[]> CompileReportAsync(string template, FluidPDFTemplateModel model, bool toBeCompressed = false, CultureInfo? cultureInfo = null, bool encodeHtml = false)
+            => CompileReportAsync(template, [model], toBeCompressed, cultureInfo, encodeHtml);
+
+        public async Task<byte[]> CompileReportAsync(string template, FluidPDFTemplateModel[] models, bool toBeCompressed = false, CultureInfo? cultureInfo = null, bool encodeHtml = false)
         {
             if (_localizationProvider is null && cultureInfo is not null)
             {
@@ -67,8 +70,8 @@ namespace FluidPDF
             string reportContent;
             try
             {
-                FluidPDFTemplateModel[] models = resxModel is not null ? [model, resxModel] : [model];
-                reportContent = await _templateEngine.RenderTemplateAsync(template, models, options).ConfigureAwait(false);
+                FluidPDFTemplateModel[] combined = resxModel is not null ? [.. models, resxModel] : models;
+                reportContent = await _templateEngine.RenderTemplateAsync(template, combined, options).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -98,9 +101,12 @@ namespace FluidPDF
             }
         }
 
-        public async Task CompileReportAsync(string template, FluidPDFTemplateModel model, Stream destinationStream, bool toBeCompressed = false, CultureInfo? cultureInfo = null, bool encodeHtml = false)
+        public Task CompileReportAsync(string template, FluidPDFTemplateModel model, Stream destinationStream, bool toBeCompressed = false, CultureInfo? cultureInfo = null, bool encodeHtml = false)
+            => CompileReportAsync(template, [model], destinationStream, toBeCompressed, cultureInfo, encodeHtml);
+
+        public async Task CompileReportAsync(string template, FluidPDFTemplateModel[] models, Stream destinationStream, bool toBeCompressed = false, CultureInfo? cultureInfo = null, bool encodeHtml = false)
         {
-            byte[] data = await CompileReportAsync(template, model, toBeCompressed, cultureInfo, encodeHtml).ConfigureAwait(false);
+            byte[] data = await CompileReportAsync(template, models, toBeCompressed, cultureInfo, encodeHtml).ConfigureAwait(false);
             await FileHelper.WriteStreamAsync(destinationStream, data).ConfigureAwait(false);
         }
 
