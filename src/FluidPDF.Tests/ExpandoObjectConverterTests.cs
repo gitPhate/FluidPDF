@@ -431,12 +431,13 @@ namespace FluidPDF.Tests
             ExpandoObjectConverter converter = new();
             JsonSerializerOptions options = new();
             options.Converters.Add(converter);
+            int[] scores = [95, 87, 92];
 
             dynamic original = new ExpandoObject();
             original.Name = "John";
             original.Age = 30;
             original.IsActive = true;
-            original.Scores = new[] { 95, 87, 92 };
+            original.Scores = scores;
             original.Address = new ExpandoObject();
             original.Address.Street = "123 Main St";
             original.Address.City = "NYC";
@@ -449,7 +450,7 @@ namespace FluidPDF.Tests
             ((string)deserialized.Name).Should().Be(original.Name);
             ((int)deserialized.Age).Should().Be(original.Age);
             ((bool)deserialized.IsActive).Should().Be(original.IsActive);
-            ((int[])deserialized.Scores).Should().HaveCount(original.Scores.Length);
+            ((int[])deserialized.Scores).Should().HaveCount(scores.Length);
             ((string)deserialized.Address.Street).Should().Be(original.Address.Street);
             ((string)deserialized.Address.City).Should().Be(original.Address.City);
         }
