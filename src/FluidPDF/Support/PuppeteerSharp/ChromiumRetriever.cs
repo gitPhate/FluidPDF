@@ -1,7 +1,6 @@
 using PuppeteerSharp;
 using PuppeteerSharp.BrowserData;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace FluidPDF.Support.PuppeteerSharp
