@@ -24,7 +24,7 @@ namespace FluidPDF.Tests
         {
             // Arrange
             object model = TemplateModelMother.SimpleObject();
-            RazorTemplateEngine templateEngine = new(new RecordingRazorTemplateCache());
+            using RazorTemplateEngine templateEngine = new(new RecordingRazorTemplateCache());
 
             // Act
             Func<Task> act = async () =>
@@ -41,7 +41,7 @@ namespace FluidPDF.Tests
         {
             // Arrange
             object model = TemplateModelMother.SimpleObject();
-            RazorTemplateEngine templateEngine = new(new RecordingRazorTemplateCache());
+            using RazorTemplateEngine templateEngine = new(new RecordingRazorTemplateCache());
 
             // Act
             Func<Task> act = async () =>
@@ -57,7 +57,7 @@ namespace FluidPDF.Tests
         {
             // Arrange
             Dictionary<string, object> model = TemplateModelMother.SimpleDictionary();
-            RazorTemplateEngine templateEngine = new(new RecordingRazorTemplateCache());
+            using RazorTemplateEngine templateEngine = new(new RecordingRazorTemplateCache());
 
             // Act
             Func<Task> act = async () =>
@@ -72,7 +72,7 @@ namespace FluidPDF.Tests
         public async Task RenderTemplateAsync_WithJsonStringModel_ShouldThrowNotSupportedException_WhenModelNameIsNotDefault()
         {
             // Arrange
-            RazorTemplateEngine templateEngine = new(new RecordingRazorTemplateCache());
+            using RazorTemplateEngine templateEngine = new(new RecordingRazorTemplateCache());
 
             // Act
             Func<Task> act = async () =>
@@ -88,7 +88,7 @@ namespace FluidPDF.Tests
         {
             // Arrange
             DataTable model = TemplateModelMother.SimpleDataTable();
-            RazorTemplateEngine templateEngine = new(new RecordingRazorTemplateCache());
+            using RazorTemplateEngine templateEngine = new(new RecordingRazorTemplateCache());
 
             // Act
             Func<Task> act = async () =>
@@ -104,7 +104,7 @@ namespace FluidPDF.Tests
         {
             // Arrange
             FluidPDFTemplateModel[] models = TemplateModelMother.TwoModelArray();
-            RazorTemplateEngine templateEngine = new(new RecordingRazorTemplateCache());
+            using RazorTemplateEngine templateEngine = new(new RecordingRazorTemplateCache());
 
             // Act
             Func<Task> act = async () =>
@@ -123,7 +123,7 @@ namespace FluidPDF.Tests
             // Arrange
             object model = TemplateModelMother.SimpleObject();
             RecordingRazorTemplateCache cache = new();
-            RazorTemplateEngine templateEngine = new(cache);
+            using RazorTemplateEngine templateEngine = new(cache);
 
             // Act
             await templateEngine.RenderTemplateAsync(SimpleTemplate, model, new());
@@ -143,11 +143,11 @@ namespace FluidPDF.Tests
             RecordingRazorTemplateCache cache = new();
 
             // First render — compiles and stores
-            RazorTemplateEngine firstEngine = new(cache);
+            using RazorTemplateEngine firstEngine = new(cache);
             await firstEngine.RenderTemplateAsync(TemplateModelMother.RazorSimpleTemplate, model, new());
 
             // Act — second render with a fresh engine instance pointing at the same cache
-            RazorTemplateEngine secondEngine = new(cache);
+            using RazorTemplateEngine secondEngine = new(cache);
             await secondEngine.RenderTemplateAsync(TemplateModelMother.RazorSimpleTemplate, model, new());
 
             // Assert
@@ -165,11 +165,11 @@ namespace FluidPDF.Tests
             RecordingRazorTemplateCache cache = new();
 
             // First render — populates the cache
-            RazorTemplateEngine firstEngine = new(cache);
+            using RazorTemplateEngine firstEngine = new(cache);
             await firstEngine.RenderTemplateAsync(TemplateModelMother.RazorSimpleTemplate, model, new());
 
             // Act — fresh engine instance, same cache
-            RazorTemplateEngine secondEngine = new(cache);
+            using RazorTemplateEngine secondEngine = new(cache);
             string result = await secondEngine.RenderTemplateAsync(TemplateModelMother.RazorSimpleTemplate, model, new());
 
             // Assert
@@ -184,7 +184,7 @@ namespace FluidPDF.Tests
             // Arrange
             object model = TemplateModelMother.SimpleObject();
             RecordingRazorTemplateCache cache = new();
-            RazorTemplateEngine templateEngine = new(cache);
+            using RazorTemplateEngine templateEngine = new(cache);
 
             // Act
             await templateEngine.RenderTemplateAsync(TemplateModelMother.RazorSimpleTemplate, model, new());
@@ -200,7 +200,7 @@ namespace FluidPDF.Tests
             // Arrange
             object model = TemplateModelMother.HtmlSpecialCharsObject();
             RecordingRazorTemplateCache cache = new();
-            RazorTemplateEngine templateEngine = new(cache);
+            using RazorTemplateEngine templateEngine = new(cache);
 
             // Act
             string encoded = await templateEngine.RenderTemplateAsync(TemplateModelMother.RazorHtmlSpecialCharsTemplate, model, new() { EncodeHtml = true });
@@ -219,7 +219,7 @@ namespace FluidPDF.Tests
             // Arrange
             object model = TemplateModelMother.HtmlSpecialCharsObject();
             string template = "<p>@Raw(Model.Value)</p>";
-            RazorTemplateEngine templateEngine = new(new RecordingRazorTemplateCache());
+            using RazorTemplateEngine templateEngine = new(new RecordingRazorTemplateCache());
             FluidPDFTemplateRenderOptions options = new() { EncodeHtml = true };
 
             // Act
@@ -235,7 +235,7 @@ namespace FluidPDF.Tests
             // Arrange
             object model = TemplateModelMother.HtmlSpecialCharsObject();
             string template = TemplateModelMother.RazorHtmlSpecialCharsTemplate;
-            RazorTemplateEngine templateEngine = new(new RecordingRazorTemplateCache());
+            using RazorTemplateEngine templateEngine = new(new RecordingRazorTemplateCache());
             FluidPDFTemplateRenderOptions options = new() { EncodeHtml = true };
 
             // Act
@@ -251,7 +251,7 @@ namespace FluidPDF.Tests
             // Arrange
             object model = TemplateModelMother.HtmlSpecialCharsObject();
             string template = TemplateModelMother.RazorHtmlSpecialCharsTemplate;
-            RazorTemplateEngine templateEngine = new(new RecordingRazorTemplateCache());
+            using RazorTemplateEngine templateEngine = new(new RecordingRazorTemplateCache());
             FluidPDFTemplateRenderOptions options = new() { EncodeHtml = false };
 
             // Act
@@ -259,6 +259,20 @@ namespace FluidPDF.Tests
 
             // Assert
             result.Should().Be(TemplateModelMother.HtmlSpecialCharsRawExpectedOutput);
+        }
+
+        [Fact]
+        public void Dispose_ShouldDisposeCompileLocksAndAllowRecreationOfEngine()
+        {
+            // Arrange
+            RecordingRazorTemplateCache cache = new();
+            RazorTemplateEngine templateEngine = new(cache);
+
+            // Act
+            templateEngine.Dispose();
+
+            // Assert
+            cache.Count.Should().Be(0);
         }
 
         private sealed class RecordingRazorTemplateCache : IRazorTemplateCache

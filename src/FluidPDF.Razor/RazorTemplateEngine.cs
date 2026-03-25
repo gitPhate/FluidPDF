@@ -12,7 +12,7 @@ namespace FluidPDF.Razor
     public sealed class RazorTemplateEngine(IRazorTemplateCache templateCache) : IFluidPDFTemplateEngine
     {
         private readonly IRazorTemplateCache _templateCache = templateCache;
-        private readonly ConcurrentDictionary<string, SemaphoreSlim> _compileLocks = new();
+        private readonly ConcurrentDictionary<string, SemaphoreSlim> _compileLocks = [];
 
         public async ValueTask<string> RenderTemplateAsync(string template, DataTable model, FluidPDFTemplateRenderOptions options, string modelName = ModelNames.DefaultModelName)
         {
@@ -119,6 +119,16 @@ namespace FluidPDF.Razor
                 .ConfigureAwait(false);
 
             return new FluidPDFRazorCompiledTemplate(compiledTemplate);
+        }
+
+        public void Dispose()
+        {
+            foreach (SemaphoreSlim semaphore in _compileLocks.Values)
+            {
+                semaphore.Dispose();
+            }
+
+            _compileLocks.Clear();
         }
     }
 }

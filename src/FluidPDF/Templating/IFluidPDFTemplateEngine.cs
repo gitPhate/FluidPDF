@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 namespace FluidPDF.Templating
 {
     public interface IFluidPDFTemplateEngine
+        : IDisposable
     {
         ValueTask<string> RenderTemplateAsync(string template, DataTable model, FluidPDFTemplateRenderOptions options, string modelName = ModelNames.DefaultModelName);
         ValueTask<string> RenderTemplateAsync(string template, IDictionary<string, object> model, FluidPDFTemplateRenderOptions options, string modelName = ModelNames.DefaultModelName);

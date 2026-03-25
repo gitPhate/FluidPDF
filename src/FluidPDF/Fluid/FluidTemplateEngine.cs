@@ -159,5 +159,9 @@ namespace FluidPDF.Fluid
 
             return templateOptions;
         }
+
+        public void Dispose()
+        {
+        }
     }
 }

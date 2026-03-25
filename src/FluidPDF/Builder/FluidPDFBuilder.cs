@@ -38,6 +38,7 @@ namespace FluidPDF.Builder
         private bool _toBeCompressed;
         private bool _htmlEncode;
         private IFluidPDFTemplateEngine _templateEngine;
+        private bool _isDisposed;
 
         internal FluidPDFBuilder(IChromiumRetriever? chromiumRetriever = null)
         {
@@ -52,6 +53,12 @@ namespace FluidPDF.Builder
             _htmlEncode = false;
             _templateEngine = new FluidTemplateEngine();
             _chromiumRetriever = chromiumRetriever;
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         public IFluidPDFBuilder WithDataRowModel(DataRow dataRow, string modelName = ModelNames.DefaultModelName)
@@ -98,6 +105,7 @@ namespace FluidPDF.Builder
 
         public IFluidPDFBuilder WithTemplateEngine(IFluidPDFTemplateEngine templateEngine)
         {
+            _templateEngine.Dispose();
             _templateEngine = templateEngine.GetNonNullOrThrow(nameof(templateEngine));
             return this;
         }
@@ -274,6 +282,11 @@ namespace FluidPDF.Builder
 
         private void Verify()
         {
+            if (_isDisposed)
+            {
+                throw new ObjectDisposedException(nameof(FluidPDFBuilder));
+            }
+
             StringBuilder builder = new();
 
             if (_template.IsNullOrBlankString())
@@ -295,6 +308,21 @@ namespace FluidPDF.Builder
             {
                 throw new FluidPDFBuilderConfigException($"One or more info are missing or wrong:{Environment.NewLine}{builder}");
             }
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_isDisposed)
+            {
+                return;
+            }
+
+            if (disposing)
+            {
+                _templateEngine.Dispose();
+            }
+
+            _isDisposed = true;
         }
     }
 }

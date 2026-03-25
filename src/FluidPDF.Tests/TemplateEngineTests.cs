@@ -21,7 +21,7 @@ namespace FluidPDF.Tests
             // Arrange
             object model = TemplateModelMother.SimpleObject();
             string template = SimpleTemplate;
-            IFluidPDFTemplateEngine templateEngine = CreateEngine();
+            using IFluidPDFTemplateEngine templateEngine = CreateEngine();
 
             // Act
             string result = await templateEngine.RenderTemplateAsync(template, model, new());
@@ -36,7 +36,7 @@ namespace FluidPDF.Tests
             // Arrange
             Dictionary<string, object> model = TemplateModelMother.SimpleDictionary();
             string template = SimpleTemplate;
-            IFluidPDFTemplateEngine templateEngine = CreateEngine();
+            using IFluidPDFTemplateEngine templateEngine = CreateEngine();
 
             // Act
             string result = await templateEngine.RenderTemplateAsync(template, model, new());
@@ -51,7 +51,7 @@ namespace FluidPDF.Tests
             // Arrange
             FluidPDFTemplateModel[] models = TemplateModelMother.TwoModelArray();
             string template = TwoModelTemplate;
-            IFluidPDFTemplateEngine templateEngine = CreateEngine();
+            using IFluidPDFTemplateEngine templateEngine = CreateEngine();
 
             // Act
             string result = await templateEngine.RenderTemplateAsync(template, models, new());
@@ -66,7 +66,7 @@ namespace FluidPDF.Tests
             // Arrange
             DataTable model = TemplateModelMother.SimpleDataTable();
             string template = DataTableTemplate;
-            IFluidPDFTemplateEngine templateEngine = CreateEngine();
+            using IFluidPDFTemplateEngine templateEngine = CreateEngine();
 
             // Act
             string result = await templateEngine.RenderTemplateAsync(template, model, new());
@@ -81,7 +81,7 @@ namespace FluidPDF.Tests
             // Arrange
             string model = TemplateModelMother.SimpleJsonString;
             string template = SimpleTemplate;
-            IFluidPDFTemplateEngine templateEngine = CreateEngine();
+            using IFluidPDFTemplateEngine templateEngine = CreateEngine();
 
             // Act
             string result = await templateEngine.RenderTemplateAsync(template, model, new());
@@ -96,7 +96,7 @@ namespace FluidPDF.Tests
             // Arrange
             object model = TemplateModelMother.HtmlSpecialCharsObject();
             string template = HtmlSpecialCharsTemplate;
-            IFluidPDFTemplateEngine templateEngine = CreateEngine();
+            using IFluidPDFTemplateEngine templateEngine = CreateEngine();
             FluidPDFTemplateRenderOptions options = new() { EncodeHtml = true };
 
             // Act
@@ -112,7 +112,7 @@ namespace FluidPDF.Tests
             // Arrange
             object model = TemplateModelMother.HtmlSpecialCharsObject();
             string template = HtmlSpecialCharsTemplate;
-            IFluidPDFTemplateEngine templateEngine = CreateEngine();
+            using IFluidPDFTemplateEngine templateEngine = CreateEngine();
             FluidPDFTemplateRenderOptions options = new() { EncodeHtml = false };
 
             // Act
@@ -130,7 +130,7 @@ namespace FluidPDF.Tests
             // raises ArgumentException because ScriptObject does not allow duplicate keys.
             FluidPDFTemplateModel m1 = FluidPDFTemplateModel.FromObject(new { Name = "Dave" });
             FluidPDFTemplateModel m2 = FluidPDFTemplateModel.FromObject(new { Name = "Eve" });
-            IFluidPDFTemplateEngine templateEngine = CreateEngine();
+            using IFluidPDFTemplateEngine templateEngine = CreateEngine();
 
             // Act
             Func<Task> act = async () =>
@@ -147,7 +147,7 @@ namespace FluidPDF.Tests
         {
             // Arrange
             FluidPDFTemplateModel[] models = TemplateModelMother.LocalizationModelArray();
-            IFluidPDFTemplateEngine templateEngine = CreateEngine();
+            using IFluidPDFTemplateEngine templateEngine = CreateEngine();
 
             // Act
             string result = await templateEngine.RenderTemplateAsync(LocalizationTemplate, models, new());

@@ -20,7 +20,7 @@ namespace FluidPDF.Tests
             // Arrange
             object model = TemplateModelMother.SimpleObject();
             string template = TemplateModelMother.InvalidTemplate;
-            FluidTemplateEngine templateEngine = new();
+            using FluidTemplateEngine templateEngine = new();
 
             // Act
             Func<Task> act = async () =>

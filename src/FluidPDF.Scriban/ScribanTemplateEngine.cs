@@ -129,5 +129,9 @@ namespace FluidPDF.Scriban
             JsonElement root = JsonSerializer.Deserialize<JsonElement>(json);
             return ScriptObject.From(root);
         }
+
+        public void Dispose()
+        {
+        }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using FluidPDF.Templating;
 using FluidPDF.Templating.Localization;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace FluidPDF.Builder
 {
-    public interface IFluidPDFBuilder
+    public interface IFluidPDFBuilder : IDisposable
     {
         IFluidPDFBuilder WithDataRowModel(DataRow dataRow, string modelName = ModelNames.DefaultModelName);
         IFluidPDFBuilder WithDataTableModel(DataTable dataTable, string modelName = ModelNames.DefaultModelName);

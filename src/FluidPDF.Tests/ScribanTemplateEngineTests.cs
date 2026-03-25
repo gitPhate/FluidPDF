@@ -18,7 +18,7 @@ namespace FluidPDF.Tests
         {
             // Arrange
             object model = TemplateModelMother.SimpleObject();
-            ScribanTemplateEngine templateEngine = new();
+            using ScribanTemplateEngine templateEngine = new();
 
             // Act
             Func<Task> act = async () =>
