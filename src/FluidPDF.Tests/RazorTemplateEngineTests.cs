@@ -7,25 +7,15 @@ using System.Data;
 
 namespace FluidPDF.Tests
 {
-    public class RazorTemplateEngineTests : TemplateEngineTests, IDisposable
+    public class RazorTemplateEngineTests : TemplateEngineTests
     {
-        private readonly string _cacheDir = Path.Combine(AppContext.BaseDirectory, "FluidPDF_RazorCache_" + Guid.NewGuid().ToString("N"));
-
-        protected override IFluidPDFTemplateEngine CreateEngine() => new RazorTemplateEngine();
+        protected override IFluidPDFTemplateEngine CreateEngine() => new RazorTemplateEngine(new RecordingRazorTemplateCache());
 
         protected override string SimpleTemplate => TemplateModelMother.RazorSimpleTemplate;
         protected override string TwoModelTemplate => TemplateModelMother.RazorTwoModelTemplate;
         protected override string HtmlSpecialCharsTemplate => TemplateModelMother.RazorHtmlSpecialCharsTemplate;
         protected override string DataTableTemplate => TemplateModelMother.RazorDataTableTemplate();
         protected override string LocalizationTemplate => TemplateModelMother.RazorLocalizationTemplate;
-
-        public void Dispose()
-        {
-            if (Directory.Exists(_cacheDir))
-            {
-                Directory.Delete(_cacheDir, true);
-            }
-        }
 
         // --- Engine-specific: invalid template throws RazorEngineCompilationException ---
 
@@ -34,7 +24,7 @@ namespace FluidPDF.Tests
         {
             // Arrange
             object model = TemplateModelMother.SimpleObject();
-            RazorTemplateEngine templateEngine = new();
+            RazorTemplateEngine templateEngine = new(new RecordingRazorTemplateCache());
 
             // Act
             Func<Task> act = async () =>
@@ -51,7 +41,7 @@ namespace FluidPDF.Tests
         {
             // Arrange
             object model = TemplateModelMother.SimpleObject();
-            RazorTemplateEngine templateEngine = new();
+            RazorTemplateEngine templateEngine = new(new RecordingRazorTemplateCache());
 
             // Act
             Func<Task> act = async () =>
@@ -67,7 +57,7 @@ namespace FluidPDF.Tests
         {
             // Arrange
             Dictionary<string, object> model = TemplateModelMother.SimpleDictionary();
-            RazorTemplateEngine templateEngine = new();
+            RazorTemplateEngine templateEngine = new(new RecordingRazorTemplateCache());
 
             // Act
             Func<Task> act = async () =>
@@ -82,7 +72,7 @@ namespace FluidPDF.Tests
         public async Task RenderTemplateAsync_WithJsonStringModel_ShouldThrowNotSupportedException_WhenModelNameIsNotDefault()
         {
             // Arrange
-            RazorTemplateEngine templateEngine = new();
+            RazorTemplateEngine templateEngine = new(new RecordingRazorTemplateCache());
 
             // Act
             Func<Task> act = async () =>
@@ -98,7 +88,7 @@ namespace FluidPDF.Tests
         {
             // Arrange
             DataTable model = TemplateModelMother.SimpleDataTable();
-            RazorTemplateEngine templateEngine = new();
+            RazorTemplateEngine templateEngine = new(new RecordingRazorTemplateCache());
 
             // Act
             Func<Task> act = async () =>
@@ -114,7 +104,7 @@ namespace FluidPDF.Tests
         {
             // Arrange
             FluidPDFTemplateModel[] models = TemplateModelMother.TwoModelArray();
-            RazorTemplateEngine templateEngine = new();
+            RazorTemplateEngine templateEngine = new(new RecordingRazorTemplateCache());
 
             // Act
             Func<Task> act = async () =>
@@ -125,98 +115,92 @@ namespace FluidPDF.Tests
                 .WithMessage($"*'{ModelNames.DefaultModelName}'*");
         }
 
-        // --- Disk cache: cache miss compiles and saves the file ---
+        // --- Cache: cache miss compiles and stores the compiled template ---
 
         [Fact]
-        public async Task RenderTemplateAsync_WithCacheOptions_ShouldSaveCompiledFileOnFirstRender()
+        public async Task RenderTemplateAsync_WithTemplateCache_ShouldStoreCompiledTemplateOnFirstRender()
         {
             // Arrange
             object model = TemplateModelMother.SimpleObject();
-            RazorCompiledTemplateCacheOptions cacheOptions = new(_cacheDir);
-            RazorTemplateEngine templateEngine = new(cacheOptions);
+            RecordingRazorTemplateCache cache = new();
+            RazorTemplateEngine templateEngine = new(cache);
 
             // Act
             await templateEngine.RenderTemplateAsync(SimpleTemplate, model, new());
 
             // Assert
-            string[] files = Directory.GetFiles(_cacheDir, "*.dll");
-            files.Should().ContainSingle();
+            cache.SetCalls.Should().Be(1);
+            cache.Count.Should().Be(1);
         }
 
-        // --- Disk cache: cache hit loads from file instead of recompiling ---
+        // --- Cache: cache hit reuses the stored compiled template ---
 
         [Fact]
-        public async Task RenderTemplateAsync_WithCacheOptions_ShouldLoadFromCachedFileOnSubsequentRender()
+        public async Task RenderTemplateAsync_WithTemplateCache_ShouldReuseStoredTemplateOnSubsequentRender()
         {
             // Arrange
             object model = TemplateModelMother.SimpleObject();
-            RazorCompiledTemplateCacheOptions cacheOptions = new(_cacheDir);
+            RecordingRazorTemplateCache cache = new();
 
-            // First render — compiles and saves
-            RazorTemplateEngine firstEngine = new(cacheOptions);
+            // First render — compiles and stores
+            RazorTemplateEngine firstEngine = new(cache);
             await firstEngine.RenderTemplateAsync(TemplateModelMother.RazorSimpleTemplate, model, new());
-
-            string[] filesAfterFirst = Directory.GetFiles(_cacheDir, "*.dll");
-            filesAfterFirst.Should().ContainSingle();
-            string cachedFile = filesAfterFirst.First();
-            DateTime writtenAt = File.GetLastWriteTimeUtc(cachedFile);
 
             // Act — second render with a fresh engine instance pointing at the same cache
-            await Task.Delay(10, TestContext.Current.CancellationToken); // ensure a recompile would produce a different timestamp
-            RazorTemplateEngine secondEngine = new(cacheOptions);
+            RazorTemplateEngine secondEngine = new(cache);
             await secondEngine.RenderTemplateAsync(TemplateModelMother.RazorSimpleTemplate, model, new());
 
-            // Assert — file must not have been overwritten (loaded, not recompiled)
-            File.GetLastWriteTimeUtc(cachedFile).Should().Be(writtenAt);
+            // Assert
+            cache.SetCalls.Should().Be(1);
+            cache.GetCalls.Should().Be(3);
         }
 
-        // --- Disk cache: end-to-end round-trip produces correct output ---
+        // --- Cache: round-trip still renders expected output ---
 
         [Fact]
-        public async Task RenderTemplateAsync_WithCacheOptions_ShouldReturnCorrectOutputFromCachedFile()
+        public async Task RenderTemplateAsync_WithTemplateCache_ShouldReturnCorrectOutputFromCachedTemplate()
         {
             // Arrange
             object model = TemplateModelMother.SimpleObject();
-            RazorCompiledTemplateCacheOptions cacheOptions = new(_cacheDir);
+            RecordingRazorTemplateCache cache = new();
 
             // First render — populates the cache
-            RazorTemplateEngine firstEngine = new(cacheOptions);
+            RazorTemplateEngine firstEngine = new(cache);
             await firstEngine.RenderTemplateAsync(TemplateModelMother.RazorSimpleTemplate, model, new());
 
-            // Act — fresh engine instance, same cache directory
-            RazorTemplateEngine secondEngine = new(cacheOptions);
+            // Act — fresh engine instance, same cache
+            RazorTemplateEngine secondEngine = new(cache);
             string result = await secondEngine.RenderTemplateAsync(TemplateModelMother.RazorSimpleTemplate, model, new());
 
             // Assert
             result.Should().Be(TemplateModelMother.SimpleObjectExpectedOutput);
         }
 
-        // --- Disk cache: two distinct templates produce two separate cache files ---
+        // --- Cache: distinct templates produce distinct entries ---
 
         [Fact]
-        public async Task RenderTemplateAsync_WithCacheOptions_ShouldCreateSeparateCacheFilesForDistinctTemplates()
+        public async Task RenderTemplateAsync_WithTemplateCache_ShouldCreateSeparateEntriesForDistinctTemplates()
         {
             // Arrange
             object model = TemplateModelMother.SimpleObject();
-            RazorCompiledTemplateCacheOptions cacheOptions = new(_cacheDir);
-            RazorTemplateEngine templateEngine = new(cacheOptions);
+            RecordingRazorTemplateCache cache = new();
+            RazorTemplateEngine templateEngine = new(cache);
 
             // Act
             await templateEngine.RenderTemplateAsync(TemplateModelMother.RazorSimpleTemplate, model, new());
             await templateEngine.RenderTemplateAsync(TemplateModelMother.RazorHtmlSpecialCharsTemplate, TemplateModelMother.HtmlSpecialCharsObject(), new());
 
             // Assert
-            string[] files = Directory.GetFiles(_cacheDir, "*.dll");
-            files.Should().HaveCount(2);
+            cache.Count.Should().Be(2);
         }
 
         [Fact]
-        public async Task RenderTemplateAsync_WithCacheOptions_ShouldReuseSingleCacheFile_WhenEncodeHtmlChanges()
+        public async Task RenderTemplateAsync_WithTemplateCache_ShouldReuseSingleEntry_WhenEncodeHtmlChanges()
         {
             // Arrange
             object model = TemplateModelMother.HtmlSpecialCharsObject();
-            RazorCompiledTemplateCacheOptions cacheOptions = new(_cacheDir);
-            RazorTemplateEngine templateEngine = new(cacheOptions);
+            RecordingRazorTemplateCache cache = new();
+            RazorTemplateEngine templateEngine = new(cache);
 
             // Act
             string encoded = await templateEngine.RenderTemplateAsync(TemplateModelMother.RazorHtmlSpecialCharsTemplate, model, new() { EncodeHtml = true });
@@ -226,8 +210,7 @@ namespace FluidPDF.Tests
             encoded.Should().Be(TemplateModelMother.HtmlEncodedExpectedOutput);
             raw.Should().Be(TemplateModelMother.HtmlSpecialCharsRawExpectedOutput);
 
-            string[] files = Directory.GetFiles(_cacheDir, "*.dll");
-            files.Should().ContainSingle();
+            cache.Count.Should().Be(1);
         }
 
         [Fact]
@@ -236,7 +219,7 @@ namespace FluidPDF.Tests
             // Arrange
             object model = TemplateModelMother.HtmlSpecialCharsObject();
             string template = "<p>@Raw(Model.Value)</p>";
-            RazorTemplateEngine templateEngine = new();
+            RazorTemplateEngine templateEngine = new(new RecordingRazorTemplateCache());
             FluidPDFTemplateRenderOptions options = new() { EncodeHtml = true };
 
             // Act
@@ -252,7 +235,7 @@ namespace FluidPDF.Tests
             // Arrange
             object model = TemplateModelMother.HtmlSpecialCharsObject();
             string template = TemplateModelMother.RazorHtmlSpecialCharsTemplate;
-            RazorTemplateEngine templateEngine = new();
+            RazorTemplateEngine templateEngine = new(new RecordingRazorTemplateCache());
             FluidPDFTemplateRenderOptions options = new() { EncodeHtml = true };
 
             // Act
@@ -268,7 +251,7 @@ namespace FluidPDF.Tests
             // Arrange
             object model = TemplateModelMother.HtmlSpecialCharsObject();
             string template = TemplateModelMother.RazorHtmlSpecialCharsTemplate;
-            RazorTemplateEngine templateEngine = new();
+            RazorTemplateEngine templateEngine = new(new RecordingRazorTemplateCache());
             FluidPDFTemplateRenderOptions options = new() { EncodeHtml = false };
 
             // Act
@@ -276,6 +259,31 @@ namespace FluidPDF.Tests
 
             // Assert
             result.Should().Be(TemplateModelMother.HtmlSpecialCharsRawExpectedOutput);
+        }
+
+        private sealed class RecordingRazorTemplateCache : IRazorTemplateCache
+        {
+            private readonly Dictionary<string, IFluidPDFRazorCompiledTemplate> _templates = new(StringComparer.Ordinal);
+
+            public int GetCalls { get; private set; }
+
+            public int SetCalls { get; private set; }
+
+            public int Count => _templates.Count;
+
+            public Task<IFluidPDFRazorCompiledTemplate?> GetRazorTemplateAsync(string template)
+            {
+                GetCalls++;
+                _templates.TryGetValue(template, out IFluidPDFRazorCompiledTemplate? compiledTemplate);
+                return Task.FromResult<IFluidPDFRazorCompiledTemplate?>(compiledTemplate);
+            }
+
+            public Task SetRazorTemplateAsync(string template, IFluidPDFRazorCompiledTemplate compiledTemplate)
+            {
+                SetCalls++;
+                _templates[template] = compiledTemplate;
+                return Task.CompletedTask;
+            }
         }
     }
 }

@@ -1,18 +1,18 @@
-using FluidPDF.Support.Hashing;
-using FluidPDF.Support.IO;
 using FluidPDF.Templating;
 using RazorEngineCore;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
-using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FluidPDF.Razor
 {
-    public sealed class RazorTemplateEngine(RazorCompiledTemplateCacheOptions? cacheOptions = null) : IFluidPDFTemplateEngine
+    public sealed class RazorTemplateEngine(IRazorTemplateCache templateCache) : IFluidPDFTemplateEngine
     {
-        private readonly RazorCompiledTemplateCacheOptions? _cacheOptions = cacheOptions;
+        private readonly IRazorTemplateCache _templateCache = templateCache;
+        private readonly ConcurrentDictionary<string, SemaphoreSlim> _compileLocks = new();
 
         public async ValueTask<string> RenderTemplateAsync(string template, DataTable model, FluidPDFTemplateRenderOptions options, string modelName = ModelNames.DefaultModelName)
         {
@@ -70,7 +70,7 @@ namespace FluidPDF.Razor
                 throw new ArgumentException("At least one model must be provided.", nameof(models));
             }
 
-            IFluidPDFRazorCompiledTemplate compiled = await GetOrCompileAsync(template).ConfigureAwait(false);
+            IInternalFluidPDFRazorCompiledTemplate compiled = await GetOrCompileAsync(template).ConfigureAwait(false);
             RazorRuntimeModel runtimeModel = new(models);
 
             string result = await compiled.RunAsync(runtimeModel, options.EncodeHtml).ConfigureAwait(false);
@@ -78,33 +78,40 @@ namespace FluidPDF.Razor
             return result;
         }
 
-        private async Task<IFluidPDFRazorCompiledTemplate> GetOrCompileAsync(string template)
+        private async Task<IInternalFluidPDFRazorCompiledTemplate> GetOrCompileAsync(string template)
         {
-            if (_cacheOptions is null)
-            {
-                return await CompileAsync(template).ConfigureAwait(false);
-            }
-
-            string cacheFilePath = GetCacheFilePath(template);
-
-            if (File.Exists(cacheFilePath))
-            {
-                RazorEngineCompiledTemplate cached =
-                    await RazorEngineCompiledTemplate
-                    .LoadFromFileAsync(cacheFilePath)
+            IFluidPDFRazorCompiledTemplate? cached =
+                await _templateCache
+                    .GetRazorTemplateAsync(template)
                     .ConfigureAwait(false);
 
-                return new FluidPDFRazorCachedCompiledTemplate(cached);
+            if (cached is IInternalFluidPDFRazorCompiledTemplate hit)
+            {
+                return hit;
             }
 
-            IFluidPDFRazorCompiledTemplate compiled = await CompileAsync(template).ConfigureAwait(false);
+            SemaphoreSlim semaphore = _compileLocks.GetOrAdd(template, _ => new SemaphoreSlim(1, 1));
+            await semaphore.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                // Double-check: another thread may have compiled and cached while we were waiting.
+                cached = await _templateCache.GetRazorTemplateAsync(template).ConfigureAwait(false);
+                if (cached is IInternalFluidPDFRazorCompiledTemplate doubleCheckHit)
+                {
+                    return doubleCheckHit;
+                }
 
-            await SaveToFileAtomicAsync(compiled, cacheFilePath).ConfigureAwait(false);
-
-            return compiled;
+                IInternalFluidPDFRazorCompiledTemplate compiled = await CompileAsync(template).ConfigureAwait(false);
+                await _templateCache.SetRazorTemplateAsync(template, compiled).ConfigureAwait(false);
+                return compiled;
+            }
+            finally
+            {
+                semaphore.Release();
+            }
         }
 
-        private static async Task<IFluidPDFRazorCompiledTemplate> CompileAsync(string template)
+        private static async Task<IInternalFluidPDFRazorCompiledTemplate> CompileAsync(string template)
         {
             IRazorEngineCompiledTemplate<FluidPDFRazorTemplateBase> compiledTemplate =
                 await new RazorEngine()
@@ -113,22 +120,6 @@ namespace FluidPDF.Razor
 
             return new FluidPDFRazorCompiledTemplate(compiledTemplate);
         }
-
-        private async Task SaveToFileAtomicAsync(IFluidPDFRazorCompiledTemplate compiledTemplate, string targetPath)
-        {
-            Directory.CreateDirectory(_cacheOptions!.CachePath);
-            string tempPath = targetPath + ".tmp";
-            await compiledTemplate.SaveToFileAsync(tempPath).ConfigureAwait(false);
-            FileHelper.Move(tempPath, targetPath);
-        }
-
-        private string GetCacheFilePath(string template)
-        {
-            string key = ComputeCacheKey(template);
-            return Path.Combine(_cacheOptions!.CachePath, key);
-        }
-
-        private static string ComputeCacheKey(string template) =>
-            HashHelper.HashSHA256(template);
     }
 }
+

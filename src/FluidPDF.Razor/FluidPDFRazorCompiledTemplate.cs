@@ -6,7 +6,14 @@ using System.Threading.Tasks;
 
 namespace FluidPDF.Razor
 {
-    internal interface IFluidPDFRazorCompiledTemplate
+    /// <summary>
+    /// Opaque handle returned by <see cref="IRazorTemplateCache"/>.
+    /// Implementors of <see cref="IRazorTemplateCache"/> store and return objects
+    /// of this type; the engine resolves the full compiled template internally.
+    /// </summary>
+    public interface IFluidPDFRazorCompiledTemplate { }
+
+    internal interface IInternalFluidPDFRazorCompiledTemplate : IFluidPDFRazorCompiledTemplate
     {
         void EnableDebugging(string debuggingOutputDirectory = null);
         string Run(RazorRuntimeModel model, bool encodeHtml = false);
@@ -17,7 +24,7 @@ namespace FluidPDF.Razor
         Task SaveToStreamAsync(Stream stream);
     }
 
-    internal class FluidPDFRazorCompiledTemplate(IRazorEngineCompiledTemplate<FluidPDFRazorTemplateBase> obj) : IFluidPDFRazorCompiledTemplate
+    internal sealed class FluidPDFRazorCompiledTemplate(IRazorEngineCompiledTemplate<FluidPDFRazorTemplateBase> obj) : IInternalFluidPDFRazorCompiledTemplate
     {
         public void EnableDebugging(string debuggingOutputDirectory = null) => obj.EnableDebugging(debuggingOutputDirectory);
 
@@ -46,7 +53,7 @@ namespace FluidPDF.Razor
         public Task SaveToStreamAsync(Stream stream) => obj.SaveToStreamAsync(stream);
     }
 
-    internal class FluidPDFRazorCachedCompiledTemplate(RazorEngineCompiledTemplate obj) : IFluidPDFRazorCompiledTemplate
+    internal sealed class FluidPDFRazorCachedCompiledTemplate(RazorEngineCompiledTemplate obj) : IInternalFluidPDFRazorCompiledTemplate
     {
         public void EnableDebugging(string debuggingOutputDirectory = null) => obj.EnableDebugging(debuggingOutputDirectory);
 

@@ -16,10 +16,10 @@ namespace FluidPDF.Razor
             Converters = { new ExpandoObjectConverter() }
         };
 
-        internal object DefaultModelBuild { get; }
-        internal object? ResxModelBuild { get; }
+        public object DefaultModelBuild { get; }
+        public object? ResxModelBuild { get; }
 
-        internal object UnifiedModelBuild
+        public object UnifiedModelBuild
         {
             get
             {
