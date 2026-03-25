@@ -1,5 +1,7 @@
 using FluidPDF.Support.Hashing;
 using FluidPDF.Support.IO;
+using System.Collections.Concurrent;
+using System;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -12,26 +14,26 @@ namespace FluidPDF.Razor
 
     public interface IRazorTemplateCache
     {
-        Task<Stream?> GetRazorTemplateAsync(string template);
-        Task SetRazorTemplateAsync(string template, Stream compiledTemplateStream);
+        ValueTask<Stream?> GetRazorTemplateAsync(string template);
+        ValueTask SetRazorTemplateAsync(string template, Stream compiledTemplateStream);
     }
 
     internal sealed class RazorTemplateCache(RazorTemplateCacheOptions options) : IRazorTemplateCache
     {
-        public Task<Stream?> GetRazorTemplateAsync(string template)
+        public ValueTask<Stream?> GetRazorTemplateAsync(string template)
         {
             string cacheFilePath = GetCacheFilePath(template);
 
             if (!File.Exists(cacheFilePath))
             {
-                return Task.FromResult<Stream?>(null);
+                return default;
             }
 
             Stream stream = File.OpenRead(cacheFilePath);
-            return Task.FromResult<Stream?>(stream);
+            return new(stream);
         }
 
-        public async Task SetRazorTemplateAsync(string template, Stream compiledTemplateStream)
+        public async ValueTask SetRazorTemplateAsync(string template, Stream compiledTemplateStream)
         {
             string cacheFilePath = GetCacheFilePath(template);
             await SaveToFileAtomicAsync(compiledTemplateStream, cacheFilePath).ConfigureAwait(false);
@@ -63,10 +65,36 @@ namespace FluidPDF.Razor
 
     internal sealed class NullRazorTemplateCache : IRazorTemplateCache
     {
-        public Task<Stream?> GetRazorTemplateAsync(string template) =>
-            Task.FromResult<Stream?>(null);
+        public ValueTask<Stream?> GetRazorTemplateAsync(string template) => default;
 
-        public Task SetRazorTemplateAsync(string template, Stream compiledTemplateStream) =>
-            Task.CompletedTask;
+        public ValueTask SetRazorTemplateAsync(string template, Stream compiledTemplateStream) => default;
+    }
+
+    public sealed class InMemoryRazorTemplateCache : IRazorTemplateCache
+    {
+        private readonly ConcurrentDictionary<string, byte[]> _templates = new(StringComparer.Ordinal);
+
+        public ValueTask<Stream?> GetRazorTemplateAsync(string template)
+        {
+            if (!_templates.TryGetValue(template, out byte[]? compiledTemplate))
+            {
+                return default;
+            }
+
+            Stream stream = new MemoryStream(compiledTemplate, writable: false);
+            return new(stream);
+        }
+
+        public async ValueTask SetRazorTemplateAsync(string template, Stream compiledTemplateStream)
+        {
+            if (compiledTemplateStream.CanSeek)
+            {
+                compiledTemplateStream.Position = 0;
+            }
+
+            using MemoryStream memoryStream = new();
+            await compiledTemplateStream.CopyToAsync(memoryStream).ConfigureAwait(false);
+            _templates[template] = memoryStream.ToArray();
+        }
     }
 }

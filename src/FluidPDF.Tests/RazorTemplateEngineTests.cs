@@ -217,6 +217,24 @@ namespace FluidPDF.Tests
         }
 
         [Fact]
+        public async Task RenderTemplateAsync_WithInMemoryTemplateCache_ShouldReuseCompiledTemplateAcrossEngineInstances()
+        {
+            // Arrange
+            object model = TemplateModelMother.SimpleObject();
+            InMemoryRazorTemplateCache cache = new();
+
+            using RazorTemplateEngine firstEngine = new(cache);
+            await firstEngine.RenderTemplateAsync(TemplateModelMother.RazorSimpleTemplate, model, new());
+
+            // Act
+            using RazorTemplateEngine secondEngine = new(cache);
+            string result = await secondEngine.RenderTemplateAsync(TemplateModelMother.RazorSimpleTemplate, model, new());
+
+            // Assert
+            result.Should().Be(TemplateModelMother.SimpleObjectExpectedOutput);
+        }
+
+        [Fact]
         public async Task RenderTemplateAsync_WithTemplateCache_ShouldReuseSingleEntry_WhenEncodeHtmlChanges()
         {
             // Arrange
@@ -309,20 +327,20 @@ namespace FluidPDF.Tests
 
             public List<MemoryStream> StoredStreams { get; } = [];
 
-            public Task<Stream?> GetRazorTemplateAsync(string template)
+            public ValueTask<Stream?> GetRazorTemplateAsync(string template)
             {
                 GetCalls++;
 
                 if (!_templates.TryGetValue(template, out byte[]? compiledTemplate))
                 {
-                    return Task.FromResult<Stream?>(null);
+                    return default;
                 }
 
                 Stream stream = new MemoryStream(compiledTemplate, writable: false);
-                return Task.FromResult<Stream?>(stream);
+                return new(stream);
             }
 
-            public async Task SetRazorTemplateAsync(string template, Stream compiledTemplateStream)
+            public async ValueTask SetRazorTemplateAsync(string template, Stream compiledTemplateStream)
             {
                 SetCalls++;
 
