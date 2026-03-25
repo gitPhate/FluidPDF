@@ -195,6 +195,28 @@ namespace FluidPDF.Tests
         }
 
         [Fact]
+        public async Task RenderTemplateAsync_WithTemplateCache_ShouldRoundTripCompiledTemplateUsingStreams()
+        {
+            // Arrange
+            object model = TemplateModelMother.SimpleObject();
+            RecordingRazorTemplateCache cache = new();
+
+            using RazorTemplateEngine firstEngine = new(cache);
+            await firstEngine.RenderTemplateAsync(TemplateModelMother.RazorSimpleTemplate, model, new());
+
+            cache.StoredStreams.Should().HaveCount(1);
+            cache.StoredStreams[0].CanRead.Should().BeTrue();
+            cache.StoredStreams[0].Length.Should().BeGreaterThan(0);
+
+            // Act
+            using RazorTemplateEngine secondEngine = new(cache);
+            string result = await secondEngine.RenderTemplateAsync(TemplateModelMother.RazorSimpleTemplate, model, new());
+
+            // Assert
+            result.Should().Be(TemplateModelMother.SimpleObjectExpectedOutput);
+        }
+
+        [Fact]
         public async Task RenderTemplateAsync_WithTemplateCache_ShouldReuseSingleEntry_WhenEncodeHtmlChanges()
         {
             // Arrange
@@ -277,7 +299,7 @@ namespace FluidPDF.Tests
 
         private sealed class RecordingRazorTemplateCache : IRazorTemplateCache
         {
-            private readonly Dictionary<string, IFluidPDFRazorCompiledTemplate> _templates = new(StringComparer.Ordinal);
+            private readonly Dictionary<string, byte[]> _templates = new(StringComparer.Ordinal);
 
             public int GetCalls { get; private set; }
 
@@ -285,18 +307,31 @@ namespace FluidPDF.Tests
 
             public int Count => _templates.Count;
 
-            public Task<IFluidPDFRazorCompiledTemplate?> GetRazorTemplateAsync(string template)
+            public List<MemoryStream> StoredStreams { get; } = [];
+
+            public Task<Stream?> GetRazorTemplateAsync(string template)
             {
                 GetCalls++;
-                _templates.TryGetValue(template, out IFluidPDFRazorCompiledTemplate? compiledTemplate);
-                return Task.FromResult<IFluidPDFRazorCompiledTemplate?>(compiledTemplate);
+
+                if (!_templates.TryGetValue(template, out byte[]? compiledTemplate))
+                {
+                    return Task.FromResult<Stream?>(null);
+                }
+
+                Stream stream = new MemoryStream(compiledTemplate, writable: false);
+                return Task.FromResult<Stream?>(stream);
             }
 
-            public Task SetRazorTemplateAsync(string template, IFluidPDFRazorCompiledTemplate compiledTemplate)
+            public async Task SetRazorTemplateAsync(string template, Stream compiledTemplateStream)
             {
                 SetCalls++;
-                _templates[template] = compiledTemplate;
-                return Task.CompletedTask;
+
+                using MemoryStream copy = new();
+                await compiledTemplateStream.CopyToAsync(copy);
+
+                byte[] bytes = copy.ToArray();
+                _templates[template] = bytes;
+                StoredStreams.Add(new MemoryStream(bytes, writable: false));
             }
         }
     }

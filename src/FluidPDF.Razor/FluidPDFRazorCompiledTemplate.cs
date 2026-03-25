@@ -1,21 +1,12 @@
-﻿#nullable disable
-
-using RazorEngineCore;
+﻿using RazorEngineCore;
 using System.IO;
 using System.Threading.Tasks;
 
 namespace FluidPDF.Razor
 {
-    /// <summary>
-    /// Opaque handle returned by <see cref="IRazorTemplateCache"/>.
-    /// Implementors of <see cref="IRazorTemplateCache"/> store and return objects
-    /// of this type; the engine resolves the full compiled template internally.
-    /// </summary>
-    public interface IFluidPDFRazorCompiledTemplate { }
-
-    internal interface IInternalFluidPDFRazorCompiledTemplate : IFluidPDFRazorCompiledTemplate
+    internal interface IFluidPDFRazorCompiledTemplate
     {
-        void EnableDebugging(string debuggingOutputDirectory = null);
+        void EnableDebugging(string? debuggingOutputDirectory = null);
         string Run(RazorRuntimeModel model, bool encodeHtml = false);
         Task<string> RunAsync(RazorRuntimeModel model, bool encodeHtml = false);
         void SaveToFile(string fileName);
@@ -24,9 +15,9 @@ namespace FluidPDF.Razor
         Task SaveToStreamAsync(Stream stream);
     }
 
-    internal sealed class FluidPDFRazorCompiledTemplate(IRazorEngineCompiledTemplate<FluidPDFRazorTemplateBase> obj) : IInternalFluidPDFRazorCompiledTemplate
+    internal sealed class FluidPDFRazorEngineCompiledTemplate(IRazorEngineCompiledTemplate<FluidPDFRazorTemplateBase> obj) : IFluidPDFRazorCompiledTemplate
     {
-        public void EnableDebugging(string debuggingOutputDirectory = null) => obj.EnableDebugging(debuggingOutputDirectory);
+        public void EnableDebugging(string? debuggingOutputDirectory = null) => obj.EnableDebugging(debuggingOutputDirectory);
 
         public string Run(RazorRuntimeModel model, bool encodeHtml = false) =>
             obj.Run(instance =>
@@ -53,14 +44,14 @@ namespace FluidPDF.Razor
         public Task SaveToStreamAsync(Stream stream) => obj.SaveToStreamAsync(stream);
     }
 
-    internal sealed class FluidPDFRazorCachedCompiledTemplate(RazorEngineCompiledTemplate obj) : IInternalFluidPDFRazorCompiledTemplate
+    internal sealed class FluidPDFRazorCachedCompiledTemplate(RazorEngineCompiledTemplate obj) : IFluidPDFRazorCompiledTemplate
     {
-        public void EnableDebugging(string debuggingOutputDirectory = null) => obj.EnableDebugging(debuggingOutputDirectory);
+        public void EnableDebugging(string? debuggingOutputDirectory = null) => obj.EnableDebugging(debuggingOutputDirectory);
 
         public string Run(RazorRuntimeModel model, bool encodeHtml = false) =>
             obj.Run(model.UnifiedModelBuild);
 
-        public Task<string> RunAsync(RazorRuntimeModel model = null, bool encodeHtml = false) =>
+        public Task<string> RunAsync(RazorRuntimeModel model, bool encodeHtml = false) =>
             obj.RunAsync(model.UnifiedModelBuild);
 
         public void SaveToFile(string fileName) => obj.SaveToFile(fileName);
