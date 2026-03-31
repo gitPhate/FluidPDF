@@ -284,3 +284,43 @@ All model methods have a `modelName` property with default value `Model` to chan
 | `FluidPDFTemplateModel.FromDataTable(table)` | `System.Data.DataTable` |
 | `FluidPDFTemplateModel.FromDataRow(row)` | `System.Data.DataRow` |
 | `FluidPDFTemplateModel.FromPlainValue(value)` | Primitive / scalar value |
+
+## Fluid Built-In Utilities
+
+The default Fluid template engine includes a small set of built-in filters and tags that are registered automatically when you use `FluidTemplateEngine`.
+
+### Filters
+
+| Filter | Description |
+|---|---|
+| `to_number` | Converts the input to a numeric value. If conversion fails, the result is `nil`. |
+| `to_date_time` | Converts strings, `DateTime`, and `DateTimeOffset` values to a date/time value. Supported string shortcuts are `now`, `today`, `maxdate`, and `mindate`. Pass a positional format string to render a formatted string instead of a date value. |
+| `to_string` | Converts the input to a string. Supports named parameters `format` and `len` for formatting and minimum width. Whole numbers are formatted without a decimal fraction when possible. |
+| `file_read_all_text` | Reads the full contents of a file path. Pass the positional argument `encode` to enable HTML encoding in the returned string. Returns `nil` if the file does not exist or the input is not a string. |
+| `file_read_all_lines` | Reads text as lines. Use the positional argument `file` to treat the input as a file path, and `none` as the second positional argument to keep empty lines. Returns line objects with a zero-based `LineNumber` and the line text in `LineContent`. |
+| `extract_file_name` | Returns the file name portion of a path. |
+| `extract_directory_name` | Returns the directory portion of a path. |
+| `starts_with` | Returns whether the input string starts with the provided value using ordinal comparison. |
+| `ends_with` | Returns whether the input string ends with the provided value using ordinal comparison. |
+| `contains` | Returns whether the input string contains the provided value using ordinal comparison. |
+| `to_base64` | Encodes a string to Base64. Supports the `encoding` named parameter, with `UTF8` as the default. |
+| `from_base64` | Decodes a Base64 string. Supports the `encoding` named parameter, with `UTF8` as the default. |
+
+Supported encodings for the Base64 filters are `ASCII`, `BigEndianUnicode`, `Unicode`, `UTF32`, and `UTF8`.
+
+### Tags
+
+| Tag | Syntax | Description |
+|---|---|---|
+| `backslash` | `{% backslash %}` | Writes a backslash character. |
+| `slash` | `{% slash %}` | Writes a forward slash character. |
+| `pipe` | `{% pipe %}` | Writes a pipe character. |
+| `double_quote` | `{% double_quote %}` | Writes a d<ouble quote character. |
+| `single_quote` | `{% single_quote %}` | Writes a single quote character. |
+| `path_separator` | `{% path_separator %}` | Writes the current platform directory separator character. |
+| `string_empty` | `{% string_empty %}` | Writes an empty string. |
+| `float_random` | `{% float_random %}` | Writes a random floating-point value between 0 and 1 using the current culture. |
+| `guid` | `{% guid new %}` or `{% guid empty %}` | Writes a new GUID or the empty GUID. Unrecognized identifiers are ignored. |
+| `int_random` | `{% int_random min_value: 10 max_value: 100 %}` | Writes a random integer. Both bounds are optional; defaults are `0` and `int.MaxValue`. |
+
+The random tags use the current template culture when converting values to text.
