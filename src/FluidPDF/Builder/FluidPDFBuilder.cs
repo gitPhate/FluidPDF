@@ -1,4 +1,6 @@
-﻿using FluidPDF.Exceptions;
+﻿using Fluid;
+using Fluid.Ast;
+using FluidPDF.Exceptions;
 using FluidPDF.Fluid;
 using FluidPDF.Support;
 using FluidPDF.Support.IO;
@@ -12,6 +14,7 @@ using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 
 namespace FluidPDF.Builder
@@ -39,6 +42,7 @@ namespace FluidPDF.Builder
         private bool _htmlEncode;
         private IFluidPDFTemplateEngine _templateEngine;
         private bool _isDisposed;
+        private FluidTemplateEngineOptions? _fluidEngineOptions;
 
         internal FluidPDFBuilder(IChromiumRetriever? chromiumRetriever = null)
         {
@@ -221,6 +225,57 @@ namespace FluidPDF.Builder
         {
             _toBeCompressed = true;
             return this;
+        }
+
+        public IFluidPDFBuilder WithFluidFilter(string name, FilterDelegate filter)
+        {
+            FluidEngineOptions.AddFilter(
+                name.GetNonNullOrThrow(nameof(name)),
+                filter.GetNonNullOrThrow(nameof(filter)));
+            ReplaceWithConfiguredFluidEngine();
+            return this;
+        }
+
+        public IFluidPDFBuilder WithFluidEmptyTag(string name, Func<TextWriter, TextEncoder, TemplateContext, ValueTask<Completion>> render)
+        {
+            FluidEngineOptions.AddEmptyTag(
+                name.GetNonNullOrThrow(nameof(name)),
+                render.GetNonNullOrThrow(nameof(render)));
+            ReplaceWithConfiguredFluidEngine();
+            return this;
+        }
+
+        public IFluidPDFBuilder WithFluidIdentifierTag(string name, Func<string, TextWriter, TextEncoder, TemplateContext, ValueTask<Completion>> render)
+        {
+            FluidEngineOptions.AddIdentifierTag(
+                name.GetNonNullOrThrow(nameof(name)),
+                render.GetNonNullOrThrow(nameof(render)));
+            ReplaceWithConfiguredFluidEngine();
+            return this;
+        }
+
+        public IFluidPDFBuilder WithFluidArgumentTag(string name, Func<IReadOnlyList<FilterArgument>, TextWriter, TextEncoder, TemplateContext, ValueTask<Completion>> render)
+        {
+            FluidEngineOptions.AddArgumentTag(
+                name.GetNonNullOrThrow(nameof(name)),
+                render.GetNonNullOrThrow(nameof(render)));
+            ReplaceWithConfiguredFluidEngine();
+            return this;
+        }
+
+        private FluidTemplateEngineOptions FluidEngineOptions =>
+            _fluidEngineOptions ??= new FluidTemplateEngineOptions();
+
+        private void ReplaceWithConfiguredFluidEngine()
+        {
+            if (_templateEngine is not FluidTemplateEngine)
+            {
+                throw new FluidPDFBuilderConfigException(
+                    "Fluid-specific registrations cannot be used when a custom template engine has been set via WithTemplateEngine.");
+            }
+
+            _templateEngine.Dispose();
+            _templateEngine = new FluidTemplateEngine(_fluidEngineOptions!);
         }
 
         public async Task<byte[]> BuildAsync()

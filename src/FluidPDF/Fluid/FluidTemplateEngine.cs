@@ -1,6 +1,9 @@
-﻿using Fluid;
+using Fluid;
+using Fluid.Ast;
 using Fluid.Values;
 using FluidPDF.Exceptions;
+using FluidPDF.Fluid.Filters;
+using FluidPDF.Fluid.Tags;
 using FluidPDF.Support;
 using FluidPDF.Templating;
 using System;
@@ -18,8 +21,45 @@ namespace FluidPDF.Fluid
 {
     public sealed class FluidTemplateEngine : IFluidPDFTemplateEngine
     {
-        private static readonly FluidParser _parser = new();
-        private static readonly TemplateOptions _templateOptions = NewTemplateOptions();
+        // Shared defaults — built-in filters and tags, no user extras.
+        // Initialised once via the static constructor to guarantee ordering.
+        private static readonly FluidPDFParser _sharedParser;
+        private static readonly TemplateOptions _sharedTemplateOptions;
+
+        // Instance overrides — non-null only when the engine was constructed with
+        // user-supplied FluidTemplateEngineOptions that contain at least one entry.
+        private readonly FluidPDFParser? _instanceParser;
+        private readonly TemplateOptions? _instanceTemplateOptions;
+
+        private FluidPDFParser ActiveParser => _instanceParser ?? _sharedParser;
+        private TemplateOptions ActiveTemplateOptions => _instanceTemplateOptions ?? _sharedTemplateOptions;
+
+        static FluidTemplateEngine()
+        {
+            _sharedParser = new FluidPDFParser();
+            _sharedTemplateOptions = BuildTemplateOptions(_sharedParser, userOptions: null);
+        }
+
+        /// <summary>
+        /// Creates an engine that uses only the built-in filters and tags.
+        /// </summary>
+        public FluidTemplateEngine() { }
+
+        /// <summary>
+        /// Creates an engine that uses the built-in filters and tags plus any extras
+        /// declared in <paramref name="options"/>. A fresh parser/options pair is created
+        /// for this instance only when <paramref name="options"/> is non-empty.
+        /// </summary>
+        public FluidTemplateEngine(FluidTemplateEngineOptions options)
+        {
+            options.GetNonNullOrThrow(nameof(options));
+
+            if (!options.IsEmpty)
+            {
+                _instanceParser = new FluidPDFParser();
+                _instanceTemplateOptions = BuildTemplateOptions(_instanceParser, options);
+            }
+        }
 
         public async ValueTask<string> RenderTemplateAsync(string template, DataTable model, FluidPDFTemplateRenderOptions options, string modelName = ModelNames.DefaultModelName)
         {
@@ -48,9 +88,9 @@ namespace FluidPDF.Fluid
             return await RenderTemplateAsync([fluidPDFModel], template, options).ConfigureAwait(false);
         }
 
-        private static async ValueTask<string> RenderTemplateAsync(FluidPDFTemplateModel[] models, string template, FluidPDFTemplateRenderOptions options)
+        private async ValueTask<string> RenderTemplateAsync(FluidPDFTemplateModel[] models, string template, FluidPDFTemplateRenderOptions options)
         {
-            if (_parser.TryParse(template, out IFluidTemplate? fluidTemplate, out string? error))
+            if (ActiveParser.TryParse(template, out IFluidTemplate? fluidTemplate, out string? error))
             {
                 TemplateContext context = NewTemplateContext(models, options.CultureInfo, null);
 
@@ -71,9 +111,9 @@ namespace FluidPDF.Fluid
             }
         }
 
-        private static TemplateContext NewTemplateContext(FluidPDFTemplateModel[] models, CultureInfo? cultureInfo = null, TimeZoneInfo? timeZone = null)
+        private TemplateContext NewTemplateContext(FluidPDFTemplateModel[] models, CultureInfo? cultureInfo = null, TimeZoneInfo? timeZone = null)
         {
-            TemplateContext context = new(_templateOptions)
+            TemplateContext context = new(ActiveTemplateOptions)
             {
                 CultureInfo = cultureInfo ?? CultureInfo.InvariantCulture
             };
@@ -99,7 +139,7 @@ namespace FluidPDF.Fluid
                         FluidPDFTemplateModelType.JsonString => JsonNode.Parse(model.JsonString!),
                         FluidPDFTemplateModelType.Object => JsonSerializer.SerializeToNode(model.ObjectValue),
                         FluidPDFTemplateModelType.PlainValue => model.PlainValue,
-                        _ => throw new InvalidOperationException($"Invalid {nameof(FluidPDFTemplateModelType)}")
+                        _ => throw new ArgumentOutOfRangeException(nameof(model.Type), model.Type, $"Unhandled {nameof(FluidPDFTemplateModelType)}")
                     })
                     .GetNonNullOrThrow(nameof(value));
 
@@ -109,14 +149,14 @@ namespace FluidPDF.Fluid
             return context;
         }
 
-        private static TemplateOptions NewTemplateOptions()
+        private static TemplateOptions BuildTemplateOptions(FluidPDFParser parser, FluidTemplateEngineOptions? userOptions)
         {
             TemplateOptions templateOptions = new()
             {
                 Trimming = TrimmingFlags.TagRight
             };
 
-            templateOptions.ValueConverters.Add(x => x is DBNull o ? NilValue.Instance : null);
+            templateOptions.ValueConverters.Add(x => x is DBNull ? NilValue.Instance : null);
 
             templateOptions
                 .MemberAccessStrategy
@@ -156,6 +196,34 @@ namespace FluidPDF.Fluid
             templateOptions.ValueConverters.Add(x => x is JsonNode o ? new ObjectValue(o) : null);
             templateOptions.ValueConverters.Add(x => x is JsonValue o ? new ObjectValue(o) : null);
             templateOptions.ValueConverters.Add(x => x is JsonObject o ? new ObjectValue(o) : null);
+
+            // Register built-in filters and tags
+            FluidFilters.Register(templateOptions);
+            FluidTags.Register(parser);
+
+            // Register user-supplied extras when present
+            if (userOptions is not null)
+            {
+                foreach ((string name, FilterDelegate @delegate) in userOptions.Filters)
+                {
+                    templateOptions.Filters.AddFilter(name, @delegate);
+                }
+
+                foreach ((string name, Func<TextWriter, TextEncoder, TemplateContext, ValueTask<Completion>> render) in userOptions.EmptyTags)
+                {
+                    parser.RegisterEmptyTag(name, render);
+                }
+
+                foreach ((string name, Func<string, TextWriter, TextEncoder, TemplateContext, ValueTask<Completion>> render) in userOptions.IdentifierTags)
+                {
+                    parser.RegisterIdentifierTag(name, render);
+                }
+
+                foreach ((string name, Func<IReadOnlyList<FilterArgument>, TextWriter, TextEncoder, TemplateContext, ValueTask<Completion>> render) in userOptions.ArgumentTags)
+                {
+                    parser.RegisterArgumentsTag(name, render);
+                }
+            }
 
             return templateOptions;
         }

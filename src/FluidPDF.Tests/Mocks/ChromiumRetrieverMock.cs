@@ -97,9 +97,55 @@ namespace FluidPDF.Tests.Mocks
         }
 
         /// <summary>
-        /// Builds a wired chain where IPage.SetContentAsync throws, simulating a
-        /// mid-render failure. Used to verify the try/finally cleanup path.
+        /// Builds a fully wired NSubstitute chain where <paramref name="capturedContentBox"/>
+        /// is a single-element array whose element is populated with the HTML string
+        /// passed to <see cref="IPage.SetContentAsync"/> once <c>BuildAsync</c> completes.
+        /// Read <c>capturedContentBox[0]</c> after awaiting <c>BuildAsync</c>.
         /// </summary>
+        internal static IChromiumRetriever CreateWithSinglePagePdfAndContentCapture(
+            out IBrowser browser,
+            out IPage page,
+            out string?[] capturedContentBox)
+        {
+            string?[] box = [null];
+
+            IChromiumRetriever retriever = Substitute.For<IChromiumRetriever>();
+            browser = Substitute.For<IBrowser>();
+            page = Substitute.For<IPage>();
+
+            retriever
+                .LaunchBrowserAsync()
+                .Returns(Task.FromResult(browser));
+
+            browser
+                .NewPageAsync()
+                .Returns(Task.FromResult(page));
+
+            page
+                .SetContentAsync(Arg.Any<string>())
+                .Returns(callInfo =>
+                {
+                    box[0] = callInfo.Arg<string>();
+                    return Task.CompletedTask;
+                });
+
+            page
+                .PdfDataAsync(Arg.Any<PdfOptions>())
+                .Returns(callInfo => PDFDocumentMother.CreateSinglePagePdfAsync());
+
+            page
+                .CloseAsync()
+                .Returns(Task.CompletedTask);
+
+            browser
+                .CloseAsync()
+                .Returns(Task.CompletedTask);
+
+            capturedContentBox = box;
+            return retriever;
+        }
+
+        /// <summary>
         internal static IChromiumRetriever CreateWithPageThatThrowsOnSetContent(
             out IBrowser browser,
             out IPage page)

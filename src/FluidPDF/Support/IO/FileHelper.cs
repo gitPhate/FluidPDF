@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Text;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace FluidPDF.Support.IO
@@ -36,6 +37,25 @@ namespace FluidPDF.Support.IO
             File.Move(sourceFileName, destFileName);
 #else
             File.Move(sourceFileName, destFileName, overwrite: true);
+#endif
+        }
+
+        internal static async Task<string[]> ReadAllLinesAsync(string path)
+        {
+#if NETSTANDARD2_0
+            const int bufferSize = 4096;
+            List<string> lines = [];
+            using (StreamReader reader = new(path, Encoding.Default, true, bufferSize))
+            {
+                string? line;
+                while ((line = await reader.ReadLineAsync().ConfigureAwait(false)) != null)
+                {
+                    lines.Add(line);
+                }
+            }
+            return lines.ToArray();
+#else
+            return await File.ReadAllLinesAsync(path).ConfigureAwait(false);
 #endif
         }
     }
