@@ -1,6 +1,6 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Text;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace FluidPDF.Support.IO

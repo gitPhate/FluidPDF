@@ -2,7 +2,6 @@ using FluentAssertions;
 using FluidPDF.Fluid;
 using FluidPDF.Templating;
 using System.Globalization;
-using System.IO;
 using System.Text;
 
 namespace FluidPDF.Tests
