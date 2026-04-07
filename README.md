@@ -191,8 +191,6 @@ Scriban template example:
 
 Available with the separate package `FluidPDF.Razor`, it uses the library [RazorEngineCore](https://github.com/adoconnection/RazorEngineCore) to render templates using _Razor_. This is the most advanced template engine, capable of handling complex templates.
 
-Note: The _RazorEngineCore_ library directly compiles templates using the Razor compiler and Roslyn, so a cache is required to keep the compiled templates; at the moment only the filesystem is supported.
-
 ```csharp
 using FluidPDF.Builder;
 using FluidPDF.Razor;
@@ -222,6 +220,14 @@ Razor template example (model is passed as `dynamic`):
 </html>
 ```
 
+The _RazorEngineCore_ library directly compiles templates using the Razor compiler and Roslyn, so a cache is required to keep the compiled templates. The default behaviour is using the filesystem, but optionally you can use an in-memory implementation or create a custom one.
+
+```csharp
+[...]
+.WithRazorTemplateEngine(new InMemoryRazorTemplateCache())
+```
+
+The cache is accessed in a thread-safe way, so new implementations do not have to take care of concurrent access.
 
 ### Model Types
 Models are the data available inside the template. They can be passed in different formats:
@@ -285,9 +291,23 @@ All model methods have a `modelName` property with default value `Model` to chan
 | `FluidPDFTemplateModel.FromDataRow(row)` | `System.Data.DataRow` |
 | `FluidPDFTemplateModel.FromPlainValue(value)` | Primitive / scalar value |
 
-## Fluid Built-In Utilities
+## Built-In Utilities
 
 The default Fluid template engine includes a small set of built-in filters and tags that are registered automatically when you use `FluidTemplateEngine`. The same filters are also implemented for `ScribanTemplateEngine`.
+
+Example:
+
+Fluid:
+```liquid
+{{ 'hello' | to_string }}
+{% guid new %}
+```
+
+Scriban:
+```liquid
+{{ 'hello' | to_string }}
+{{ guid 'new' }}
+```
 
 ### Filters
 
