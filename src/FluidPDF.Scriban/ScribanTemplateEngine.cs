@@ -79,6 +79,7 @@ namespace FluidPDF.Scriban
                 context.PushCulture(options.CultureInfo);
             }
 
+            context.PushGlobal(new ScribanFunctions());
             context.PushGlobal(mainObject);
 
             Template compiledTemplate = Template.Parse(template);
