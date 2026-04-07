@@ -287,7 +287,7 @@ All model methods have a `modelName` property with default value `Model` to chan
 
 ## Fluid Built-In Utilities
 
-The default Fluid template engine includes a small set of built-in filters and tags that are registered automatically when you use `FluidTemplateEngine`.
+The default Fluid template engine includes a small set of built-in filters and tags that are registered automatically when you use `FluidTemplateEngine`. The same filters are also implemented for `ScribanTemplateEngine`.
 
 ### Filters
 
