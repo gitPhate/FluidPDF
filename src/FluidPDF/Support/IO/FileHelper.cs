@@ -58,5 +58,15 @@ namespace FluidPDF.Support.IO
             return await File.ReadAllLinesAsync(path).ConfigureAwait(false);
 #endif
         }
+
+        internal static async Task WriteAllBytesAsync(string path, byte[] bytes)
+        {
+#if NETSTANDARD2_0
+            using FileStream fs = new(path, FileMode.Create, FileAccess.Write, FileShare.None, 4096, true);
+            await fs.WriteAsync(bytes, 0, bytes.Length).ConfigureAwait(false);
+#else
+            await File.WriteAllBytesAsync(path, bytes).ConfigureAwait(false);
+#endif
+        }
     }
 }
