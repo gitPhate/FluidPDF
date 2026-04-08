@@ -50,7 +50,7 @@ namespace FluidPDF.Builder
             _paperFormat = PaperFormat.A4;
             _landscape = false;
             _marginOptions = new MarginOptions { Bottom = "0.4 in", Left = "0.4 in", Right = "0.4 in", Top = "0.4 in" };
-            _scale = 1; //100%
+            _scale = 100; //100%
             _cultureInfo = null;
             _localizationProvider = null;
             _toBeCompressed = false;
@@ -354,9 +354,9 @@ namespace FluidPDF.Builder
                 builder.AppendLine("One or more models are missing");
             }
 
-            if (_scale < 0.1M || _scale > 2.0M)
+            if (_scale < 10 || _scale > 200)
             {
-                builder.AppendLine("Scale must be between 0.1 and 2.0");
+                builder.AppendLine("Scale must be between 10 and 200");
             }
 
             if (builder.Length > 0)
