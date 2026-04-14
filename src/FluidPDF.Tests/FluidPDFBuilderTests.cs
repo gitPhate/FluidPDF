@@ -155,7 +155,7 @@ namespace FluidPDF.Tests
         public async Task BuildAsync_ShouldThrowFluidPDFBuilderConfigException_WhenNoTemplateIsSet()
         {
             // Arrange
-            IFluidPDFBuilder builder = FluidPDF.Builder.FluidPDF.NewReport().WithObjectModel(TemplateModelMother.SimpleObject());
+            IFluidPDFBuilder builder = Builder.FluidPDF.NewReport().WithObjectModel(TemplateModelMother.SimpleObject());
 
             // Act
             Func<Task> act = builder.BuildAsync;

@@ -16,6 +16,7 @@ namespace FluidPDF.Tests
         protected override string HtmlSpecialCharsTemplate => TemplateModelMother.RazorHtmlSpecialCharsTemplate;
         protected override string DataTableTemplate => TemplateModelMother.RazorDataTableTemplate();
         protected override string LocalizationTemplate => TemplateModelMother.RazorLocalizationTemplate;
+        protected override string ArrayTemplate => TemplateModelMother.RazorArrayTemplate;
 
         // --- Engine-specific: invalid template throws RazorEngineCompilationException ---
 
@@ -56,7 +57,7 @@ namespace FluidPDF.Tests
         public async Task RenderTemplateAsync_WithDictionaryModel_ShouldThrowNotSupportedException_WhenModelNameIsNotDefault()
         {
             // Arrange
-            Dictionary<string, object> model = TemplateModelMother.SimpleDictionary();
+            Dictionary<string, object?> model = TemplateModelMother.SimpleDictionary();
             using RazorTemplateEngine templateEngine = new(new RecordingRazorTemplateCache());
 
             // Act

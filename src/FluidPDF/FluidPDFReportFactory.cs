@@ -119,9 +119,9 @@ namespace FluidPDF
             }
 
             Dictionary<string, string> localizedStrings = await LocalizationResolver.ResolveResourcesAsync(_localizationProvider, cultureInfo).ConfigureAwait(false);
-            Dictionary<string, object> resxData = localizedStrings.ToDictionary(
+            Dictionary<string, object?> resxData = localizedStrings.ToDictionary(
                 item => item.Key,
-                item => (object)item.Value,
+                item => (object?)(item.Value as object),
                 StringComparer.Ordinal);
 
             return FluidPDFTemplateModel.FromDictionary(resxData, ModelNames.ResxModelName);

@@ -1,6 +1,8 @@
 using FluentAssertions;
 using FluidPDF.Templating;
 using System.Data;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace FluidPDF.Tests
 {
@@ -22,7 +24,7 @@ namespace FluidPDF.Tests
         }
 
         [Fact]
-        public void FromJsonString_ShouldSetTypeToJsonString_WhenCreatedWithAJsonString()
+        public void FromJsonString_ShouldSetTypeToJsonNode_WhenCreatedWithAJsonString()
         {
             // Arrange
             string subject = """{"Name":"Bob"}""";
@@ -31,16 +33,32 @@ namespace FluidPDF.Tests
             FluidPDFTemplateModel model = FluidPDFTemplateModel.FromJsonString(subject);
 
             // Assert
-            model.Type.Should().Be(FluidPDFTemplateModelType.JsonString);
-            model.IsJsonString.Should().BeTrue();
-            model.JsonString.Should().Be(subject);
+            model.Type.Should().Be(FluidPDFTemplateModelType.JsonNode);
+            model.IsJsonNode.Should().BeTrue();
+            model.JsonNode.Should().NotBeNull();
+        }
+
+        [Fact]
+        public void FromJsonString_ShouldParseJsonArray_WhenCreatedWithAJsonArray()
+        {
+            // Arrange
+            string subject = """[{"Name":"Alice"},{"Name":"Bob"}]""";
+
+            // Act
+            FluidPDFTemplateModel model = FluidPDFTemplateModel.FromJsonString(subject);
+
+            // Assert
+            model.Type.Should().Be(FluidPDFTemplateModelType.JsonNode);
+            model.IsJsonNode.Should().BeTrue();
+            model.JsonNode.Should().BeOfType<JsonArray>();
+            model.JsonNode!.AsArray().Should().HaveCount(2);
         }
 
         [Fact]
         public void FromDictionary_ShouldSetTypeToDictionary_WhenCreatedWithADictionary()
         {
             // Arrange
-            Dictionary<string, object> subject = new() { { "Name", "Carol" } };
+            Dictionary<string, object?> subject = new() { { "Name", "Carol" } };
 
             // Act
             FluidPDFTemplateModel model = FluidPDFTemplateModel.FromDictionary(subject);
@@ -125,15 +143,46 @@ namespace FluidPDF.Tests
         }
 
         [Fact]
-        public void FromJsonString_ShouldExposeNonNullJsonString_WhenJsonStringModelIsCreated()
+        public void FromArray_ShouldSerializeToJsonArray_WhenCreatedWithAnArray()
         {
             // Arrange
-            string json = """{"Name":"Frank"}""";
-            FluidPDFTemplateModel model = FluidPDFTemplateModel.FromJsonString(json);
+            List<object?> subject = [1, 2, 3];
+
+            // Act
+            FluidPDFTemplateModel model = FluidPDFTemplateModel.FromArray(subject);
+            string expectedJson = JsonSerializer.Serialize(subject);
 
             // Assert
-            model.JsonString.Should().NotBeNull();
-            model.JsonString.Should().Be(json);
+            model.Type.Should().Be(FluidPDFTemplateModelType.JsonNode);
+            model.JsonNode.Should().NotBeNull();
+            model.JsonNode.Should().BeOfType<JsonArray>();
+            model.JsonNode!.AsArray().Should().HaveCount(3);
+            model.JsonNode!.ToJsonString().Should().Be(expectedJson);
+        }
+
+        [Fact]
+        public void FromJsonNode_ShouldSetTypeToJsonNode_WhenCreatedWithAJsonNode()
+        {
+            // Arrange
+            JsonNode? subject = JsonNode.Parse("""{"Name":"Bob"}""");
+
+            // Act
+            FluidPDFTemplateModel model = FluidPDFTemplateModel.FromJsonNode(subject!);
+
+            // Assert
+            model.Type.Should().Be(FluidPDFTemplateModelType.JsonNode);
+            model.IsJsonNode.Should().BeTrue();
+            model.JsonNode.Should().NotBeNull();
+        }
+
+        [Fact]
+        public void FromArray_ShouldThrowArgumentNullException_WhenNullIsPassedAsArray()
+        {
+            // Act
+            Action act = () => FluidPDFTemplateModel.FromArray(null!);
+
+            // Assert
+            act.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]

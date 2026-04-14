@@ -1,6 +1,8 @@
-﻿using FluidPDF.Support;
+using FluidPDF.Support;
 using System.Collections.Generic;
 using System.Data;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace FluidPDF.Templating
 {
@@ -9,7 +11,7 @@ namespace FluidPDF.Templating
         DataRow,
         DataTable,
         Dictionary,
-        JsonString,
+        JsonNode,
         Object,
         PlainValue
     }
@@ -22,8 +24,8 @@ namespace FluidPDF.Templating
         public FluidPDFTemplateModelType Type { get; }
         public DataTable? DataTable { get; }
         public DataRow? DataRow { get; }
-        public IDictionary<string, object>? Dictionary { get; }
-        public string? JsonString { get; }
+        public IDictionary<string, object?>? Dictionary { get; }
+        public JsonNode? JsonNode { get; }
         public object? ObjectValue { get; }
         public object? PlainValue { get; }
 
@@ -33,8 +35,8 @@ namespace FluidPDF.Templating
             FluidPDFTemplateModelType modelType,
             DataRow? dataRow = null,
             DataTable? dataTable = null,
-            IDictionary<string, object>? dictionary = null,
-            string? jsonString = null,
+            IDictionary<string, object?>? dictionary = null,
+            JsonNode? jsonNode = null,
             object? objectValue = null,
             object? plainValue = null
         )
@@ -44,7 +46,7 @@ namespace FluidPDF.Templating
             DataRow = dataRow;
             DataTable = dataTable;
             Dictionary = dictionary;
-            JsonString = jsonString;
+            JsonNode = jsonNode;
             ObjectValue = objectValue;
             PlainValue = plainValue;
         }
@@ -52,9 +54,9 @@ namespace FluidPDF.Templating
         public bool IsDataRow => IsFluidPDFTemplateModelType(FluidPDFTemplateModelType.DataRow);
         public bool IsDataTable => IsFluidPDFTemplateModelType(FluidPDFTemplateModelType.DataTable);
         public bool IsDictionary => IsFluidPDFTemplateModelType(FluidPDFTemplateModelType.Dictionary);
-        public bool IsJsonString => IsFluidPDFTemplateModelType(FluidPDFTemplateModelType.JsonString);
         public bool IsPlainValue => IsFluidPDFTemplateModelType(FluidPDFTemplateModelType.PlainValue);
         public bool IsObject => IsFluidPDFTemplateModelType(FluidPDFTemplateModelType.Object);
+        public bool IsJsonNode => IsFluidPDFTemplateModelType(FluidPDFTemplateModelType.JsonNode);
 
         private bool IsFluidPDFTemplateModelType(FluidPDFTemplateModelType value) => Type == value;
 
@@ -72,7 +74,7 @@ namespace FluidPDF.Templating
                 dataTable: dataTable.GetNonNullOrThrow(nameof(dataTable))
             );
 
-        public static FluidPDFTemplateModel FromDictionary(IDictionary<string, object> dictionary, string modelName = DefaultName) =>
+        public static FluidPDFTemplateModel FromDictionary(IDictionary<string, object?> dictionary, string modelName = DefaultName) =>
             new(
                 modelName: modelName,
                 modelType: FluidPDFTemplateModelType.Dictionary,
@@ -82,8 +84,15 @@ namespace FluidPDF.Templating
         public static FluidPDFTemplateModel FromJsonString(string jsonString, string modelName = DefaultName) =>
             new(
                 modelName: modelName,
-                modelType: FluidPDFTemplateModelType.JsonString,
-                jsonString: jsonString.GetNonNullOrThrow(nameof(jsonString))
+                modelType: FluidPDFTemplateModelType.JsonNode,
+                jsonNode: JsonNode.Parse(jsonString.GetNonNullOrThrow(nameof(jsonString)))
+            );
+
+        public static FluidPDFTemplateModel FromArray(IEnumerable<object?> array, string modelName = DefaultName) =>
+            new(
+                modelName: modelName,
+                modelType: FluidPDFTemplateModelType.JsonNode,
+                jsonNode: JsonSerializer.SerializeToNode(array.GetNonNullOrThrow(nameof(array)))
             );
 
         public static FluidPDFTemplateModel FromObject(object obj, string modelName = DefaultName) =>
@@ -97,7 +106,14 @@ namespace FluidPDF.Templating
             new(
                 modelName: modelName,
                 modelType: FluidPDFTemplateModelType.PlainValue,
-                plainValue: value
+                plainValue: value.GetNonNullOrThrow(nameof(value))
+            );
+
+        public static FluidPDFTemplateModel FromJsonNode(JsonNode node, string modelName = DefaultName) =>
+            new(
+                modelName: modelName,
+                modelType: FluidPDFTemplateModelType.JsonNode,
+                jsonNode: node.GetNonNullOrThrow(nameof(node))
             );
     }
 }

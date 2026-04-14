@@ -10,6 +10,7 @@ namespace FluidPDF.Tests
         protected override IFluidPDFTemplateEngine CreateEngine() => new ScribanTemplateEngine();
         protected override string DataTableTemplate => TemplateModelMother.ScribanDataTableTemplate;
         protected override string LocalizationTemplate => TemplateModelMother.LocalizationTemplate;
+        protected override string ArrayTemplate => TemplateModelMother.ScribanArrayTemplate;
 
         // --- Engine-specific: invalid template throws InvalidOperationException ---
 

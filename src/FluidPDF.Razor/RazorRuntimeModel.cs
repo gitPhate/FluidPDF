@@ -6,6 +6,7 @@ using System.Data;
 using System.Dynamic;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace FluidPDF.Razor
 {
@@ -39,10 +40,10 @@ namespace FluidPDF.Razor
             FluidPDFTemplateModel? resxModel = models.FirstOrDefault(x => x.Name == ModelNames.ResxModelName);
 
             ResxModelBuild = BuildResxModel(resxModel);
-            DefaultModelBuild = BuildDefaultModel(models, resxModel is not null);
+            DefaultModelBuild = BuildDefaultModel(models);
         }
 
-        private static object BuildDefaultModel(FluidPDFTemplateModel[] models, bool hasResxModel)
+        private static object BuildDefaultModel(FluidPDFTemplateModel[] models)
         {
             Dictionary<string, object> modelsMap = [];
             foreach (FluidPDFTemplateModel model in models)
@@ -82,43 +83,32 @@ namespace FluidPDF.Razor
                 return null;
             }
 
-            return (ExpandoObject)ConvertModel(resxModel); //will never be of type PlainObject
+            return (ExpandoObject)ConvertModel(resxModel); //will never be of type PlainValue
         }
 
         private static object ConvertModel(FluidPDFTemplateModel model) =>
             model.Type switch
             {
-                FluidPDFTemplateModelType.Object => SerializeToExpando(model.ObjectValue!),
+                FluidPDFTemplateModelType.Object => ObjectToExpando(model.ObjectValue!),
                 FluidPDFTemplateModelType.Dictionary => DictionaryToExpando(model.Dictionary!),
-                FluidPDFTemplateModelType.JsonString => JsonStringToExpando(model.JsonString!),
+                FluidPDFTemplateModelType.JsonNode => JsonNodeToObject(model.JsonNode!)!,
                 FluidPDFTemplateModelType.DataRow => DataRowToExpando(model.DataRow!),
                 FluidPDFTemplateModelType.DataTable => DataTableToExpando(model.DataTable!),
                 FluidPDFTemplateModelType.PlainValue => model.PlainValue!,
                 _ => throw new NotSupportedException($"Unsupported model type: {model.Type}")
             };
 
-        private static ExpandoObject SerializeToExpando(object obj)
+        private static ExpandoObject DictionaryToExpando(IDictionary<string, object?> dictionary)
         {
-            string json = JsonSerializer.Serialize(obj);
-            return JsonStringToExpando(json);
-        }
-
-        private static ExpandoObject JsonStringToExpando(string json)
-        {
+            string json = JsonSerializer.Serialize(dictionary);
             ExpandoObject? result = JsonSerializer.Deserialize<ExpandoObject>(json, _jsonOptions);
             return result ?? new();
         }
 
-        private static ExpandoObject DictionaryToExpando(IDictionary<string, object> dictionary)
+        private static ExpandoObject ObjectToExpando(object obj)
         {
-            IDictionary<string, object?> expandoDict = new ExpandoObject();
-
-            foreach (KeyValuePair<string, object> kvp in dictionary)
-            {
-                expandoDict[kvp.Key] = kvp.Value;
-            }
-
-            return (ExpandoObject)expandoDict;
+            JsonNode node = JsonSerializer.SerializeToNode(obj) ?? throw new InvalidOperationException("JSON parsing failed");
+            return JsonObjectToExpando(node.AsObject());
         }
 
         private static ExpandoObject DataRowToExpando(DataRow row)
@@ -145,6 +135,37 @@ namespace FluidPDF.Razor
             IDictionary<string, object?> expandoDict = new ExpandoObject();
             expandoDict[nameof(DataTable.Rows)] = rows;
             return (ExpandoObject)expandoDict;
+        }
+
+        private static object? JsonNodeToObject(JsonNode? node) =>
+            node switch
+            {
+                JsonObject obj => JsonObjectToExpando(obj),
+                JsonArray arr => arr.Select(JsonNodeToObject).ToList(),
+                JsonValue val => GetJsonValue(val),
+                null => null,
+                _ => node.ToString()
+            };
+
+        private static ExpandoObject JsonObjectToExpando(JsonObject obj)
+        {
+            IDictionary<string, object?> expando = new ExpandoObject();
+
+            foreach (KeyValuePair<string, JsonNode?> kvp in obj)
+            {
+                expando[kvp.Key] = JsonNodeToObject(kvp.Value);
+            }
+
+            return (ExpandoObject)expando;
+        }
+
+        private static object? GetJsonValue(JsonValue val)
+        {
+            if (val.TryGetValue<bool>(out bool b))     return b;
+            if (val.TryGetValue<long>(out long l))     return l;
+            if (val.TryGetValue<double>(out double d)) return d;
+            if (val.TryGetValue<string>(out string? s)) return s;
+            return val.ToString();
         }
     }
 }

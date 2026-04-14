@@ -13,6 +13,7 @@ namespace FluidPDF.Tests
         protected virtual string SimpleTemplate => TemplateModelMother.SimpleTemplate;
         protected virtual string TwoModelTemplate => TemplateModelMother.TwoModelTemplate;
         protected virtual string HtmlSpecialCharsTemplate => TemplateModelMother.HtmlSpecialCharsTemplate;
+        protected virtual string ArrayTemplate => TemplateModelMother.SimpleArrayTemplate;
         protected abstract string LocalizationTemplate { get; }
 
         [Fact]
@@ -34,7 +35,7 @@ namespace FluidPDF.Tests
         public async Task RenderTemplateAsync_ShouldRenderDictionaryValue_WhenDictionaryModelIsProvided()
         {
             // Arrange
-            Dictionary<string, object> model = TemplateModelMother.SimpleDictionary();
+            Dictionary<string, object?> model = TemplateModelMother.SimpleDictionary();
             string template = SimpleTemplate;
             using IFluidPDFTemplateEngine templateEngine = CreateEngine();
 
@@ -88,6 +89,21 @@ namespace FluidPDF.Tests
 
             // Assert
             result.Should().Be(TemplateModelMother.SimpleObjectExpectedOutput);
+        }
+
+        [Fact]
+        public async Task RenderTemplateAsync_ShouldRenderArrayValue_WhenArrayModelIsProvided()
+        {
+            // Arrange
+            FluidPDFTemplateModel[] models = TemplateModelMother.SimpleArrayModelArray();
+            string template = ArrayTemplate;
+            using IFluidPDFTemplateEngine templateEngine = CreateEngine();
+
+            // Act
+            string result = await templateEngine.RenderTemplateAsync(template, models, new());
+
+            // Assert
+            result.Should().Be(TemplateModelMother.SimpleArrayExpectedOutput);
         }
 
         [Fact]

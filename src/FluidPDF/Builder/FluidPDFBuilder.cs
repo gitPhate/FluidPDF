@@ -77,7 +77,7 @@ namespace FluidPDF.Builder
             return this;
         }
 
-        public IFluidPDFBuilder WithDictionaryModel(IDictionary<string, object> dictionary, string modelName = ModelNames.DefaultModelName)
+        public IFluidPDFBuilder WithDictionaryModel(IDictionary<string, object?> dictionary, string modelName = ModelNames.DefaultModelName)
         {
             _models = [FluidPDFTemplateModel.FromDictionary(dictionary, modelName)];
             return this;
@@ -92,6 +92,12 @@ namespace FluidPDF.Builder
         public IFluidPDFBuilder WithObjectModel(object obj, string modelName = ModelNames.DefaultModelName)
         {
             _models = [FluidPDFTemplateModel.FromObject(obj, modelName)];
+            return this;
+        }
+
+        public IFluidPDFBuilder WithArrayModel(IEnumerable<object?> array, string modelName = ModelNames.DefaultModelName)
+        {
+            _models = [FluidPDFTemplateModel.FromArray(array, modelName)];
             return this;
         }
 

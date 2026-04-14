@@ -37,6 +37,14 @@ namespace FluidPDF.Tests.Mothers
 
         internal const string SimpleJsonStringExpectedOutput = "<p>Grace is 28</p>";
 
+        internal const string SimpleArrayTemplate = "{% for item in Model %}<li>{{ item.Name }}</li>{% endfor %}";
+
+        internal const string SimpleArrayExpectedOutput = "<li>Alice</li><li>Bob</li>";
+
+        internal const string ScribanArrayTemplate = "{{ for item in Model -}}<li>{{ item.Name }}</li>{{ end }}";
+
+        internal const string RazorArrayTemplate = "@foreach (var item in (IEnumerable<dynamic>)Model) {<li>@item.Name</li>}";
+
         // --- Scriban-specific fixtures (template syntax and expected output differ from Fluid) ---
 
         internal const string ScribanDataTableTemplate =
@@ -71,7 +79,7 @@ namespace FluidPDF.Tests.Mothers
 
         internal static object SimpleObject() => new { Name = "Alice", Age = 30 };
 
-        internal static Dictionary<string, object> SimpleDictionary() =>
+        internal static Dictionary<string, object?> SimpleDictionary() =>
             new()
             {
                 { "Name", "Carol" },
@@ -85,6 +93,9 @@ namespace FluidPDF.Tests.Mothers
             return [person, greeting];
         }
 
+        internal static FluidPDFTemplateModel[] SimpleArrayModelArray() =>
+            [FluidPDFTemplateModel.FromArray([new { Name = "Alice" }, new { Name = "Bob" }])];
+
         internal static object HtmlSpecialCharsObject() => new { Value = "<script>" };
 
         internal static object LocalizedObject() => new { Title = "Invoice-001" };
@@ -93,7 +104,7 @@ namespace FluidPDF.Tests.Mothers
         {
             FluidPDFTemplateModel model = FluidPDFTemplateModel.FromObject(LocalizedObject());
             FluidPDFTemplateModel resx = FluidPDFTemplateModel.FromDictionary(
-                new Dictionary<string, object>
+                new Dictionary<string, object?>
                 {
                     ["label_title"] = "Invoice"
                 },

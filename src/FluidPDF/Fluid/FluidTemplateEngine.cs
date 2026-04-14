@@ -67,7 +67,7 @@ namespace FluidPDF.Fluid
             return await RenderTemplateAsync([fluidPDFModel], template, options).ConfigureAwait(false);
         }
 
-        public async ValueTask<string> RenderTemplateAsync(string template, IDictionary<string, object> model, FluidPDFTemplateRenderOptions options, string modelName = ModelNames.DefaultModelName)
+        public async ValueTask<string> RenderTemplateAsync(string template, IDictionary<string, object?> model, FluidPDFTemplateRenderOptions options, string modelName = ModelNames.DefaultModelName)
         {
             FluidPDFTemplateModel fluidPDFModel = FluidPDFTemplateModel.FromDictionary(model, modelName);
             return await RenderTemplateAsync([fluidPDFModel], template, options).ConfigureAwait(false);
@@ -136,7 +136,7 @@ namespace FluidPDF.Fluid
                         FluidPDFTemplateModelType.DataRow => model.DataRow,
                         FluidPDFTemplateModelType.DataTable => model.DataTable,
                         FluidPDFTemplateModelType.Dictionary => model.Dictionary,
-                        FluidPDFTemplateModelType.JsonString => JsonNode.Parse(model.JsonString!),
+                        FluidPDFTemplateModelType.JsonNode => model.JsonNode,
                         FluidPDFTemplateModelType.Object => JsonSerializer.SerializeToNode(model.ObjectValue),
                         FluidPDFTemplateModelType.PlainValue => model.PlainValue,
                         _ => throw new ArgumentOutOfRangeException(nameof(model.Type), model.Type, $"Unhandled {nameof(FluidPDFTemplateModelType)}")

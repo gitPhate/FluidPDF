@@ -16,9 +16,10 @@ namespace FluidPDF.Builder
     {
         IFluidPDFBuilder WithDataRowModel(DataRow dataRow, string modelName = ModelNames.DefaultModelName);
         IFluidPDFBuilder WithDataTableModel(DataTable dataTable, string modelName = ModelNames.DefaultModelName);
-        IFluidPDFBuilder WithDictionaryModel(IDictionary<string, object> dictionary, string modelName = ModelNames.DefaultModelName);
+        IFluidPDFBuilder WithDictionaryModel(IDictionary<string, object?> dictionary, string modelName = ModelNames.DefaultModelName);
         IFluidPDFBuilder WithJsonStringModel(string jsonString, string modelName = ModelNames.DefaultModelName);
         IFluidPDFBuilder WithObjectModel(object obj, string modelName = ModelNames.DefaultModelName);
+        IFluidPDFBuilder WithArrayModel(IEnumerable<object?> array, string modelName = ModelNames.DefaultModelName);
         IFluidPDFBuilder WithModel(FluidPDFTemplateModel model);
         IFluidPDFBuilder WithModels(FluidPDFTemplateModel[] models);
         IFluidPDFBuilder WithTemplateEngine(IFluidPDFTemplateEngine templateEngine);

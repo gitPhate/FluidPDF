@@ -26,7 +26,7 @@ namespace FluidPDF.Razor
             return await RenderTemplateAsync(template, [managedModel], options).ConfigureAwait(false);
         }
 
-        public async ValueTask<string> RenderTemplateAsync(string template, IDictionary<string, object> model, FluidPDFTemplateRenderOptions options, string modelName = ModelNames.DefaultModelName)
+        public async ValueTask<string> RenderTemplateAsync(string template, IDictionary<string, object?> model, FluidPDFTemplateRenderOptions options, string modelName = ModelNames.DefaultModelName)
         {
             if (modelName != ModelNames.DefaultModelName)
             {

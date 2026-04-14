@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 
 namespace FluidPDF.Scriban
@@ -17,7 +18,7 @@ namespace FluidPDF.Scriban
             return await RenderTemplateAsync([managedModel], template, options).ConfigureAwait(false);
         }
 
-        public async ValueTask<string> RenderTemplateAsync(string template, IDictionary<string, object> model, FluidPDFTemplateRenderOptions options, string modelName = ModelNames.DefaultModelName)
+        public async ValueTask<string> RenderTemplateAsync(string template, IDictionary<string, object?> model, FluidPDFTemplateRenderOptions options, string modelName = ModelNames.DefaultModelName)
         {
             FluidPDFTemplateModel managedModel = FluidPDFTemplateModel.FromDictionary(model, modelName);
             return await RenderTemplateAsync([managedModel], template, options).ConfigureAwait(false);
@@ -50,6 +51,10 @@ namespace FluidPDF.Scriban
                 {
                     case FluidPDFTemplateModelType.PlainValue:
                         mainObject.Add(model.Name, model.PlainValue!);
+                        break;
+                    case FluidPDFTemplateModelType.JsonNode when model.JsonNode is JsonArray:
+                        ScriptArray scriptArray = ArrayToScriptArray(model);
+                        mainObject.Add(model.Name, scriptArray);
                         break;
                     default:
                         ScriptObject modelObject = CreateModelScriptObject(model);
@@ -94,7 +99,7 @@ namespace FluidPDF.Scriban
                 FluidPDFTemplateModelType.DataTable => DataTableToScriptObject(model.DataTable!),
                 FluidPDFTemplateModelType.Dictionary => ScriptObject.From(model.Dictionary!),
                 FluidPDFTemplateModelType.Object => ScriptObject.From(JsonSerializer.SerializeToElement(model.ObjectValue)),
-                FluidPDFTemplateModelType.JsonString => JsonStringToScriptObject(model.JsonString!),
+                FluidPDFTemplateModelType.JsonNode => ScriptObject.From(model.JsonNode!.Deserialize<JsonElement>()),
                 _ => throw new InvalidOperationException($"Unsupported model type: {model.Type}")
             };
 
@@ -125,10 +130,10 @@ namespace FluidPDF.Scriban
             return scriptObject;
         }
 
-        private static ScriptObject JsonStringToScriptObject(string json)
+        private static ScriptArray ArrayToScriptArray(FluidPDFTemplateModel model)
         {
-            JsonElement root = JsonSerializer.Deserialize<JsonElement>(json);
-            return ScriptObject.From(root);
+            JsonElement jsonElement = model.JsonNode!.Deserialize<JsonElement>();
+            return ScriptArray.From(jsonElement);
         }
 
         public void Dispose()
