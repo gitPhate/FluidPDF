@@ -120,14 +120,13 @@ namespace FluidPDF.Tests
         }
 
         [Fact]
-        public void FromPlainValue_ShouldAllowNull_WhenNullIsPassedAsValue()
+        public void FromPlainValue_ShouldThrowArgumentNullException_WhenNullIsPassedAsValue()
         {
             // Act
-            FluidPDFTemplateModel model = FluidPDFTemplateModel.FromPlainValue(null!);
+            Action act = () => FluidPDFTemplateModel.FromPlainValue(null!);
 
             // Assert
-            model.Type.Should().Be(FluidPDFTemplateModelType.PlainValue);
-            model.PlainValue.Should().BeNull();
+            act.Should().Throw<ArgumentNullException>().WithParameterName("value");
         }
 
         [Fact]

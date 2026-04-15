@@ -365,6 +365,13 @@ namespace FluidPDF.Tests
         // ── int_random ────────────────────────────────────────────────────────────
 
         [Fact]
+        public async Task IntRandom_ShouldOutputAnInteger_WhenMinAndMaxAreProvided()
+        {
+            string result = await RenderAsync(CallFunction(IntRandomCall(0, 100)));
+            int.TryParse(result, out _).Should().BeTrue("result '{0}' should be parseable as an integer", result);
+        }
+
+        [Fact]
         public async Task IntRandom_ShouldOutputValueWithinRange_WhenMinAndMaxAreProvided()
         {
             for (int i = 0; i < 20; i++)
