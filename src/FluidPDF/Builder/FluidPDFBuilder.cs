@@ -46,12 +46,6 @@ namespace FluidPDF.Builder
             _options = new FluidPDFReportOptions();
         }
 
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
         public IFluidPDFBuilder WithDataRowModel(DataRow dataRow, string modelName = ModelNames.DefaultModelName)
         {
             _models = [FluidPDFTemplateModel.FromDataRow(dataRow, modelName)];
@@ -273,20 +267,34 @@ namespace FluidPDF.Builder
 
         public async Task<byte[]> BuildAsync()
         {
-            Verify();
+            try
+            {
+                Verify();
 
-            string template = await GetTemplateAsync().ConfigureAwait(false);
-            FluidPDFReportFactory factory = NewFluidPDFReportFactory();
-            return await factory.CompileReportAsync(template, _models, NewFluidPDFReportOptions()).ConfigureAwait(false);
+                string template = await GetTemplateAsync().ConfigureAwait(false);
+                FluidPDFReportFactory factory = NewFluidPDFReportFactory();
+                return await factory.CompileReportAsync(template, _models, NewFluidPDFReportOptions()).ConfigureAwait(false);
+            }
+            finally
+            {
+                Dispose();
+            }
         }
 
         public async Task BuildAsync(Stream stream)
         {
-            Verify();
+            try
+            {
+                Verify();
 
-            string template = await GetTemplateAsync().ConfigureAwait(false);
-            FluidPDFReportFactory factory = NewFluidPDFReportFactory();
-            await factory.CompileReportAsync(template, _models, stream, NewFluidPDFReportOptions()).ConfigureAwait(false);
+                string template = await GetTemplateAsync().ConfigureAwait(false);
+                FluidPDFReportFactory factory = NewFluidPDFReportFactory();
+                await factory.CompileReportAsync(template, _models, stream, NewFluidPDFReportOptions()).ConfigureAwait(false);
+            }
+            finally
+            {
+                Dispose();
+            }
         }
 
         private FluidPDFReportFactory NewFluidPDFReportFactory()
@@ -346,6 +354,12 @@ namespace FluidPDF.Builder
             {
                 throw new FluidPDFBuilderConfigException($"One or more info are missing or wrong:{Environment.NewLine}{builder}");
             }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         protected virtual void Dispose(bool disposing)
