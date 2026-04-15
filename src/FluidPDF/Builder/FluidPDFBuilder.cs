@@ -49,7 +49,7 @@ namespace FluidPDF.Builder
             _models = [];
             _paperFormat = PaperFormat.A4;
             _landscape = false;
-            _marginOptions = new MarginOptions { Bottom = "0.4 in", Left = "0.4 in", Right = "0.4 in", Top = "0.4 in" };
+            _marginOptions = new() { Bottom = "0.3 in", Left = "0.3 in", Right = "0.3 in", Top = "0.3 in" };
             _scale = 100; //100%
             _cultureInfo = null;
             _localizationProvider = null;
