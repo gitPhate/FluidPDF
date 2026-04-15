@@ -30,33 +30,20 @@ namespace FluidPDF.Builder
 
         private FluidPDFTemplateModel[] _models;
         private string? _chromeExePath;
-        private bool _landscape;
-        private PaperFormat _paperFormat;
-        private MarginOptions _marginOptions;
-        private int _scale;
-        private CultureInfo? _cultureInfo;
         private ILocalizationProvider? _localizationProvider;
         private string? _templateFilePath;
         private string? _template;
-        private bool _toBeCompressed;
-        private bool _htmlEncode;
         private IFluidPDFTemplateEngine _templateEngine;
         private bool _isDisposed;
         private FluidTemplateEngineOptions? _fluidEngineOptions;
+        private readonly FluidPDFReportOptions _options;
 
         internal FluidPDFBuilder(IChromiumRetriever? chromiumRetriever = null)
         {
             _models = [];
-            _paperFormat = PaperFormat.A4;
-            _landscape = false;
-            _marginOptions = new() { Bottom = "0.3 in", Left = "0.3 in", Right = "0.3 in", Top = "0.3 in" };
-            _scale = 100; //100%
-            _cultureInfo = null;
-            _localizationProvider = null;
-            _toBeCompressed = false;
-            _htmlEncode = false;
             _templateEngine = new FluidTemplateEngine();
             _chromiumRetriever = chromiumRetriever;
+            _options = new FluidPDFReportOptions();
         }
 
         public void Dispose()
@@ -128,37 +115,37 @@ namespace FluidPDF.Builder
 
         public IFluidPDFBuilder WithLandscapeOrientation()
         {
-            _landscape = true;
+            _options.Landscape = true;
             return this;
         }
 
         public IFluidPDFBuilder WithHtmlEncode()
         {
-            _htmlEncode = true;
+            _options.EncodeHtml = true;
             return this;
         }
 
         public IFluidPDFBuilder WithA2Format()
         {
-            _paperFormat = PaperFormat.A2;
+            _options.Format = PaperFormat.A2;
             return this;
         }
 
         public IFluidPDFBuilder WithA3Format()
         {
-            _paperFormat = PaperFormat.A3;
+            _options.Format = PaperFormat.A3;
             return this;
         }
 
         public IFluidPDFBuilder WithA5Format()
         {
-            _paperFormat = PaperFormat.A5;
+            _options.Format = PaperFormat.A5;
             return this;
         }
 
         public IFluidPDFBuilder WithA6Format()
         {
-            _paperFormat = PaperFormat.A6;
+            _options.Format = PaperFormat.A6;
             return this;
         }
 
@@ -176,7 +163,7 @@ namespace FluidPDF.Builder
 
         private IFluidPDFBuilder WithMargin(decimal bottom, decimal left, decimal right, decimal top, string unit)
         {
-            _marginOptions = new MarginOptions
+            _options.MarginOptions = new MarginOptions
             {
                 Bottom = $"{bottom.ToString(CultureInfo.InvariantCulture)} {unit}",
                 Left = $"{left.ToString(CultureInfo.InvariantCulture)} {unit}",
@@ -189,7 +176,7 @@ namespace FluidPDF.Builder
 
         public IFluidPDFBuilder WithScalePercentage(int scale)
         {
-            _scale = scale;
+            _options.Scale = scale;
             return this;
         }
 
@@ -201,7 +188,7 @@ namespace FluidPDF.Builder
 
         public IFluidPDFBuilder WithCulture(CultureInfo culture)
         {
-            _cultureInfo = culture.GetNonNullOrThrow(nameof(culture));
+            _options.CultureInfo = culture.GetNonNullOrThrow(nameof(culture));
             return this;
         }
 
@@ -229,7 +216,7 @@ namespace FluidPDF.Builder
 
         public IFluidPDFBuilder WithPDFCompression()
         {
-            _toBeCompressed = true;
+            _options.ToBeCompressed = true;
             return this;
         }
 
@@ -314,17 +301,7 @@ namespace FluidPDF.Builder
 
         private ChromiumRetrieverOptions NewChromiumRetrieverOptions() => new(_chromeExePath);
 
-        internal FluidPDFReportOptions NewFluidPDFReportOptions() =>
-            new()
-            {
-                Format = _paperFormat,
-                Landscape = _landscape,
-                MarginOptions = _marginOptions,
-                Scale = Math.Min(Math.Max(_scale / 100M, 0.1M), 2), //between 0.1 and 2
-                ToBeCompressed = _toBeCompressed,
-                CultureInfo = _cultureInfo,
-                EncodeHtml = _htmlEncode,
-            };
+        internal FluidPDFReportOptions NewFluidPDFReportOptions() => _options;
 
         private async ValueTask<string> GetTemplateAsync()
         {
@@ -360,7 +337,7 @@ namespace FluidPDF.Builder
                 builder.AppendLine("One or more models are missing");
             }
 
-            if (_scale < 10 || _scale > 200)
+            if (_options.Scale < 10 || _options.Scale > 200)
             {
                 builder.AppendLine("Scale must be between 10 and 200");
             }

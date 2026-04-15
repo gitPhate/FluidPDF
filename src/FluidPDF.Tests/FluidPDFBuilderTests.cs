@@ -195,36 +195,6 @@ namespace FluidPDF.Tests
         }
 
         [Fact]
-        public void NewFluidPDFReportOptions_ShouldClampScaleToMinimum_WhenScalePercentageIsBelowTen()
-        {
-            // Arrange
-            using FluidPDFBuilder builder = new();
-            builder.WithObjectModel(TemplateModelMother.SimpleObject());
-            builder.WithScalePercentage(1);
-
-            // Act
-            FluidPDFReportOptions options = builder.NewFluidPDFReportOptions();
-
-            // Assert
-            options.Scale.Should().Be(0.1M);
-        }
-
-        [Fact]
-        public void NewFluidPDFReportOptions_ShouldClampScaleToMaximum_WhenScalePercentageIsAboveTwoHundred()
-        {
-            // Arrange
-            using FluidPDFBuilder builder = new();
-            builder.WithObjectModel(TemplateModelMother.SimpleObject());
-            builder.WithScalePercentage(300);
-
-            // Act
-            FluidPDFReportOptions options = builder.NewFluidPDFReportOptions();
-
-            // Assert
-            options.Scale.Should().Be(2.0M);
-        }
-
-        [Fact]
         public void WithTemplateFile_ShouldThrowFileNotFoundException_WhenFilePathDoesNotExist()
         {
             // Arrange

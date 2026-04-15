@@ -76,7 +76,7 @@ namespace FluidPDF
                 Format = reportOptions.Format,
                 Landscape = reportOptions.Landscape,
                 MarginOptions = reportOptions.MarginOptions,
-                Scale = reportOptions.Scale
+                Scale = Math.Min(Math.Max(reportOptions.Scale / 100M, 0.1M), 2)
             };
 
             using IBrowser browser = await _chromiumRetriever.LaunchBrowserAsync().ConfigureAwait(false);
@@ -133,7 +133,7 @@ namespace FluidPDF
         public PaperFormat Format { get; set; } = PaperFormat.A4;
         public bool Landscape { get; set; }
         public MarginOptions MarginOptions { get; set; } = new() { Bottom = "0.3 in", Left = "0.3 in", Right = "0.3 in", Top = "0.3 in" };
-        public decimal Scale { get; set; } = 1M;
+        public int Scale { get; set; } = 100;
         public bool ToBeCompressed { get; set; }
         public CultureInfo? CultureInfo { get; set; }
         public bool EncodeHtml { get; set; }
