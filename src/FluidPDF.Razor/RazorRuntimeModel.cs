@@ -161,10 +161,10 @@ namespace FluidPDF.Razor
 
         private static object? GetJsonValue(JsonValue val)
         {
-            if (val.TryGetValue<bool>(out bool b))     return b;
-            if (val.TryGetValue<long>(out long l))     return l;
-            if (val.TryGetValue<double>(out double d)) return d;
-            if (val.TryGetValue<string>(out string? s)) return s;
+            if (val.TryGetValue(out bool b)) return b;
+            if (val.TryGetValue(out long l)) return l;
+            if (val.TryGetValue(out double d)) return d;
+            if (val.TryGetValue(out string? s)) return s;
             return val.ToString();
         }
     }
