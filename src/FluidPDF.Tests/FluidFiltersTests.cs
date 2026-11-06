@@ -96,8 +96,10 @@ namespace FluidPDF.Tests
         [Fact]
         public async Task ExtractFileName_ShouldReturnFileName_WhenPathIsProvided()
         {
+            string path = Path.Combine(Path.GetTempPath(), "reports", "invoice.pdf");
+            string escapedPath = path.Replace("\\", "\\\\");
             string result = await RenderWithLiteralAsync(
-                "{% assign v = 'C:\\\\reports\\\\invoice.pdf' %}{{ v | extract_file_name }}");
+                $"{{% assign v = '{escapedPath}' %}}{{{{ v | extract_file_name }}}}");
 
             result.Should().Be("invoice.pdf");
         }
@@ -116,10 +118,13 @@ namespace FluidPDF.Tests
         [Fact]
         public async Task ExtractDirectoryName_ShouldReturnDirectory_WhenPathIsProvided()
         {
+            string directory = Path.Combine(Path.GetTempPath(), "reports");
+            string path = Path.Combine(directory, "invoice.pdf");
+            string escapedPath = path.Replace("\\", "\\\\");
             string result = await RenderWithLiteralAsync(
-                "{% assign v = 'C:\\\\reports\\\\invoice.pdf' %}{{ v | extract_directory_name }}");
+                $"{{% assign v = '{escapedPath}' %}}{{{{ v | extract_directory_name }}}}");
 
-            result.Should().Be(@"C:\reports");
+            result.Should().Be(directory);
         }
 
         // ── starts_with ──────────────────────────────────────────────────────────
@@ -239,8 +244,10 @@ namespace FluidPDF.Tests
         [Fact]
         public async Task FileReadAllText_ShouldReturnEmpty_WhenFileDoesNotExist()
         {
+            string missingPath = Path.Combine(Path.GetTempPath(), "nonexistent", "file.txt");
+            string escapedPath = missingPath.Replace("\\", "\\\\");
             string result = await RenderWithLiteralAsync(
-                @"{% assign v = 'C:\\nonexistent\\file.txt' %}{{ v | file_read_all_text }}");
+                $"{{% assign v = '{escapedPath}' %}}{{{{ v | file_read_all_text }}}}");
             result.Should().BeEmpty();
         }
 

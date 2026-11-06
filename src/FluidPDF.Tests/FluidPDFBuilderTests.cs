@@ -201,7 +201,8 @@ namespace FluidPDF.Tests
             IFluidPDFBuilder builder = Builder.FluidPDF.NewReport().WithObjectModel(TemplateModelMother.SimpleObject());
 
             // Act
-            Action act = () => builder.WithTemplateFile("C:\\nonexistent\\path\\template.html");
+            string missingPath = Path.Combine(Path.GetTempPath(), "nonexistent", "path", "template.html");
+            Action act = () => builder.WithTemplateFile(missingPath);
 
             // Assert
             act.Should().Throw<FileNotFoundException>();

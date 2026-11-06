@@ -111,7 +111,9 @@ namespace FluidPDF.Tests
         [Fact]
         public async Task ExtractFileName_ShouldReturnFileName_WhenPathIsProvided()
         {
-            string template = AssignAndFilter("'C:\\\\reports\\\\invoice.pdf'", "extract_file_name");
+            string path = Path.Combine(Path.GetTempPath(), "reports", "invoice.pdf");
+            string escapedPath = path.Replace("\\", "\\\\");
+            string template = AssignAndFilter($"'{escapedPath}'", "extract_file_name");
             string result = await RenderAsync(template);
             result.Should().Be("invoice.pdf");
         }
@@ -121,9 +123,12 @@ namespace FluidPDF.Tests
         [Fact]
         public async Task ExtractDirectoryName_ShouldReturnDirectory_WhenPathIsProvided()
         {
-            string template = AssignAndFilter("'C:\\\\reports\\\\invoice.pdf'", "extract_directory_name");
+            string directory = Path.Combine(Path.GetTempPath(), "reports");
+            string path = Path.Combine(directory, "invoice.pdf");
+            string escapedPath = path.Replace("\\", "\\\\");
+            string template = AssignAndFilter($"'{escapedPath}'", "extract_directory_name");
             string result = await RenderAsync(template);
-            result.Should().Be(@"C:\reports");
+            result.Should().Be(directory);
         }
 
         // ── starts_with ───────────────────────────────────────────────────────────
@@ -232,7 +237,9 @@ namespace FluidPDF.Tests
         [Fact]
         public async Task FileReadAllText_ShouldReturnEmpty_WhenFileDoesNotExist()
         {
-            string template = AssignAndFilter("'C:\\\\nonexistent\\\\file.txt'", "file_read_all_text");
+            string missingPath = Path.Combine(Path.GetTempPath(), "nonexistent", "file.txt");
+            string escapedPath = missingPath.Replace("\\", "\\\\");
+            string template = AssignAndFilter($"'{escapedPath}'", "file_read_all_text");
             string result = await RenderAsync(template);
             result.Should().BeEmpty();
         }
