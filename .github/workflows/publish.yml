@@ -1,0 +1,64 @@
+name: Publish
+
+# One tag per package: fluidpdf-v3.0.0, scriban-v1.0.0, razor-v1.0.0
+on:
+  push:
+    tags:
+      - 'fluidpdf-v*'
+      - 'scriban-v*'
+      - 'razor-v*'
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: read
+      id-token: write # enable GitHub OIDC token issuance for this job
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve package from tag
+        id: pkg
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          case "$TAG" in
+            fluidpdf-v*) PROJECT=FluidPDF ;;
+            scriban-v*)  PROJECT=FluidPDF.Scriban ;;
+            razor-v*)    PROJECT=FluidPDF.Razor ;;
+            *) echo "Unsupported tag: $TAG"; exit 1 ;;
+          esac
+          echo "project=$PROJECT" >> "$GITHUB_OUTPUT"
+          echo "version=${TAG#*-v}" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            9.0.x
+            10.0.x
+
+      - name: Test
+        run: dotnet test src/FluidPDF.sln -c Release --framework net10.0 --filter "Category!=E2E"
+
+      - name: Pack
+        run: dotnet pack src/${{ steps.pkg.outputs.project }}/${{ steps.pkg.outputs.project }}.csproj -c Release -o artifacts
+
+      - name: Check tag matches package version
+        shell: bash
+        run: |
+          if [ ! -f "artifacts/${{ steps.pkg.outputs.project }}.${{ steps.pkg.outputs.version }}.nupkg" ]; then
+            echo "Tag version ${{ steps.pkg.outputs.version }} does not match the csproj version"
+            ls artifacts
+            exit 1
+          fi
+
+      - name: NuGet login (OIDC -> temp API key)
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
+      - name: NuGet push
+        run: dotnet nuget push "artifacts/*.nupkg" --api-key ${{ steps.login.outputs.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate

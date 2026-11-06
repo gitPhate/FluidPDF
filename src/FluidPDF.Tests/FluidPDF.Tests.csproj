@@ -48,11 +48,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="E2E\Templates\" />
-    <Folder Include="TestResults\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Update="E2E\Data\*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
