@@ -1,31 +1,31 @@
 using FluentAssertions;
-using FluidPDF.Razor;
+using FluidPDF.Scriban;
 using FluidPDF.Support.IO;
 
-namespace FluidPDF.Tests.E2E.Reports
+namespace FluidPDF.Tests.E2E
 {
     [Trait("Category", "E2E")]
-    public class SalesOrderReportE2ETest : E2ETestBase
+    public class SalesOrderScribanReportE2ETest : E2ETestBase
     {
-        [Fact]
+        [Fact(Skip = "Manual E2E: requires real Chrome. Remove Skip to run.")]
         public async Task SalesOrder_ShouldProducePDF_WithRealChromium()
         {
             //Arrange
             string json = await FileHelper.ReadAllTextAsync("E2E/Data/SalesOrder.json");
-            string template = await FileHelper.ReadAllTextAsync("E2E/Templates/SalesOrder_Razor.cshtml");
+            string template = await FileHelper.ReadAllTextAsync("E2E/Templates/SalesOrder_Scriban.sbn");
 
             //Act
             byte[] pdfBytes =
                 await Builder.FluidPDF
                     .NewReport()
                     .WithExternalChromeProcess("C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe")
-                    .WithRazorTemplateEngine()
+                    .WithScribanTemplateEngine()
                     .WithTemplate(template)
                     .WithJsonStringModel(json)
                     .WithInchMargin(0.5M, 0.5M, 0.5M, 0.5M)
                     .BuildAsync();
 
-            string outPath = Path.Combine(OutputPath, "SalesOrder.pdf");
+            string outPath = Path.Combine(OutputPath, "SalesOrder_Scriban.pdf");
             await FileHelper.WriteAllBytesAsync(outPath, pdfBytes);
 
             //Assert

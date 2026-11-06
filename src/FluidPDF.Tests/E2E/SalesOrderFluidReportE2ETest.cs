@@ -1,12 +1,12 @@
 using FluentAssertions;
 using FluidPDF.Support.IO;
 
-namespace FluidPDF.Tests.E2E.Reports
+namespace FluidPDF.Tests.E2E
 {
     [Trait("Category", "E2E")]
     public class SalesOrderFluidReportE2ETest : E2ETestBase
     {
-        [Fact]
+        [Fact(Skip = "Manual E2E: requires real Chrome. Remove Skip to run.")]
         public async Task SalesOrder_ShouldProducePDF_WithRealChromium()
         {
             //Arrange
