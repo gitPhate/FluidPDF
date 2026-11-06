@@ -1,0 +1,99 @@
+{% comment %}
+  Model is a flat, join-shaped result set (one row per size line).
+  Levels: Customer > Order > Category > Product > Size lines.
+  Liquid has no group-by, so we use map/uniq for the keys and where for the rows.
+{% endcomment %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Sales orders</title>
+    <style>
+        @page { size: A4; }
+        body { font-family: Arial, sans-serif; font-size: 10pt; color: #222; }
+        .customer { page-break-after: always; }
+        .customer:last-child { page-break-after: auto; }
+        .customer-header { border-bottom: 2px solid #333; margin-bottom: 12px; }
+        .customer-header h1 { margin: 0; font-size: 16pt; }
+        .order { margin-bottom: 20px; }
+        .order h2 { margin: 12px 0 2px 0; font-size: 13pt; }
+        .notes { font-style: italic; color: #555; margin-bottom: 4px; }
+        h3 { background: #333; color: #fff; padding: 3px 8px; margin: 10px 0 4px 0; font-size: 11pt; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
+        th, td { border: 1px solid #ccc; padding: 3px 6px; text-align: left; }
+        th { background: #eee; }
+        .num { text-align: right; }
+        .product { break-inside: avoid; }
+        .subtotal td { font-weight: bold; background: #f7f7f7; }
+        .order-total { font-weight: bold; text-align: right; font-size: 11pt; }
+    </style>
+</head>
+<body>
+{% assign customer_ids = Model | map: "CustomerId" | uniq %}
+{% for customer_id in customer_ids %}
+    {% assign customer_rows = Model | where: "CustomerId", customer_id %}
+    {% assign customer_head = customer_rows | first %}
+    <div class="customer">
+        <div class="customer-header">
+            <h1>{{ customer_head.CustomerName }}</h1>
+            <div>{{ customer_head.CustomerCity }}, {{ customer_head.CustomerCountry }}</div>
+        </div>
+    {% assign order_ids = customer_rows | map: "OrderId" | uniq %}
+    {% for order_id in order_ids %}
+        {% assign order_rows = customer_rows | where: "OrderId", order_id %}
+        {% assign order_head = order_rows | first %}
+        {% assign order_total = 0 %}
+        {% assign order_pieces = 0 %}
+        {% for r in order_rows %}
+            {% assign line_amount = r.UnitPrice | times: r.Quantity %}
+            {% assign order_total = order_total | plus: line_amount %}
+            {% assign order_pieces = order_pieces | plus: r.Quantity %}
+        {% endfor %}
+        <div class="order">
+            <h2>Order {{ order_head.OrderNumber }} &middot; {{ order_head.OrderDate }}</h2>
+            {% if order_head.OrderNotes != nil %}
+            <div class="notes">{{ order_head.OrderNotes }}</div>
+            {% endif %}
+        {% assign categories = order_rows | map: "CategoryName" | uniq %}
+        {% for category in categories %}
+            {% assign category_rows = order_rows | where: "CategoryName", category %}
+            <h3>{{ category }}</h3>
+            {% assign skus = category_rows | map: "Sku" | uniq %}
+            {% for sku in skus %}
+                {% assign product_rows = category_rows | where: "Sku", sku %}
+                {% assign head = product_rows | first %}
+                {% assign qty = 0 %}
+                {% for r in product_rows %}
+                    {% assign qty = qty | plus: r.Quantity %}
+                {% endfor %}
+            <div class="product">
+                <strong>{{ sku }} - {{ head.ProductName }}</strong> ({{ head.Color }}) &middot; {{ head.UnitPrice | to_string: format: "F2" }} {{ head.Currency }}
+                <table>
+                    <thead>
+                        <tr><th>Size</th><th class="num">Qty</th><th class="num">Amount</th></tr>
+                    </thead>
+                    <tbody>
+                    {% for line in product_rows %}
+                        <tr>
+                            <td>{{ line.Size }}</td>
+                            <td class="num">{{ line.Quantity }}</td>
+                            <td class="num">{{ line.Quantity | times: line.UnitPrice | to_string: format: "F2" }}</td>
+                        </tr>
+                    {% endfor %}
+                        <tr class="subtotal">
+                            <td>Subtotal</td>
+                            <td class="num">{{ qty }}</td>
+                            <td class="num">{{ qty | times: head.UnitPrice | to_string: format: "F2" }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            {% endfor %}
+        {% endfor %}
+            <div class="order-total">Order total: {{ order_pieces }} pieces &middot; {{ order_total | to_string: format: "F2" }} {{ order_head.Currency }}</div>
+        </div>
+    {% endfor %}
+    </div>
+{% endfor %}
+</body>
+</html>

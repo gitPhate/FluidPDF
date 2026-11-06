@@ -1,0 +1,103 @@
+{{~
+# Model is a flat, join-shaped result set (one row per size line).
+# Levels: Customer > Order > Category > Product > Size lines.
+# Scriban has no group-by, so we filter the rows by key at each level.
+func where(rows, key, value)
+    $ret = []
+    for $r in rows
+        if $r[key] == value
+            $ret = $ret | array.add $r
+        end
+    end
+    ret $ret
+end
+~}}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Sales orders</title>
+    <style>
+        @page { size: A4; }
+        body { font-family: Arial, sans-serif; font-size: 10pt; color: #222; }
+        .customer { page-break-after: always; }
+        .customer:last-child { page-break-after: auto; }
+        .customer-header { border-bottom: 2px solid #333; margin-bottom: 12px; }
+        .customer-header h1 { margin: 0; font-size: 16pt; }
+        .order { margin-bottom: 20px; }
+        .order h2 { margin: 12px 0 2px 0; font-size: 13pt; }
+        .notes { font-style: italic; color: #555; margin-bottom: 4px; }
+        h3 { background: #333; color: #fff; padding: 3px 8px; margin: 10px 0 4px 0; font-size: 11pt; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
+        th, td { border: 1px solid #ccc; padding: 3px 6px; text-align: left; }
+        th { background: #eee; }
+        .num { text-align: right; }
+        .product { break-inside: avoid; }
+        .subtotal td { font-weight: bold; background: #f7f7f7; }
+        .order-total { font-weight: bold; text-align: right; font-size: 11pt; }
+    </style>
+</head>
+<body>
+{{~ for customer_id in Model | array.map "CustomerId" | array.uniq
+    customer_rows = where Model "CustomerId" customer_id
+    customer_head = customer_rows | array.first ~}}
+    <div class="customer">
+        <div class="customer-header">
+            <h1>{{ customer_head.CustomerName }}</h1>
+            <div>{{ customer_head.CustomerCity }}, {{ customer_head.CustomerCountry }}</div>
+        </div>
+{{~ for order_id in customer_rows | array.map "OrderId" | array.uniq
+    order_rows = where customer_rows "OrderId" order_id
+    order_head = order_rows | array.first
+    order_total = 0
+    order_pieces = 0
+    for r in order_rows
+        order_total = order_total + r.UnitPrice * r.Quantity
+        order_pieces = order_pieces + r.Quantity
+    end ~}}
+        <div class="order">
+            <h2>Order {{ order_head.OrderNumber }} &middot; {{ order_head.OrderDate }}</h2>
+{{~ if order_head.OrderNotes ~}}
+            <div class="notes">{{ order_head.OrderNotes }}</div>
+{{~ end
+    for category in order_rows | array.map "CategoryName" | array.uniq
+        category_rows = where order_rows "CategoryName" category ~}}
+            <h3>{{ category }}</h3>
+{{~ for sku in category_rows | array.map "Sku" | array.uniq
+        product_rows = where category_rows "Sku" sku
+        head = product_rows | array.first
+        qty = 0
+        for r in product_rows
+            qty = qty + r.Quantity
+        end ~}}
+            <div class="product">
+                <strong>{{ sku }} - {{ head.ProductName }}</strong> ({{ head.Color }}) &middot; {{ head.UnitPrice | math.format "0.00" }} {{ head.Currency }}
+                <table>
+                    <thead>
+                        <tr><th>Size</th><th class="num">Qty</th><th class="num">Amount</th></tr>
+                    </thead>
+                    <tbody>
+{{~ for line in product_rows ~}}
+                        <tr>
+                            <td>{{ line.Size }}</td>
+                            <td class="num">{{ line.Quantity }}</td>
+                            <td class="num">{{ line.Quantity * line.UnitPrice | math.format "0.00" }}</td>
+                        </tr>
+{{~ end ~}}
+                        <tr class="subtotal">
+                            <td>Subtotal</td>
+                            <td class="num">{{ qty }}</td>
+                            <td class="num">{{ qty * head.UnitPrice | math.format "0.00" }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+{{~ end
+    end ~}}
+            <div class="order-total">Order total: {{ order_pieces }} pieces &middot; {{ order_total | math.format "0.00" }} {{ order_head.Currency }}</div>
+        </div>
+{{~ end ~}}
+    </div>
+{{~ end ~}}
+</body>
+</html>
