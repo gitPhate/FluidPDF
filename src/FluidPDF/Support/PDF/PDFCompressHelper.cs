@@ -1,27 +1,33 @@
-﻿using PdfSharp.Pdf;
-using PdfSharp.Pdf.IO;
-using System.IO;
-using System.Threading.Tasks;
+﻿using System.IO;
+using UglyToad.PdfPig;
+using UglyToad.PdfPig.Writer;
 
 namespace FluidPDF.Support.PDF
 {
     internal static class PDFCompressHelper
     {
-        public static async Task<byte[]> CompressPDFAsync(byte[] data)
+        /// <summary>
+        /// Regenerates the PDF by copying every page into a new document written with
+        /// <see cref="PdfWriterType.ObjectInMemoryDedup"/>, so identical objects repeated across
+        /// pages (fonts, images) are stored once. Annotations (e.g. links) are preserved.
+        /// </summary>
+        public static byte[] CompressPDF(byte[] data)
         {
-            using MemoryStream pdfStream = new(data);
-            using MemoryStream compressedStream = new();
-            using PdfDocument inputDocument = PdfReader.Open(pdfStream, PdfDocumentOpenMode.Import);
-            using PdfDocument outputDocument = new();
+            using PdfDocument inputDocument = PdfDocument.Open(data);
+            using MemoryStream outputStream = new();
+            PdfDocumentBuilder.AddPageOptions pageOptions = new() { KeepAnnotations = true };
 
-            foreach (PdfPage page in inputDocument.Pages)
+            using (PdfDocumentBuilder outputDocument = new(outputStream, false, PdfWriterType.ObjectInMemoryDedup))
             {
-                outputDocument.AddPage(page);
+                for (int pageNumber = 1; pageNumber <= inputDocument.NumberOfPages; pageNumber++)
+                {
+                    outputDocument.AddPage(inputDocument, pageNumber, pageOptions);
+                }
+
+                outputDocument.Build();
             }
 
-            await outputDocument.SaveAsync(compressedStream).ConfigureAwait(false);
-
-            return compressedStream.ToArray();
+            return outputStream.ToArray();
         }
     }
 }

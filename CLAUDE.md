@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-FluidPDF is a .NET library (NuGet) that renders an HTML template against a data model with a template engine, then prints the HTML to PDF via headless Chromium (PuppeteerSharp). PDFsharp is used for optional compression.
+FluidPDF is a .NET library (NuGet) that renders an HTML template against a data model with a template engine, then prints the HTML to PDF via headless Chromium (PuppeteerSharp). PdfPig is used for optional compression (page regeneration with object de-duplication) and, in tests, to build/inspect PDFs.
 
 Solution: `src/FluidPDF.sln`
 

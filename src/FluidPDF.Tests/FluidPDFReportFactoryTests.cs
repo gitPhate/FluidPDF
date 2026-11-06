@@ -52,6 +52,26 @@ namespace FluidPDF.Tests
         }
 
         [Fact]
+        public async Task CompileReportAsync_ShouldReturnValidPdfBytes_WhenCompressionIsEnabled()
+        {
+            // Arrange
+            IChromiumRetriever retriever = ChromiumRetrieverMock.CreateWithSinglePagePdf(out _, out _);
+            FluidTemplateEngine templateEngine = new();
+            FluidPDFReportFactory factory = new(templateEngine, retriever);
+            FluidPDFTemplateModel model = FluidPDFTemplateModel.FromObject(TemplateModelMother.SimpleObject());
+
+            // Act
+            byte[] result = await factory.CompileReportAsync(
+                TemplateModelMother.SimpleTemplate,
+                model,
+                new FluidPDFReportOptions { ToBeCompressed = true });
+
+            // Assert
+            PDFDocumentMother.IsValidPDF(result).Should().BeTrue();
+            PDFDocumentMother.GetPageCount(result).Should().Be(1);
+        }
+
+        [Fact]
         public async Task CompileReportAsync_ShouldCloseBrowserAndPage_WhenRenderCompletes()
         {
             // Arrange

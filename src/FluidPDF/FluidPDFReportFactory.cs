@@ -90,7 +90,7 @@ namespace FluidPDF
 
                 if (reportOptions.ToBeCompressed)
                 {
-                    data = await PDFCompressHelper.CompressPDFAsync(data).ConfigureAwait(false);
+                    data = PDFCompressHelper.CompressPDF(data);
                 }
 
                 return data;

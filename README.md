@@ -277,7 +277,7 @@ All model methods have a `modelName` property with default value `Model` to chan
 | `WithPixelMargin(bottom, left, right, top)` | Per-side margin in pixels |
 | `WithScalePercentage(int)` | Page scale 10–200 (default: 100) |
 | `WithCulture(string)` | Culture code for number/date formatting |
-| `WithPDFCompression()` | Re-encode the PDF via PDFsharp to reduce file size |
+| `WithPDFCompression()` | Regenerate the PDF via PdfPig, de-duplicating repeated objects (fonts, images) to reduce file size |
 | `WithHtmlEncode()` | Encode HTML tags |
 | `BuildAsync()` | Generate and return `byte[]` |
 | `BuildAsync(Stream)` | Generate and write to a stream |
