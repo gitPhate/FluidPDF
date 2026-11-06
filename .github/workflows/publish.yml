@@ -40,7 +40,7 @@ jobs:
             10.0.x
 
       - name: Test
-        run: dotnet test src/FluidPDF.sln -c Release --framework net10.0 --filter "Category!=E2E"
+        run: dotnet test --solution src/FluidPDF.sln -c Release --framework net10.0 --filter-not-trait "Category=E2E"
 
       - name: Pack
         run: dotnet pack src/${{ steps.pkg.outputs.project }}/${{ steps.pkg.outputs.project }}.csproj -c Release -o artifacts

@@ -18,10 +18,10 @@ Run from the repo root.
 
 ```bash
 dotnet build src/FluidPDF.sln
-dotnet test src/FluidPDF.sln
-dotnet test src/FluidPDF.sln --framework net10.0
-dotnet test src/FluidPDF.sln --filter "FullyQualifiedName~FluidTemplateEngineTests.RenderWithObject_ReturnsRenderedTemplate"   # single test
-dotnet test src/FluidPDF.sln --filter "Category!=E2E"    # skip tests needing real Chrome
+dotnet test --solution src/FluidPDF.sln
+dotnet test --solution src/FluidPDF.sln --framework net10.0
+dotnet test --solution src/FluidPDF.sln --filter "FullyQualifiedName~FluidTemplateEngineTests.RenderWithObject_ReturnsRenderedTemplate"   # single test
+dotnet test --solution src/FluidPDF.sln --filter-not-trait "Category=E2E"    # skip tests needing real Chrome
 dotnet pack src/FluidPDF/FluidPDF.csproj -c Release      # likewise Scriban / Razor csproj
 ```
 
