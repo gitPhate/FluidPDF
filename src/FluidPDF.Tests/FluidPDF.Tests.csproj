@@ -53,13 +53,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="E2E\Data\RenderedPractice.json">
+    <None Update="E2E\Data\SalesOrder.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="E2E\Data\RenderedPractice_flat.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="E2E\Templates\RenderedPractice_Razor.cshtml">
+    <None Update="E2E\Templates\SalesOrder_Razor.cshtml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

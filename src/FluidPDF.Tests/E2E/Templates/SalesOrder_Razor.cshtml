@@ -1,0 +1,99 @@
+@using System
+
+@{
+    // Items is a flat, join-shaped result set (one row per size line).
+    // Levels: Customer > Order > Category > Product > Size lines.
+    var customers = Items.GroupBy(x => (int)Convert.ToInt32(x.CustomerId));
+}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Sales orders</title>
+    <style>
+        @@page { size: A4; }
+        body { font-family: Arial, sans-serif; font-size: 10pt; color: #222; }
+        .customer { page-break-after: always; }
+        .customer:last-child { page-break-after: auto; }
+        .customer-header { border-bottom: 2px solid #333; margin-bottom: 12px; }
+        .customer-header h1 { margin: 0; font-size: 16pt; }
+        .order { margin-bottom: 20px; }
+        .order h2 { margin: 12px 0 2px 0; font-size: 13pt; }
+        .notes { font-style: italic; color: #555; margin-bottom: 4px; }
+        h3 { background: #333; color: #fff; padding: 3px 8px; margin: 10px 0 4px 0; font-size: 11pt; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
+        th, td { border: 1px solid #ccc; padding: 3px 6px; text-align: left; }
+        th { background: #eee; }
+        .num { text-align: right; }
+        .product { break-inside: avoid; }
+        .subtotal td { font-weight: bold; background: #f7f7f7; }
+        .order-total { font-weight: bold; text-align: right; font-size: 11pt; }
+    </style>
+</head>
+<body>
+    @foreach (var customer in customers)
+    {
+        dynamic customerHead = customer.First();
+        var orders = customer.GroupBy(x => (int)Convert.ToInt32(x.OrderId));
+        <div class="customer">
+            <div class="customer-header">
+                <h1>@customerHead.CustomerName</h1>
+                <div>@customerHead.CustomerCity, @customerHead.CustomerCountry</div>
+            </div>
+
+            @foreach (var order in orders)
+            {
+                dynamic orderHead = order.First();
+                var categories = order.GroupBy(x => (string)x.CategoryName);
+                decimal orderTotal = order.Sum(x => (decimal)(Convert.ToDecimal(x.UnitPrice) * Convert.ToInt32(x.Quantity)));
+                int orderPieces = order.Sum(x => (int)Convert.ToInt32(x.Quantity));
+                <div class="order">
+                    <h2>Order @orderHead.OrderNumber &middot; @orderHead.OrderDate</h2>
+                    @if (orderHead.OrderNotes != null)
+                    {
+                        <div class="notes">@orderHead.OrderNotes</div>
+                    }
+
+                    @foreach (var category in categories)
+                    {
+                        var products = category.GroupBy(x => (string)x.Sku);
+                        <h3>@category.Key</h3>
+                        foreach (var product in products)
+                        {
+                            dynamic head = product.First();
+                            decimal price = Convert.ToDecimal(head.UnitPrice);
+                            int qty = product.Sum(x => (int)Convert.ToInt32(x.Quantity));
+                            <div class="product">
+                                <strong>@product.Key - @head.ProductName</strong> (@head.Color) &middot; @price.ToString("0.00") @head.Currency
+                                <table>
+                                    <thead>
+                                        <tr><th>Size</th><th class="num">Qty</th><th class="num">Amount</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (dynamic line in product)
+                                        {
+                                            int lineQty = Convert.ToInt32(line.Quantity);
+                                            <tr>
+                                                <td>@line.Size</td>
+                                                <td class="num">@lineQty</td>
+                                                <td class="num">@((lineQty * price).ToString("0.00"))</td>
+                                            </tr>
+                                        }
+                                        <tr class="subtotal">
+                                            <td>Subtotal</td>
+                                            <td class="num">@qty</td>
+                                            <td class="num">@((qty * price).ToString("0.00"))</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    }
+
+                    <div class="order-total">Order total: @orderPieces pieces &middot; @orderTotal.ToString("0.00") @orderHead.Currency</div>
+                </div>
+            }
+        </div>
+    }
+</body>
+</html>
