@@ -1,4 +1,5 @@
 using RazorEngineCore;
+using System.Collections.Generic;
 using System.Text.Encodings.Web;
 
 namespace FluidPDF.Razor
@@ -10,6 +11,8 @@ namespace FluidPDF.Razor
         public bool EncodeHtml { get; set; }
 
         public dynamic? Resx { get; set; }
+
+        public IEnumerable<dynamic> Items => (IEnumerable<dynamic>)Model;
 
         public static object Raw(object? value) => new RawContent(value);
 
