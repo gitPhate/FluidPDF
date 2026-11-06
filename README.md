@@ -231,12 +231,12 @@ The cache is accessed in a thread-safe way, so new implementations do not have t
 
 ### Model Types
 Models are the data available inside the template. They can be passed in different formats:
-- DataTable: a generic data table, useful for dynamic data possibly returned from a query
-- DataRow:  a generic data row, added because required to make the `DataTable` model type work
-- Dictionary: dictionary of values (untyped object values) and string keys
-- JsonString: a json representing the model object
-- Object: a custom object that will be available as the model object
-- PlainValue: a raw value which is directly bound to the model object
+- `DataTable`: a generic data table, useful for dynamic data possibly returned from a query
+- `DataRow`:  a generic data row, added because required to make the `DataTable` model type work
+- `Dictionary`: dictionary of values (untyped object values) and string keys
+- `JsonString`: a json representing the model object
+- `Object`: a custom object that will be available as the model object
+- `PlainValue`: a raw value which is directly bound to the model object
 
 When using `FluidPDFReportFactory` directly, wrap your data in a `FluidPDFTemplateModel`.
 Multiple models can be passed as an array to `RenderTemplateAsync(string, FluidPDFTemplateModel[], ...)`,
@@ -244,9 +244,11 @@ each accessible in the template by its assigned name.
 
 
 ## History
-This library is born after my frustration with existing reporting tools, especially SSRS which was widely used in my company. I had recently discovered _PuppeteerSharp_ and an idea came to my mind - what if I can create PDF reports from HTML?<br/>
-The core idea of this library has remained the same: make reports quick and easy.<br/>
-FluidPDF v2.x and lower are the production versions before going open source, they are not released in this repo.
+This library is born after my frustration with existing reporting tools, especially `SSRS` and `SAP Crystal Reports` which were widely used in my company. I had recently discovered `PuppeteerSharp` and an idea came to my mind - what if I can create PDF reports from HTML?
+
+The core idea of this library has remained the same: make reports quick and easy.
+
+`FluidPDF` v2.x and lower are the production versions before going open source, they are not released in this repo.
 
 ## API Reference
 
