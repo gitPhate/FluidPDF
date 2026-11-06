@@ -29,5 +29,39 @@ namespace FluidPDF.Tests
             // Assert
             await act.Should().ThrowAsync<FluidTemplateRenderException>();
         }
+
+        // --- Engine-specific: JSON scalars behave as real Liquid values ---
+
+        [Fact]
+        public async Task RenderTemplateAsync_ShouldDoArithmeticOnJsonNumbers_WhenJsonArrayIsProvided()
+        {
+            // Arrange
+            const string json = """[{"Price": 2.5, "Qty": 4}, {"Price": 1, "Qty": 3}]""";
+            const string template = "{% for r in Model %}{{ r.Price | times: r.Qty | round }}|{% endfor %}";
+            using FluidTemplateEngine templateEngine = new();
+
+            // Act
+            string result = await templateEngine.RenderTemplateAsync(template, json, new());
+
+            // Assert
+            result.Should().Be("10|3|");
+        }
+
+        [Fact]
+        public async Task RenderTemplateAsync_ShouldGroupJsonValues_WhenUsingUniqAndWhere()
+        {
+            // Arrange
+            const string json = """[{"G": 1, "N": "a"}, {"G": 2, "N": "b"}, {"G": 1, "N": "c"}]""";
+            const string template =
+                "{% assign keys = Model | map: 'G' | uniq %}" +
+                "{% for k in keys %}{{ k }}:{% assign rows = Model | where: 'G', k %}{{ rows | size }};{% endfor %}";
+            using FluidTemplateEngine templateEngine = new();
+
+            // Act
+            string result = await templateEngine.RenderTemplateAsync(template, json, new());
+
+            // Assert
+            result.Should().Be("1:2;2:1;");
+        }
     }
 }

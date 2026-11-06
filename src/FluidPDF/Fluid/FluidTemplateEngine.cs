@@ -192,10 +192,7 @@ namespace FluidPDF.Fluid
             templateOptions.MemberAccessStrategy.Register<JsonArray, object>((src, name) => src[name]!);
             templateOptions.MemberAccessStrategy.Register<JsonNode, object>((src, name) => src[name]!);
 
-            templateOptions.ValueConverters.Add(x => x is JsonArray o ? new ArrayValue(o.Select(x => new ObjectValue(x)).ToArray()) : null);
-            templateOptions.ValueConverters.Add(x => x is JsonNode o ? new ObjectValue(o) : null);
-            templateOptions.ValueConverters.Add(x => x is JsonValue o ? new ObjectValue(o) : null);
-            templateOptions.ValueConverters.Add(x => x is JsonObject o ? new ObjectValue(o) : null);
+            templateOptions.ValueConverters.Add(x => x is JsonNode o ? JsonNodeToFluidValue(o) : null);
 
             // Register built-in filters and tags
             FluidFilters.Register(templateOptions);
@@ -227,6 +224,36 @@ namespace FluidPDF.Fluid
 
             return templateOptions;
         }
+
+        // JSON scalars must become real Fluid values: wrapping them in an ObjectValue makes
+        // number filters (times, plus...) throw and breaks equality-based ones (uniq, where).
+        private static FluidValue JsonNodeToFluidValue(JsonNode? node)
+        {
+            switch (node)
+            {
+                case null:
+                    return NilValue.Instance;
+                case JsonArray array:
+                    return new ArrayValue(array.Select(JsonNodeToFluidValue).ToArray());
+                case JsonValue value:
+                    return JsonScalarToFluidValue(value);
+                default:
+                    return new ObjectValue(node);
+            }
+        }
+
+        private static FluidValue JsonScalarToFluidValue(JsonValue value) =>
+            value.GetValueKind() switch
+            {
+                JsonValueKind.String => new StringValue(value.GetValue<string>()),
+                JsonValueKind.Number => 
+                    value.TryGetValue(out decimal number)
+                        ? NumberValue.Create(number)
+                        : NumberValue.Create(Convert.ToDecimal(value.GetValue<double>(), CultureInfo.InvariantCulture)),
+                JsonValueKind.True => BooleanValue.True,
+                JsonValueKind.False => BooleanValue.False,
+                _ => NilValue.Instance,
+            };
 
         public void Dispose()
         {
