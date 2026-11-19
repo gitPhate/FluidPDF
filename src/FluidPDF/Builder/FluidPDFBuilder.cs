@@ -335,7 +335,7 @@ namespace FluidPDF.Builder
 
             StringBuilder builder = new();
 
-            if (_template.IsNullOrBlankString())
+            if (_template.IsNullOrBlankString() && _templateFilePath.IsNullOrBlankString())
             {
                 builder.AppendLine("The template is missing (file or string)");
             }

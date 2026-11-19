@@ -209,6 +209,32 @@ namespace FluidPDF.Tests
         }
 
         [Fact]
+        public async Task BuildAsync_ShouldRenderTemplateFromFile_WhenWithTemplateFileIsCalled()
+        {
+            // Arrange
+            IChromiumRetriever retriever = ChromiumRetrieverMock.CreateWithSinglePagePdf(out _, out _);
+            string templatePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N") + ".html");
+            File.WriteAllText(templatePath, TemplateModelMother.SimpleTemplate);
+
+            try
+            {
+                using FluidPDFBuilder builder = new(retriever);
+                builder.WithObjectModel(TemplateModelMother.SimpleObject());
+                builder.WithTemplateFile(templatePath);
+
+                // Act
+                byte[] pdf = await builder.BuildAsync();
+
+                // Assert
+                pdf.Should().NotBeEmpty();
+            }
+            finally
+            {
+                File.Delete(templatePath);
+            }
+        }
+
+        [Fact]
         public void WithExternalChromeProcess_ShouldThrowArgumentNullException_WhenNullIsPassedAsPath()
         {
             // Arrange
